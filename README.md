@@ -2,7 +2,59 @@
 
 PDF::API6 - Facilitates the creation and modification of PDF files
 
+# DESCRIPTION
+
 A Perl 6 PDF tool-chain; reminiscent of Perl 5's PDF::API2.
+
+This module is a work in progress in replicating, or mapping the functionality of Perl 5's PDF::API2 toolchain.
+
+# DIFFERENCES BETWEEN PDF::API2 AND PDF::API6
+
+## PDF::API6
+
+- Has a Graphics State engine. This is based on the graphics operators and variables as described PDF 32000 chapter 8 "Graphics and the operators".
+
+- Supports the creation and manipulation of XObject Forms and Patterns.
+
+- Implements an Object Graph model for data access. A PDF file is modelled as an object tree of Dictionaries (Hashes) and Arrays that contain simpler
+values such as Integers, Reals and Strings.
+
+- Has fast incremental updates. Small changes to a large PDF can often be quite efficiently.
+
+# TODO
+
+Some PDF::API2 features that are not yet available in PDF::API6
+
+- Fonts. PDF::API6 currently only handles the standard 14 core fonts. No yet supported:
+
+    - `psfont' - for loading postscript fonts
+    - `ttfont` - for loading true type fonts
+    - `synfont` - for creating synthetic fonts
+    - `bdfont` - for creating BDF fonts
+    - `unifont` - for Unicode fonts
+
+- Images. PDF::API6 supports PNG, JPEG and GIF images
+
+    - currently not supported are: TIFF, PNM and GIF images.
+
+- ColorSpaces. PDF::API6 supports Gray, RGB and CMYK colors. Not supported yet:
+
+    - Separation Colorspaces
+    - DeviceN Colorspaces
+
+- Annotations
+
+    - no support yet
+
+- Outlines
+
+    - no support yet
+
+- Destinations
+
+    - no support yet
+
+PDF::API2 feature
 
 # SYNOPSIS
 
@@ -21,19 +73,20 @@ A Perl 6 PDF tool-chain; reminiscent of Perl 5's PDF::API2.
     $page = $pdf.page($page_number);
 
     # Set the page size
-    $page.mediabox('Letter');
+    use PDF::Content::Page :PageSizes;
+    $page.MediaBox = Letter;
 
     # Add a built-in font to the PDF
-    $font = $pdf.corefont('Helvetica-Bold');
+    $font = $pdf.core-font('Helvetica-Bold');
 
     # Add an external TTF font to the PDF
     #NYI $font = $pdf.ttfont('/path/to/font.ttf');
 
     # Add some text to the page
-    $page.text: -> $text {
-        $text.font($font, 20);
-        $text.translate(200, 700);
-        $text.print('Hello World!');
+    $page.text: {
+        .font = $font, 20;
+        .TextMove = 200, 700;
+        .say('Hello World!');
     }
 
     # Save the PDF
@@ -244,6 +297,13 @@ parameter is to be retained unchanged.
 
 ### Example
 
-    my PDF::API6 $pdf .= new;
-    my $page = $pdf.add-page;
-    $pdf.preferences: :hidetoolbar, :first-page{ :$page, :fitv(10) };
+[see examples/preferences.p6](examples/preferences.p6)
+
+## Pages (PDF::API2::Page)
+
+## XObjects and Patterns
+
+## Extended Graphics State
+
+...
+
