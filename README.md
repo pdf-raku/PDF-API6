@@ -4,7 +4,7 @@ PDF::API6 - Facilitates the creation and modification of PDF files
 
 # DESCRIPTION
 
-A Perl 6 PDF tool-chain; reminiscent of Perl 5's PDF::API2.
+A Perl 6 PDF module; reminiscent of Perl 5's PDF::API2.
 
 This module is a work in progress in replicating, or mapping the functionality of Perl 5's PDF::API2 toolchain.
 
@@ -44,30 +44,24 @@ Some PDF::API2 features that are not yet available in PDF::API6
 
 - Annotations
 
-    - no support yet
-
 - Outlines
-
-    - no support yet
 
 - Destinations
 
-    - no support yet
-
-PDF::API2 feature
+- Page Labels (and page trees)
 
 # SYNOPSIS
 
     use PDF::API6;
 
     # Create a blank PDF file
-    $pdf = PDF::API6.new();
+    my PDF::API6 $pdf .= new();
 
     # Open an existing PDF file
     $pdf = PDF::API6.open('some.pdf');
 
     # Add a blank page
-    $page = $pdf.add-page();
+    my $page = $pdf.add-page();
 
     # Retrieve an existing page
     $page = $pdf.page($page_number);
@@ -100,12 +94,12 @@ Creates a new PDF object.
 #### Example
 
     my PDF::API6 $pdf .= new();
-    ...
+    #...
     print $pdf.Str;
     $fh.write: $pdf.Blob;
 
     $pdf = PDF::API6.new();
-    ...
+    #...
     $pdf.save-as('our/new.pdf');
 
 
@@ -116,11 +110,11 @@ Opens an existing PDF file.
 #### Example
 
     my PDF::API6 $pdf .= open('our/old.pdf');
-    ...
+    #...
     $pdf.save-as('our/new.pdf');
 
     $pdf = PDF::API6.open('our/to/be/updated.pdf');
-    ...
+    #...
     $pdf.update();
 
     # open from a stream
@@ -295,9 +289,62 @@ the page magnified by the factor zoom. A zero (0) value for any of the
 parameters left, top, or zoom specifies that the current value of that
 parameter is to be retained unchanged.
 
-### Example
+#### Examples
 
-[see examples/preferences.p6](examples/preferences.p6)
+    $pdf.preferences: :hide-toolbar, :first-page{ :page(2), :fit };
+
+[see also examples/preferences.p6](examples/preferences.p6)
+
+### $pdf.version = v1.5;
+
+Get or set the PDF Version
+
+## Encryption
+
+Open an encrypted document:
+
+    PDF::API6.open( "enc.pdf", :password<shh1> );
+
+Encrypt a PDF:
+
+    $pdf.encrypt( :owner-pass<ssh1>, :user-pass<abc>, :aes );
+
+Check if document is encrypted
+
+    if $pdf.is-encrypted
+
+## %info = $pdf.info;
+
+Gets/sets the info for the document
+
+    $pdf.info<Title> = 'Some Publication';
+
+## Str $xml = $pdf.xmp-metadata;
+
+Gets/sets the XMP XML data stream.
+
+Example:
+
+    my $xml = q:to<EOT>;
+        <?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?>
+        <?adobe-xap-filters esc="CRLF"?>
+        <x:xmpmeta
+          xmlns:x='adobe:ns:meta/'
+          x:xmptk='XMP toolkit 2.9.1-14, framework 1.6'>
+            <rdf:RDF
+              xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+              xmlns:iX='http://ns.adobe.com/iX/1.0/'>
+                <rdf:Description
+                  rdf:about='uuid:b8659d3a-369e-11d9-b951-000393c97fd8'
+                  xmlns:pdf='http://ns.adobe.com/pdf/1.3/'
+                  pdf:Producer='Acrobat Distiller 6.0.1 for Macintosh'></rdf:Description>
+                </rdf:Description>
+            </rdf:RDF>
+        </x:xmpmeta>
+        <?xpacket end='w'?>
+        EOT
+
+    $pdf.xmp-metadata = $xml
 
 ## Pages (PDF::API2::Page)
 

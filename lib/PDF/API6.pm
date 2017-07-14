@@ -1,6 +1,6 @@
 use PDF::Lite;
 
-class PDF::API6
+class PDF::API6:ver<0.0.1>
     is PDF::Lite {
 
     use PDF::DAO;
@@ -18,6 +18,59 @@ class PDF::API6
     sub name($name) { PDF::DAO.coerce: :$name }
 
     subset PageRef where {!.defined || $_ ~~ UInt|PDF::Content::Page};
+
+    method open(|c) {
+	my $doc = callsame;
+	die "PDF file has wrong type: " ~ $doc.reader.type
+	    unless $doc.reader.type eq 'PDF';
+	$doc;
+    }
+
+    method catalog { self<Root> }
+
+    method save-as($spec, Bool :$update is copy, |c) {
+
+	if !$update and self.reader {
+            with $.catalog<AcroForm> {
+                # guard against signature invalidation
+                my $sig-flags = .<SigFlags>;
+                constant AppendOnly = 2;
+                if $sig-flags && $sig-flags.flag-is-set: AppendOnly {
+                    with $update {
+                        # callee has specified :!update
+                        die "This PDF contains digital signatures that will be invalidated with .save-as :!update"
+                    }
+                    else {
+                        # set :update to preserve digital signatures
+                        $update = True;
+                    }
+                }
+            }
+	}
+
+        do {
+            my $now = DateTime.now;
+            my $Info = self<Info> //= {};
+            $Info<Producer> //= "Perl 6 PDF::API6 {self.^ver}";
+            with self.reader {
+                # updating
+                $Info<ModDate> = $now;
+            }
+            else {
+                # creating
+                $Info<CreationDate> //= $now
+            }
+        }
+	nextwith($spec, :$update, |c);
+    }
+
+    method update(|c) {
+        # for the benefit of the test suite
+        my $now = DateTime.now;
+        my $Info = self<Info> //= {};
+        $Info<ModDate> = $now;
+        nextsame;
+    }
 
     method preferences(
         Bool :$hide-toolbar,
@@ -44,7 +97,7 @@ class PDF::API6
             List    :$xyz where nums($_,3),
         ) where { .keys == 0 || .<page> }
         ) {
-        my $catalog = $.Root;
+        my $catalog = $.catalog;
 
         $catalog<PageMode> = name( %(
             :fullscreen<FullScreen>,
@@ -118,5 +171,25 @@ class PDF::API6
                 }
             }
         }
+    }
+
+    method version {
+        Proxy.new(
+            FETCH => sub ($) {
+                Version.new: $.catalog<Version> // self.reader.?version // '1.4'
+            },
+            STORE => sub ($, Version $v) {
+                $.catalog<Version> = name( $v.Str );
+            },
+        );
+    }
+
+    method is-encrypted { ? self.Encrypt }
+    method info { self<Info> //= {} }
+    method xmp-metadata is rw {
+        my $metadata = $.catalog<Metadata> //= PDF::DAO.coerce: :stream{
+            :dict{ :Type( name(<Metadata>) ), :Subtype( :name(<XML>) ) } };
+
+        $metadata.decoded; # rw target
     }
 }
