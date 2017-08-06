@@ -5,7 +5,7 @@ use PDF::API6;
 
 my PDF::API6 $pdf .= new;
 
-is $pdf.version, v1.4, 'PDF default version';
+is $pdf.version, v1.3, 'PDF default version';
 lives-ok { $pdf.version = v1.5 }, 'set version';
 is $pdf.version, v1.5, 'PDF updated version';
 

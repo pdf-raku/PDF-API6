@@ -203,28 +203,28 @@ class PDF::API6:ver<0.0.1>
          :AlphaUpper<A> :AlphaLower<a>
         »;
 
-    sub coerce-page-label(Hash $_) {
-        my % = .pairs.map: {
-            .key => .value ~~ Int ?? .value !! to-name(.value.Str)
+    sub coerce-page-label(Hash $l) {
+        my % = $l.keys.map: {
+            when 'style'|'S'  { S  => to-name($l{$_}.Str) }
+            when 'start'|'St' { St => $l{$_}.Int }
+            when 'prefix'|'P' { P  => to-name($l{$_}.Str) }
+            default { warn "ignoring PageLabel field: $_" } 
         }
     }
 
-    sub coerce-page-labels(List $_) {
+    subset PageLabelEntry of Pair where {.key ~~ UInt && .value ~~ Hash }
+
+    sub coerce-page-labels($labels) {
         my @page-labels;
-        my $elems = .elems;
-        fail "PageLabel array has odd number of elements: {.perl}"
-            unless $elems %% 2;
         my UInt $seq;
-        loop (my $n = 0; $n < $elems;) {
-            my $idx = .[$n++];
-            fail "non-numeric PageLabel index at offset $n: $idx"
-                unless $idx ~~ UInt;
+        my UInt $n = 0;
+        for $labels.list {
+            my $idx  = .key;
+            my $dict = .value;
+            ++$n;
             fail "out of sequence PageLabel index at offset $n: $idx"
                 if $seq.defined && $idx <= $seq;
             $seq = $idx;
-            my $dict = .[$n++];
-            fail "page label is not a dict at offset $n"
-                unless $dict ~~ Hash;
             @page-labels.push: $seq;
             @page-labels.push: coerce-page-label($dict);
         }
@@ -233,8 +233,9 @@ class PDF::API6:ver<0.0.1>
 
     method PageLabels {
         Proxy.new(
-            STORE => sub ($, List $labels) {
-                $.catalog<PageLabels> = coerce-page-labels($labels);
+            STORE => sub ($, List $_) {
+                my PageLabelEntry @labels = .list;
+                $.catalog<PageLabels> = coerce-page-labels(@labels);
             },
             FETCH => sub ($) {
                 $.catalog<PageLabels>;

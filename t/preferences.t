@@ -23,13 +23,17 @@ is $open-action.elems, 2, 'OpenAction elems';
 is-deeply $open-action[0], $page, 'OpenAction[0]';
 is $open-action[1], 'Fit', 'OpenAction[1]';
 
-my @PageLabels = 0 , { :style(PageLabel::RomanUpper) },
-                 4 , { :style(PageLabel::Decimal) },
-                 32, { :start(1), :prefix<A-> },
-                 36, { :start(1), :prefix<B-> },
-                 40, { :Style(PageLabel::RomanUpper), :start(1), :prefix<B-> };
+$pdf.PageLabels = 0 => { :style(PageLabel::RomanUpper) },
+                  4 => { :style(PageLabel::Decimal) },
+                  32 => { :start(1), :prefix<A-> },
+                  36 => { :start(1), :prefix<B-> },
+                  40 => { :style(PageLabel::RomanUpper), :start(1), :P<B-> };
 
-$pdf.PageLabels = @PageLabels;
+my @PageLabels = 0 , { :S(PageLabel::RomanUpper) },
+                 4 , { :S(PageLabel::Decimal) },
+                 32, { :St(1), :P<A-> },
+                 36, { :St(1), :P<B-> },
+                 40, { :S(PageLabel::RomanUpper), :St(1), :P<B-> };
 
 is-json-equiv $pdf.PageLabels, @PageLabels, '.PageLabels';
 
