@@ -299,6 +299,20 @@ parameter is to be retained unchanged.
 
 Get or set the PDF Version
 
+### PageLabels
+
+Get or sets page numbers to identify each page number, for display or printing:
+
+PageLabels is an array of ascending ascending intenger indexes. Each is followed
+by a page entry hash. For example
+
+    constant PageLabel = PDF::API6::PageLabel;
+    $pdf.PageLabels = 0 , { :style(PageLabel::RomanUpper) },
+                 4 , { :style(PageLabel::Decimal) },
+                 32, { :start(1), :prefix<A-> },
+                 36, { :start(1), :prefix<B-> },
+                 40, { :Style(PageLabel::RomanUpper), :start(1), :prefix<B-> };
+
 ## Encryption
 
 Open an encrypted document:
@@ -313,7 +327,7 @@ Check if document is encrypted
 
     if $pdf.is-encrypted
 
-## %info = $pdf.info;
+## %info := $pdf.info;
 
 Gets/sets the info for the document
 
@@ -345,6 +359,43 @@ Example:
         EOT
 
     $pdf.xmp-metadata = $xml
+
+### $pdf.update();
+
+Performs a fast incrementa; save of a previously opened document.
+
+B<Example:>
+
+    PDF::API6 $pdf .= open('our/to/be/updated.pdf');
+    #...
+    $pdf.update();
+
+### $pdf.save-as(Str|IO::Handle $file)
+
+Save the document to $file and remove the object structure from memory.
+
+Example:
+
+    PDF::API6 $pdf .= new;
+    #...
+    $pdf.saveas: 'our/new.pdf';
+
+### Str $latin-1 = $pdf.Str;  Blob $bytes = $pdf.Blob;
+
+Return a binary representation of a PDF as a latin01 string, or binary Blob;
+
+### JSON save/restore
+
+A PDF file can also be saved as, and opened from an intermediate JSON representation
+
+Example:
+
+    PDF::API6 $pdf .= new;
+    #...
+    $pdf.saveas: 'our/pdf-dump.json';
+    # ...
+    $pdf.open: 'our/pdf-dump.json';
+
 
 ## Pages (PDF::API2::Page)
 

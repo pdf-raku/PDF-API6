@@ -1,7 +1,9 @@
 use v6;
 use Test;
+use PDF::Grammar::Test :is-json-equiv;
+plan 9;
 use PDF::API6;
-plan 8;
+constant PageLabel = PDF::API6::PageLabel;
 
 my PDF::API6 $pdf .= new;
 my $page = $pdf.add-page;
@@ -20,6 +22,16 @@ isa-ok $open-action, Array, 'OpenAction';
 is $open-action.elems, 2, 'OpenAction elems';
 is-deeply $open-action[0], $page, 'OpenAction[0]';
 is $open-action[1], 'Fit', 'OpenAction[1]';
+
+my @PageLabels = 0 , { :style(PageLabel::RomanUpper) },
+                 4 , { :style(PageLabel::Decimal) },
+                 32, { :start(1), :prefix<A-> },
+                 36, { :start(1), :prefix<B-> },
+                 40, { :Style(PageLabel::RomanUpper), :start(1), :prefix<B-> };
+
+$pdf.PageLabels = @PageLabels;
+
+is-json-equiv $pdf.PageLabels, @PageLabels, '.PageLabels';
 
 done-testing;
 

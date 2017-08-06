@@ -1,3 +1,4 @@
+use v6;
 use PDF::Lite;
 
 class PDF::API6:ver<0.0.1>
@@ -6,7 +7,7 @@ class PDF::API6:ver<0.0.1>
     use PDF::DAO;
     use PDF::Content::Page;
 
-    sub nums($a, $n) {
+    sub nums($a, Int $n) {
         with $a {
             fail "expected $n elements, found {.elems}"
                 unless $n == .elems;
@@ -15,7 +16,7 @@ class PDF::API6:ver<0.0.1>
         }
         True;
     }
-    sub name($name) { PDF::DAO.coerce: :$name }
+    sub to-name(Str $name) { PDF::DAO.coerce: :$name }
 
     subset PageRef where {!.defined || $_ ~~ UInt|PDF::Content::Page};
 
@@ -50,15 +51,16 @@ class PDF::API6:ver<0.0.1>
 
         do {
             my $now = DateTime.now;
-            my $Info = self<Info> //= {};
-            $Info<Producer> //= "Perl 6 PDF::API6 {self.^ver}";
+            my $info = self.info;
+
             with self.reader {
                 # updating
-                $Info<ModDate> = $now;
+                $info<ModDate> = $now;
             }
             else {
                 # creating
-                $Info<CreationDate> //= $now
+                $info<Producer> //= "Perl 6 PDF::API6 {self.^ver}";
+                $info<CreationDate> //= $now
             }
         }
 	nextwith($spec, :$update, |c);
@@ -94,19 +96,21 @@ class PDF::API6:ver<0.0.1>
             Numeric :$fitv,
             Numeric :$fitbv,
             List    :$fitr where nums($_, 4),
-            List    :$xyz where nums($_,3),
+            List    :$xyz where nums($_, 3),
         ) where { .keys == 0 || .<page> }
         ) {
         my $catalog = $.catalog;
 
-        $catalog<PageMode> = name( %(
+        constant %PageModes = %(
             :fullscreen<FullScreen>,
             :thumbs<UseThumbs>,
             :outline<UseOutlines>,
             :none<UseNone>,
-            ){$page-mode});
+            );
 
-        $catalog<PageLayout> = name( %(
+        $catalog<PageMode> = to-name( %PageModes{$page-mode} );
+
+        $catalog<PageLayout> = to-name( %(
             :single-page<SinglePage>,
             :one-column<OneColumn>,
             :two-column-left<TwoColumnLeft>,
@@ -121,15 +125,11 @@ class PDF::API6:ver<0.0.1>
             .<FitWindow> = True if $fit-window;
             .<CenterWindow> = True if $center-window;
             .<DisplayDocTitle> = True if $display-title;
-            .<Direction> = name(.uc) with $direction;
-            .<NonFullScreenPageMode> = name( %(
-                :thumbs<UseThumbs>,
-                :outlines<UseOutlines>,
-                :none<UseNone>,
-                ){$after-fullscreen});
-            .<PrintScaling> = name('None') if $print-scaling ~~ 'none';
+            .<Direction> = to-name(.uc) with $direction;
+            .<NonFullScreenPageMode> = to-name( %PageModes{$after-fullscreen});
+            .<PrintScaling> = to-name('None') if $print-scaling ~~ 'none';
             with $duplex -> $dpx {
-                .<Duplex> = name( %(
+                .<Duplex> = to-name( %(
                       :simplex<Simplex>,
                       :flip-long-edge<DuplexFlipLongEdge>,
                       :flip-short-edge<DuplexFlipShortEdge>,
@@ -142,29 +142,29 @@ class PDF::API6:ver<0.0.1>
                 !! $page;
             my $open-action = $catalog<OpenAction> = [$page-ref];
             with $open-action {
-                when $fit   { .push: name('Fit') }
+                when $fit   { .push: to-name('Fit') }
                 when $fith  { .push($fith) }
-                when $fitb  { .push: name('FitB') }
+                when $fitb  { .push: to-name('FitB') }
                 when $fitbh {
-                    .push: name('FitBH');
+                    .push: to-name('FitBH');
                     .push: $fitbh;
                 }
                 when $fitv {
-                    .push: name('FitV');
+                    .push: to-name('FitV');
                     .push: $fitv;
                 }
                 when $fitbv {
-                    .push: name('FitBV');
+                    .push: to-name('FitBV');
                     .push: $fitbv;
                 }
                 when $fitr {
-                    .push: name('FitR');
+                    .push: to-name('FitR');
                     for $fitr.list -> $v {
                         .push: $v;
                     }
                 }
                 when $xyz {
-                    .push: name('XYZ');
+                    .push: to-name('XYZ');
                     for $xyz.list -> $v {
                         .push: $v;
                     }
@@ -176,10 +176,10 @@ class PDF::API6:ver<0.0.1>
     method version {
         Proxy.new(
             FETCH => sub ($) {
-                Version.new: $.catalog<Version> // self.reader.?version // '1.4'
+                Version.new: $.catalog<Version> // self.reader.?version // '1.3'
             },
             STORE => sub ($, Version $v) {
-                $.catalog<Version> = name( $v.Str );
+                $.catalog<Version> = to-name( $v.Str );
             },
         );
     }
@@ -188,8 +188,58 @@ class PDF::API6:ver<0.0.1>
     method info { self<Info> //= {} }
     method xmp-metadata is rw {
         my $metadata = $.catalog<Metadata> //= PDF::DAO.coerce: :stream{
-            :dict{ :Type( name(<Metadata>) ), :Subtype( :name(<XML>) ) } };
+            :dict{
+                :Type( to-name(<Metadata>) ),
+                :Subtype( to-name(<XML>) ),
+            }
+        };
 
         $metadata.decoded; # rw target
     }
+
+    our Str enum PageLabel «
+         :Decimal<d>
+         :RomanUpper<R> :RomanLower<r>
+         :AlphaUpper<A> :AlphaLower<a>
+        »;
+
+    sub coerce-page-label(Hash $_) {
+        my % = .pairs.map: {
+            .key => .value ~~ Int ?? .value !! to-name(.value.Str)
+        }
+    }
+
+    sub coerce-page-labels(List $_) {
+        my @page-labels;
+        my $elems = .elems;
+        fail "PageLabel array has odd number of elements: {.perl}"
+            unless $elems %% 2;
+        my UInt $seq;
+        loop (my $n = 0; $n < $elems;) {
+            my $idx = .[$n++];
+            fail "non-numeric PageLabel index at offset $n: $idx"
+                unless $idx ~~ UInt;
+            fail "out of sequence PageLabel index at offset $n: $idx"
+                if $seq.defined && $idx <= $seq;
+            $seq = $idx;
+            my $dict = .[$n++];
+            fail "page label is not a dict at offset $n"
+                unless $dict ~~ Hash;
+            @page-labels.push: $seq;
+            @page-labels.push: coerce-page-label($dict);
+        }
+        @page-labels;
+    }
+
+    method PageLabels {
+        Proxy.new(
+            STORE => sub ($, List $labels) {
+                $.catalog<PageLabels> = coerce-page-labels($labels);
+            },
+            FETCH => sub ($) {
+                $.catalog<PageLabels>;
+            }
+            )
+    }
+
 }
