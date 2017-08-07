@@ -203,7 +203,7 @@ class PDF::API6:ver<0.0.1>
          :AlphaUpper<A> :AlphaLower<a>
         »;
 
-    sub coerce-page-label(Hash $l) {
+    sub to-page-label(Hash $l) {
         my % = $l.keys.map: {
             when 'style'|'S'  { S  => to-name($l{$_}.Str) }
             when 'start'|'St' { St => $l{$_}.Int }
@@ -214,7 +214,7 @@ class PDF::API6:ver<0.0.1>
 
     subset PageLabelEntry of Pair where {.key ~~ UInt && .value ~~ Hash }
 
-    sub coerce-page-labels($labels) {
+    sub to-page-labels($labels) {
         my @page-labels;
         my UInt $seq;
         my UInt $n = 0;
@@ -226,19 +226,48 @@ class PDF::API6:ver<0.0.1>
                 if $seq.defined && $idx <= $seq;
             $seq = $idx;
             @page-labels.push: $seq;
-            @page-labels.push: coerce-page-label($dict);
+            @page-labels.push: to-page-label($dict);
         }
         @page-labels;
     }
 
-    method PageLabels {
+    sub from-page-label(Hash $l) {
+        my % = $l.keys.map: {
+            when 'S'  { style  => $l{$_} }
+            when 'St' { start  => $l{$_} }
+            when 'P'  { prefix => $l{$_} }
+            default   { $_ => $l{$_} }
+        }
+    }
+
+    sub from-page-labels(Hash $labels) {
+        my @page-labels;
+        my UInt $n = 0;
+        with $labels<Nums> {
+            my $elems = .elems;
+            while ($n < $elems) {
+                my UInt $idx  = .[$n++];
+                my $dict = .[$n++] // {};
+                @page-labels.push: $idx => from-page-label($dict);
+            }
+        }
+        else {
+            with $labels<Kids> {
+                @page-labels.append: from-page-labels($_)
+                    for .list
+            }
+        }
+        @page-labels;
+    }
+
+    method page-labels {
         Proxy.new(
             STORE => sub ($, List $_) {
                 my PageLabelEntry @labels = .list;
-                $.catalog<PageLabels> = coerce-page-labels(@labels);
+                $.catalog<PageLabels> = %{ Nums => to-page-labels(@labels) };
             },
             FETCH => sub ($) {
-                $.catalog<PageLabels>;
+                from-page-labels($.catalog<PageLabels>);
             }
             )
     }
