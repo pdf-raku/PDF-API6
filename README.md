@@ -3,6 +3,7 @@ PDF::API6 - A Perl 6 PDF Toolchain
 
 - [NAME](#name)
 - [DESCRIPTION](#description)
+- [EXAMPLE](#example)
 - [DIFFERENCES BETWEEN PDF::API2 AND PDF::API6](#differences-between-pdfapi2-and-pdfapi6)
    - [PDF::API6](#pdfapi6)
    - [TODO](#todo)
@@ -67,6 +68,7 @@ PDF::API6 - A Perl 6 PDF Toolchain
        - [Path Clipping](#path-clipping)
        - [Graphics Variables](#graphics-variables)
 
+
 # NAME
 
 PDF::API6 - Facilitates the creation and modification of PDF files
@@ -76,6 +78,32 @@ PDF::API6 - Facilitates the creation and modification of PDF files
 A Perl 6 PDF module; reminiscent of Perl 5's PDF::API2.
 
 This module is a work in progress in replicating, or mapping the functionality of Perl 5's PDF::API2 toolchain.
+
+# EXAMPLE
+
+```
+use v6;
+use PDF::API6;
+
+my PDF::API6 $pdf .= new;
+my $page = $pdf.add-page;
+$page.MediaBox = [0, 0, 200, 100];
+
+$page.graphics: {
+    my $text-block = .text: {
+        .font = .core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
+        .TextMove = [10, 10];
+        .say: 'Hello, world';
+    }
+
+    my $img = .load-image: "t/images/lightbulb.gif";
+    .do($img, 20 + $text-block.width, 10);
+}
+
+$pdf.save-as: "examples/hello-world.pdf";
+```
+
+![example.pdf](examples/.previews/hello-world-001.png)
 
 # DIFFERENCES BETWEEN PDF::API2 AND PDF::API6
 
