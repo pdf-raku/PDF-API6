@@ -1,4 +1,4 @@
-PDF::API6 - A Perl 6 PDF Toolchain
+PDF::API6 - A Perl 6 PDF Tool-chain
 ===
 
 - [NAME](#name)
@@ -77,7 +77,7 @@ PDF::API6 - Facilitates the creation and modification of PDF files
 
 A Perl 6 PDF module; reminiscent of Perl 5's PDF::API2.
 
-This module is a work in progress in replicating, or mapping the functionality of Perl 5's PDF::API2 toolchain.
+This module is a work in progress in replicating, or mapping the functionality of Perl 5's PDF::API2 tool-chain.
 
 # EXAMPLE
 
@@ -238,9 +238,9 @@ A PDF file can also be saved as, and opened from an intermediate JSON representa
 
     PDF::API6 $pdf .= new;
     #...
-    $pdf.save-as: 'our/pdf-dump.json';
+    $pdf.save-as: 'our/pdf-ast.json';
     # ...
-    $pdf.open: 'our/pdf-dump.json';
+    $pdf.open: 'our/pdf-ast.json';
 
 ### encrypt
 
@@ -266,39 +266,135 @@ Return a binary representation of a PDF as a latin-01 string, or binary Blob
 
 Return an AST tree representation of a PDF.
 
-    Pair $ast = $pdf.ast
+     my %ast = $pdf.ast
+
+## Pages
+
+### page-count
+
+    my UInt $pages = $pdf.page-count;
+
+Returns the number of pages in a PDF.
+
+### page
+
+    my $second-page = $pdf.page(2);
+
+Returns the nth page from the PDF
+
+### add-page
+
+Synopsis: `$pdf.add-page($page-object?)`
+
+    my $add-page = $pdf.add-page;
+
+Adds a page to the end of a PDF. Creates a new blank page by default.
+
+### delete-page
+
+Deletes a page, by page-number
+
+    my $moved-page = $pdf.delete-page(2);
+    # re-add the to the end of the PDF
+    $pdf.add-page($moved-page);
 
 
 # SECTION II: Graphics Methods (inherited from PDF::Lite)
 
-## Pages
+## Graphics Introduction
 
-### page
+Graphics form the basis of PDF rendering and display. This includes text, images,
+graphics, colors and painting.
 
-### add-page
+Each page has associated graphics these can be access by the`.gfx` method.
 
+```
+use v6;
+use PDF::API6;
 
-## Text
+my PDF::API6 $pdf .= open("examples/hello-world.pdf");
+# dump existing graphics on page 1
+my $page = $pdf.page(1);
+my $gfx = $page.gfx;
+dd $gfx.content-dump; # dump existing graphics operations
 
-### font
+# add some more text to the page
+$gfx.font = .core-font; :family<Courier>;
+$gfx.TextMove = [10, 30];
+$gfx.BeginText;
+$gfx.say("Demo added text")l
+$gfx.EndText;
+
+```
+
+See also [Patterns](#patterns) and [XObject Forms](#xobject-forms) which also have associated graphics.
+
+## Text Methods
 
 ### text
+
+Synopsis: `$gfx.text: &block`
+
+This is a convenience method, that executes code in a text block. Text blocks
+cannot be nested. Nor can they contain a graphics block.
+
+    $page.text: {
+        .TextMove = 30, 50;
+        .say "hi";
+    }
+
+is equivalent to:
+
+    my $gfx = $page.gfx;
+    with $gfx {
+        .BeginText;
+        .TextMove = 30, 50;
+        .say "hi";
+        .EndText;
+    }
+
+### font, core-font
+
+    $gfx.font = $gfx.core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
+
+Todo: Other font types (`tt-font`, `ps-font`, `uni-font`, ...)
+
+Read/write accessor to set, or get the current font
 
 ### print
 
 ### say
 
 
-## Graphics
+## Graphics Methods
 
 ### graphics
+
+Synopsis: `$gfx.graphics: &block`
+
+This is a convenience method, that executes code in a nested Save/Restore block.
+
+    $page.graphics: {
+        .Rectangle(10,20,100,50);
+        .Fill;
+    }
+
+is equivalent to:
+
+    my $gfx = $page.gfx;
+    with $gfx {
+        .Save;
+        .Rectangle(10,20,100,50);
+        .Fill;
+        .Restore;
+    }
 
 ### transform
 
 ### paint
 
 
-## Images
+## Image Methods
 
 ### load-image
 
@@ -306,8 +402,14 @@ Return an AST tree representation of a PDF.
 
 ## XObject Forms
 
+A Form is a graphical sub-element. Its usage is the same as an image.
+
 
 ## Patterns
+
+A Pattern is another graphical sub-element. Its usage is the same as a color.
+
+Patterns are typically used to achieve advanced tiling or shading effects.
 
 ### tiling-pattern
 
@@ -383,11 +485,11 @@ Display the pages in one column.
 
 #### `:page-layout<two-column-left>`
 
-Display the pages in two columns, with oddnumbered pages on the left.
+Display the pages in two columns, with odd numbered pages on the left.
 
 #### `:page-layout<two-column-right>`
 
-Display the pages in two columns, with oddnumbered pages on the right.
+Display the pages in two columns, with odd numbered pages on the right.
 
 #### `:direction<r2l>`, `:direction<l2r>`
 
@@ -539,7 +641,7 @@ Get or set the PDF Version
 
 Get or sets page numbers to identify each page number, for display or printing:
 
-PageLabels is an array of ascending ascending intenger indexes. Each is followed
+PageLabels is an array of ascending ascending integer indexes. Each is followed
 by a page entry hash. For example
 
     constant PageLabel = PDF::API6::PageLabel;
@@ -591,17 +693,17 @@ Example:
 Method | Code | Description
 --- | --- | ---
 SetStrokeColorSpace(name) | CS | Set the current space to use for stroking operations. This can be a standard name, such as 'DeviceGray', 'DeviceRGB', 'DeviceCMYK', or a name declared in the parent's Resource<ColorSpace> dictionary.
-SetStrokeColorSpace(name) | cs | Same but for nonstroking operations.
+SetStrokeColorSpace(name) | cs | Same but for non-stroking operations.
 SetStrokeColor(c1, ..., cn) | SC | Set the colours to use for stroking operations in a device. The number of operands required and their interpretation depends on the current stroking colour space: DeviceGray, CalGray, and Indexed colour spaces, have one operand. DeviceRGB, CalRGB, and Lab colour spaces, three operands. DeviceCMYK has four operands.
 SetStrokeColorN(c1, ..., cn [,pattern-name]) | SCN | Same as SetStrokeColor but also supports Pattern, Separation, DeviceN, ICCBased colour spaces and patterns.
 SetFillColor(c1, ..., cn) | sc | Same as SetStrokeColor, but for non-stroking operations.
 SetFillColorN(c1, ..., cn [,pattern-name]) | scn | Same as SetStrokeColorN, but for non-stroking operations.
 SetStrokeGray(level) | G | Set the stroking colour space to DeviceGray and set the gray level to use for stroking operations, between 0.0 (black) and 1.0 (white).
-SetFillGray(level) | g | Same as G but used for nonstroking operations.
+SetFillGray(level) | g | Same as G but used for non-stroking operations.
 SetStrokeRGB(r, g, b) | RG | Set the stroking colour space to DeviceRGB and set the colour to use for stroking operations. Each operand shall be a number between 0.0 (minimum intensity) and 1.0 (maximum intensity).
-SetFillRGB(r, g, b) | rg | Same as RG but used for nonstroking operations.
+SetFillRGB(r, g, b) | rg | Same as RG but used for non-stroking operations.
 SetFillCMYK(c, m, y, k) | K | Set the stroking colour space to DeviceCMYK and set the colour to use for stroking operations. Each operand shall be a number between 0.0 (zero concentration) and 1.0 (maximum concentration). The behaviour of this operator is affected by the OverprintMode graphics state.
-SetStrokeRGB(c, m, y, k) | k | Same as K but used for nonstroking operations.
+SetStrokeRGB(c, m, y, k) | k | Same as K but used for non-stroking operations.
 
 ### Graphics State
 
