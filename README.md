@@ -8,27 +8,55 @@ PDF::API6 - A Perl 6 PDF Toolchain
    - [TODO](#todo)
 - [SYNOPSIS](#synopsis)
 - [SECTION I: Low Level Methods](#section-i-low-level-methods)
-   - [new](#new)
-   - [open](#open)
-   - [encrypt](#encrypt)
-   - [is-encrypted](#is-encrypted)
-   - [update](#update)
-   - [save-as](#save-as)
-   - [Str, Blob](#str-blob)
+   - [Input/Output](#inputoutput)
+       - [new](#new)
+       - [open](#open)
+       - [update](#update)
+       - [save-as](#save-as)
+       - [encrypt](#encrypt)
+       - [is-encrypted](#is-encrypted)
+   - [Serialization Methods](#serialization-methods)
+       - [Str, Blob](#str-blob)
+       - [ast](#ast)
 - [SECTION II: Graphics Methods (inherited from PDF::Lite)](#section-ii-graphics-methods-inherited-from-pdflite)
-   - [Pages (PDF::API2::Page)](#pages-pdfapi2page)
-   - [XObjects and Patterns](#xobjects-and-patterns)
-   - [Extended Graphics State](#extended-graphics-state)
+   - [Pages](#pages)
+       - [page](#page)
+       - [add-page](#add-page)
+   - [Text](#text)
+       - [font](#font)
+       - [text](#text)
+       - [print](#print)
+       - [say](#say)
+   - [Graphics](#graphics)
+       - [graphics](#graphics)
+       - [transform](#transform)
+       - [paint](#paint)
+   - [Images](#images)
+       - [load-image](#load-image)
+       - [do](#do)
+   - [XObject Forms](#xobject-forms)
+   - [Patterns](#patterns)
+       - [tiling-pattern](#tiling-pattern)
+       - [use-pattern](#use-pattern)
+   - [Page Methods](#page-methods)
+       - [to-xobject](#to-xobject)
+       - [images](#images)
+       - [Low Level Graphics](#low-level-graphics)
+       - [Colors](#colors)
+       - [Text](#text)
+       - [Painting](#painting)
+       - [Clipping](#clipping)
+       - [Graphics State](#graphics-state)
 - [SECTION III: PDF::API6 Specific Methods](#section-iii-pdfapi6-specific-methods)
-   - [info](#info)
-   - [preferences](#preferences)
+       - [info](#info)
+       - [preferences](#preferences)
        - [Page Layout Options:](#page-layout-options)
        - [Viewer Options:](#viewer-options)
        - [Initial Page Options:](#initial-page-options)
        - [Examples](#examples)
-   - [$pdf.version = v1.5;](#pdfversion--v15)
-   - [PageLabels](#pagelabels)
-   - [xmp-metadata](#xmp-metadata)
+       - [version](#version)
+       - [PageLabels](#pagelabels)
+       - [xmp-metadata](#xmp-metadata)
 - [APPENDIX: Graphics Operators and Variables](#appendix-graphics-operators-and-variables)
    - [Appendix I: Graphics](#appendix-i-graphics)
        - [Graphic Operators](#graphic-operators)
@@ -38,7 +66,6 @@ PDF::API6 - A Perl 6 PDF Toolchain
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
        - [Graphics Variables](#graphics-variables)
-
 
 # NAME
 
@@ -130,7 +157,10 @@ Some PDF::API2 features that are not yet available in PDF::API6
 
 Methods inherited from PDF
 
-## new
+## Input/Output
+
+### new
+
 Creates a new PDF object.
 
     my PDF::API6 $pdf .= new();
@@ -143,10 +173,9 @@ Creates a new PDF object.
     $pdf.save-as('our/new.pdf');
 
 
-## open
+### open
 
 Opens an existing PDF or JSON file.
-
 
     my PDF::API6 $pdf .= open('our/old.pdf');
     #...
@@ -161,19 +190,7 @@ Open an encrypted document:
     PDF::API6.open( "enc.pdf", :password<shh1> );
 
 
-## encrypt
-
-Encrypt a PDF:
-
-    $pdf.encrypt( :owner-pass<ssh1>, :user-pass<abc>, :aes );
-
-## is-encrypted
-
-Check if document is encrypted
-
-    if $pdf.is-encrypted
-
-## update
+### update
 
 Performs a fast incremental save of a previously opened document.
 
@@ -181,7 +198,7 @@ Performs a fast incremental save of a previously opened document.
     #...
     $pdf.update();
 
-## save-as
+### save-as
 
 Save the document to a file
 
@@ -197,24 +214,111 @@ A PDF file can also be saved as, and opened from an intermediate JSON representa
     # ...
     $pdf.open: 'our/pdf-dump.json';
 
-## Str, Blob
+### encrypt
+
+Encrypt a PDF:
+
+    $pdf.encrypt( :owner-pass<ssh1>, :user-pass<abc>, :aes );
+
+### is-encrypted
+
+Check if document is encrypted
+
+    if $pdf.is-encrypted
+
+## Serialization Methods
+
+### Str, Blob
+
+Return a binary representation of a PDF as a latin-01 string, or binary Blob
 
     Str $latin-1 = $pdf.Str;  Blob $bytes = $pdf.Blob;
 
-Return a binary representation of a PDF as a latin01 string, or binary Blob;
+### ast
+
+Return an AST tree representation of a PDF.
+
+    Pair $ast = $pdf.ast
 
 
 # SECTION II: Graphics Methods (inherited from PDF::Lite)
 
-## Pages (PDF::API2::Page)
+## Pages
 
-## XObjects and Patterns
+### page
 
-## Extended Graphics State
+### add-page
+
+
+## Text
+
+### font
+
+### text
+
+### print
+
+### say
+
+
+## Graphics
+
+### graphics
+
+### transform
+
+### paint
+
+
+## Images
+
+### load-image
+
+### do
+
+## XObject Forms
+
+
+## Patterns
+
+### tiling-pattern
+
+### use-pattern
+
+
+## Page Methods
+
+### to-xobject
+
+### images
+
+### Low Level Graphics
+
+### Colors
+
+#### StrokeColor, StrokeAlpha
+
+#### FillColor, FillAlpha
+
+### Text
+
+### Painting
+
+### Clipping
+
+### Graphics State
+
+#### CTM (Transform Matrix)
+#### Save
+#### Restore
+
+...
+
+
 
 # SECTION III: PDF::API6 Specific Methods
 
-## info
+### info
 
     %info := $pdf.info;
 
@@ -222,7 +326,7 @@ Gets/sets the info for the document
 
     $pdf.info<Title> = 'Some Publication';
 
-## preferences
+### preferences
 
 Controls viewing preferences for the PDF.
 
@@ -397,11 +501,13 @@ parameter is to be retained unchanged.
 
 [see also examples/preferences.p6](examples/preferences.p6)
 
-## $pdf.version = v1.5;
+### version
+
+    $pdf.version = v1.5;
 
 Get or set the PDF Version
 
-## PageLabels
+### PageLabels
 
 Get or sets page numbers to identify each page number, for display or printing:
 
@@ -415,7 +521,7 @@ by a page entry hash. For example
                       36 => { :start(1), :prefix<B-> },
                       40 => { :Style(PageLabel::RomanUpper), :start(1), :prefix<B-> };
 
-## xmp-metadata
+### xmp-metadata
 
     Str $xml = $pdf.xmp-metadata;
 
