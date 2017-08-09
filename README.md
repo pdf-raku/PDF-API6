@@ -19,20 +19,23 @@ PDF::API6 - A Perl 6 PDF Tool-chain
    - [Serialization Methods](#serialization-methods)
        - [Str, Blob](#str-blob)
        - [ast](#ast)
-- [SECTION II: Graphics Methods (inherited from PDF::Lite)](#section-ii-graphics-methods-inherited-from-pdflite)
    - [Pages](#pages)
+       - [page-count](#page-count)
        - [page](#page)
        - [add-page](#add-page)
-   - [Text](#text)
-       - [font](#font)
+       - [delete-page](#delete-page)
+- [SECTION II: Graphics Methods (inherited from PDF::Lite)](#section-ii-graphics-methods-inherited-from-pdflite)
+   - [Graphics Introduction](#graphics-introduction)
+   - [Text Methods](#text-methods)
        - [text](#text)
+       - [font, core-font](#font-core-font)
        - [print](#print)
        - [say](#say)
-   - [Graphics](#graphics)
+   - [Graphics Methods](#graphics-methods)
        - [graphics](#graphics)
        - [transform](#transform)
        - [paint](#paint)
-   - [Images](#images)
+   - [Image Methods](#image-methods)
        - [load-image](#load-image)
        - [do](#do)
    - [XObject Forms](#xobject-forms)
@@ -42,12 +45,14 @@ PDF::API6 - A Perl 6 PDF Tool-chain
    - [Page Methods](#page-methods)
        - [to-xobject](#to-xobject)
        - [images](#images)
-       - [Low Level Graphics](#low-level-graphics)
+   - [Low Level Graphics](#low-level-graphics)
        - [Colors](#colors)
        - [Text](#text)
        - [Painting](#painting)
        - [Clipping](#clipping)
        - [Graphics State](#graphics-state)
+   - [Rendering Methods](#rendering-methods)
+       - [render](#render)
 - [SECTION III: PDF::API6 Specific Methods](#section-iii-pdfapi6-specific-methods)
        - [info](#info)
        - [preferences](#preferences)
@@ -67,7 +72,6 @@ PDF::API6 - A Perl 6 PDF Tool-chain
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
        - [Graphics Variables](#graphics-variables)
-
 
 # NAME
 
@@ -134,10 +138,10 @@ Some PDF::API2 features that are not yet available in PDF::API6
 
     - currently not supported are: TIFF, PNM and GIF images.
 
-- ColorSpaces. PDF::API6 supports Gray, RGB and CMYK colors. Not supported yet:
+- Color-Spaces. PDF::API6 supports Gray, RGB and CMYK colors. Not supported yet:
 
-    - Separation Colorspaces
-    - DeviceN Colorspaces
+    - Separation color-spaces
+    - DeviceN color-spaces
 
 - Annotations
 
@@ -363,8 +367,30 @@ Read/write accessor to set, or get the current font
 
 ### print
 
+Synopsis: `my $text-block = print($text-str-or-chunks-or-block,
+                 :align<left|center|right>, :valign<top|center|bottom>,
+                 :$font, :$font-size,
+                 :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
+                 :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>
+                 :kern, :$leading, :$width, :$height)`
+
+Outputs a text string, or [Text Block](https://github.com/p6-pdf/PDF-Content-p6/blob/master/lib/PDF/Content/Text/Block.pm)
+
 ### say
 
+Takes the same parameters as `print`. Sets the text position (`$.TextMove`) to the next line.
+
+### text-transform
+
+Synopsis: `$gfx.text-transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s, $sy?], :skew[$x,y];`
+
+Applies a text transform, such as translation, rotation, scaling, etc.
+
+    $gfx.transform: :translate[110, 10];
+
+- Text transforms are applied after any [Graphics Transform](#transform).
+
+- This replaces any existing Text Transforms.
 
 ## Graphics Methods
 
@@ -391,14 +417,45 @@ is equivalent to:
 
 ### transform
 
+Synopsis: `$gfx.transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s, $sy?], :skew[$x,y];`
+
+Applies a graphics transform, such as translation, rotation, scaling, etc.
+
+    $gfx.transform: :translate[110, 10];
+
+Unlike [Text Transforms](#text-transform), Graphics Transforms accumulate; and are applied in addition to any existing transforms.
+
 ### paint
+
+Synopsis: `$gfx.paint( :close, :stroke, :fill, :even-odd)`
+
+`paint` is a general purpose method for painting and filling shapes.
+
+    # fill and stroke a rectangle
+    $gfx.FillColor = :DeviceRGB[.7, .7, .9];
+    $gfx.StrokeColor = :DeviceRGB[.9, .5, .5];
+    $gfx.LineWidth = 2.5; # set stroking line-width
+    $gfx.Rectangle(0, 20, 100, 250);
+    $gfx.paint: :fill, :stroke;
 
 
 ## Image Methods
 
 ### load-image
 
+Loads an image in a supported format (currently PNG, GIF and JPEG).
+
+     my $img = .load-image("t/images/lightbulb.gif");
+     note "image has size {$img.width} X {$image.height}";
+
 ### do
+
+Synopsis: `$gfx.do($image-or-form, $x = 0, $y = 0,
+                   :$width, :$height, :inline,
+                   :align<left center right> = 'left',
+                   :valign<top center bottom> = 'bottom')`
+
+Displays an image or form.
 
 ## XObject Forms
 
@@ -422,7 +479,8 @@ Patterns are typically used to achieve advanced tiling or shading effects.
 
 ### images
 
-### Low Level Graphics
+
+## Low Level Graphics
 
 ### Colors
 
@@ -444,6 +502,9 @@ Patterns are typically used to achieve advanced tiling or shading effects.
 
 ...
 
+## Rendering Methods
+
+### render
 
 
 # SECTION III: PDF::API6 Specific Methods
@@ -686,87 +747,6 @@ Example:
 
 ## Appendix I: Graphics
 
-### Graphic Operators
-
-#### Color Operators
-
-Method | Code | Description
---- | --- | ---
-SetStrokeColorSpace(name) | CS | Set the current space to use for stroking operations. This can be a standard name, such as 'DeviceGray', 'DeviceRGB', 'DeviceCMYK', or a name declared in the parent's Resource<ColorSpace> dictionary.
-SetStrokeColorSpace(name) | cs | Same but for non-stroking operations.
-SetStrokeColor(c1, ..., cn) | SC | Set the colours to use for stroking operations in a device. The number of operands required and their interpretation depends on the current stroking colour space: DeviceGray, CalGray, and Indexed colour spaces, have one operand. DeviceRGB, CalRGB, and Lab colour spaces, three operands. DeviceCMYK has four operands.
-SetStrokeColorN(c1, ..., cn [,pattern-name]) | SCN | Same as SetStrokeColor but also supports Pattern, Separation, DeviceN, ICCBased colour spaces and patterns.
-SetFillColor(c1, ..., cn) | sc | Same as SetStrokeColor, but for non-stroking operations.
-SetFillColorN(c1, ..., cn [,pattern-name]) | scn | Same as SetStrokeColorN, but for non-stroking operations.
-SetStrokeGray(level) | G | Set the stroking colour space to DeviceGray and set the gray level to use for stroking operations, between 0.0 (black) and 1.0 (white).
-SetFillGray(level) | g | Same as G but used for non-stroking operations.
-SetStrokeRGB(r, g, b) | RG | Set the stroking colour space to DeviceRGB and set the colour to use for stroking operations. Each operand shall be a number between 0.0 (minimum intensity) and 1.0 (maximum intensity).
-SetFillRGB(r, g, b) | rg | Same as RG but used for non-stroking operations.
-SetFillCMYK(c, m, y, k) | K | Set the stroking colour space to DeviceCMYK and set the colour to use for stroking operations. Each operand shall be a number between 0.0 (zero concentration) and 1.0 (maximum concentration). The behaviour of this operator is affected by the OverprintMode graphics state.
-SetStrokeRGB(c, m, y, k) | k | Same as K but used for non-stroking operations.
-
-### Graphics State
-
-Method | Code | Description
---- | --- | ---
-Save() | q | Save the current graphics state on the graphics state stack
-Restore() | Q | Restore the graphics state by removing the most recently saved state from the stack and making it the current state.
-ConcatMatrix(a, b, c, d, e, f) | cm | Modify the current transformation matrix (CTM) by concatenating the specified matrix
-SetLineWidth(width) | w | Set the line width in the graphics state
-SetLineCap(cap-style) | J | Set the line cap style in the graphics state (see LineCap enum)
-SetLineJoin(join-style) | j | Set the line join style in the graphics state (see LineJoin enum)
-SetMiterLimit(ratio) | M | Set the miter limit in the graphics state
-SetDashPattern(dashArray, dashPhase) | d | Set the line dash pattern in the graphics state
-SetRenderingIntent(intent) | ri | Set the colour rendering intent in the graphics state: AbsoluteColorimetric, RelativeColormetric, Saturation, or Perceptual
-SetFlatness(flat) | i | Set the flatness tolerance in the graphics state. flatness is a number in the range 0 to 100; 0 specifies the output device’s default flatness tolerance.
-SetGraphics(dictName) | gs | Set the specified parameters in the graphics state. dictName is the name of a graphics state parameter dictionary in the ExtGState resource subdictionary
-
-### Text Operators
-
-Method | Code | Description
---- | --- | ---
-BeginText() | BT | Begin a text object, initializing $.TextMatrix, to the identity matrix. Text objects shall not be nested.
-EndText() | ET | End a text object, discarding the text matrix.
-TextMove(tx, ty) | Td | Move to the start of the next line, offset from the start of the current line by (tx, ty ); where tx and ty are expressed in unscaled text space units.
-TextMoveSet(tx, ty) | TD | Move to the start of the next line, offset from the start of the current line by (tx, ty ). Set $.TextLeading to ty.
-SetTextMatrix(a, b, c, d, e, f) | Tm | Set $.TextMatrix
-TextNextLine| T* | Move to the start of the next line
-ShowText(string) | Tj | Show a text string
-MoveShowText(string) | ' | Move to the next line and show a text string.
-MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting $.WordSpacing to  aw and $.CharSpacing to ac
-ShowSpacetext(array) |  TJ | Show one or more text strings, allowing individual glyph positioning. Each element of array shall be either a string or a number. If the element is a string, show it. If it is a number, adjust the text position by that amount
-
-### Path Construction
-
-Method | Code | Description
---- | --- | ---
-MoveTo(x, y) | m | Begin a new subpath by moving the current point to coordinates (x, y), omitting any connecting line segment. If the previous path construction operator in the current path was also m, the new m overrides it.
-LineTo(x, y) | l | Append a straight line segment from the current point to the point (x, y). The new current point shall be (x, y).
-CurveTo(x1, y1, x2, y2, x3, y3) | c | Append a cubic Bézier curve to the current path. The curve shall extend from the current point to the point (x 3 , y 3 ), using (x1 , y1 ) and (x2 , y2 ) as the Bézier control points. The new current point shall be (x3 , y3 ).
-ClosePath | h | Close the current subpath by appending a straight line segment from the current point to the starting point of the subpath.
-Rectangle(x, y, width, Height) | re | Append a rectangle to the current path as a complete subpath, with lower-left corner (x, y) and dimensions `width` and `height`.
-
-### Path Painting Operators
-
-Method | Code | Description
---- | --- | ---
-Stroke() | S | Stroke the path.
-CloseStroke() | s | Close and stroke the path. Same as: $.Close; $.Stroke
-Fill() | f | Fill the path, using the nonzero winding number rule to determine the region. Any open subpaths are implicitly closed before being filled.
-EOFill() | f* | Fill the path, using the even-odd rule to determine the region to fill
-FillStroke() | B | Fill and then stroke the path, using the nonzero winding number rule to determine the region to fill.
-EOFillStroke() | B* | Fill and then stroke the path, using the even-odd rule to determine the region to fill.
-CloseFillStroke() | b | Close, fill, and then stroke the path, using the nonzero winding number rule to determine the region to fill.
-CloseEOFillStroke() | b* | Close, fill, and then stroke the path, using the even-odd rule to determine the region to fill.
-EndPath() | n | End the path object without filling or stroking it. This operator shall be a path-painting no-op, used primarily for the side effect of changing the current clipping path.
-
-### Path Clipping
-
-Method | Code | Description
---- | --- | ---
-Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path.
-EOClip() | W* | Modify the current clipping path by intersecting it with the current path, using the even-odd rule to determine which regions lie inside the clipping path.
-
 ### Graphics Variables
 
 #### Text Variables
@@ -789,21 +769,21 @@ Accessor | Code | Description | Default | Example Setters
 CTM |  | The current transformation matrix | [1,0,0,1,0,0] | use PDF::Content::Matrix :scale;<br>.ConcatMatrix: :scale(1.5); 
 DashPattern | D |  A description of the dash pattern to be used when paths are stroked | solid | .DashPattern = [[3, 5], 6];
 FillAlpha | ca | The constant shape or constant opacity value to be used for other painting operations | 1.0 | .FillAlpha = 0.25
-FillColor| | current fill colorspace and color | :DeviceGray[0.0] | .FillColor = :DeviceCMYK[.7,.2,.2,.1]
+FillColor| | current fill color-space and color | :DeviceGray[0.0] | .FillColor = :DeviceCMYK[.7,.2,.2,.1]
 LineCap  |  LC | A code specifying the shape of the endpoints for any open path that is stroked | 0 (butt) | .LineCap = LineCaps::RoundCaps;
 LineJoin | LJ | A code specifying the shape of joints between connected segments of a stroked path | 0 (miter) | .LineJoin = LineJoin::RoundJoin
 LineWidth | w | Stroke line-width | 1.0 | .LineWidth = 2.5
 StrokeAlpha | CA | The constant shape or constant opacity value to be used when paths are stroked | 1.0 | .StrokeAlpha = 0.5;
-StrokeColor| | current stroke colorspace and color | :DeviceGray[0.0] | .StrokeColor = :DeviceRGB[.7,.2,.2]
+StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | .StrokeColor = :DeviceRGB[.7,.2,.2]
 
 #### General Graphics - Advanced
 
 Accessor | Code | Description | Default
 -------- | ------ | ----------- | -------
-AlphaSource | AIS | A flag specifying whether the current soft mask and alpha constant parameters shall be interpreted as shape values or opacity values. This flag also governs the interpretation of the SMask entry | false |
+AlphaSource | AIS | A flag specifying whether the current soft mask and alpha constant parameters are interpreted as shape values or opacity values. This flag also governs the interpretation of the SMask entry | false |
 BlackGeneration | BG2 | A function that calculates the level of the black colour component to use when converting RGB colours to CMYK
 BlendMode | BM | The current blend mode to be used in the transparent imaging model |
-Flatness | FT | The precision with which curves shall be rendered on the output device. The value of this parameter gives the maximum error tolerance, measured in output device pixels; smaller numbers give smoother curves at the expense of more computation | 1.0 
+Flatness | FT | The precision with which curves are rendered on the output device. The value of this parameter gives the maximum error tolerance, measured in output device pixels; smaller numbers give smoother curves at the expense of more computation | 1.0 
 Halftone dictionary | HT |  A halftone screen for gray and colour rendering
 MiterLimit | ML | number The maximum length of mitered line joins for stroked paths |
 OverPrintMode | OPM | A flag specifying whether painting in one set of colorants should cause the corresponding areas of other colorants to be erased or left unchanged | false
@@ -815,3 +795,85 @@ SoftMask | SMask | A soft-mask dictionary specifying the mask shape or mask opac
 StrokeAdjust | SA | A flag specifying whether to compensate for possible rasterization effects when stroking a path with a line | false
 TransferFunction | TR2 |  A function that adjusts device gray or colour component levels to compensate for nonlinear response in a particular output device
 UndercolorRemovalFunction | UCR2 | A function that calculates the reduction in the levels of the cyan, magenta, and yellow colour components to compensate for the amount of black added by black generation
+
+### Graphic Operators
+
+#### Color Operators
+
+Method | Code | Description
+--- | --- | ---
+SetStrokeColorSpace(name) | CS | Set the current space to use for stroking operations. This can be a standard name, such as 'DeviceGray', 'DeviceRGB', 'DeviceCMYK', or a name declared in the parent's Resource<ColorSpace> dictionary.
+SetStrokeColorSpace(name) | cs | Same but for non-stroking operations.
+SetStrokeColor(c1, ..., cn) | SC | Set the colours to use for stroking operations in a device. The number of operands required and their interpretation depends on the current stroking colour space: DeviceGray, CalGray, and Indexed colour spaces, have one operand. DeviceRGB, CalRGB, and Lab colour spaces, three operands. DeviceCMYK has four operands.
+SetStrokeColorN(c1, ..., cn [,pattern-name]) | SCN | Same as SetStrokeColor but also supports Pattern, Separation, DeviceN, ICCBased colour spaces and patterns.
+SetFillColor(c1, ..., cn) | sc | Same as SetStrokeColor, but for non-stroking operations.
+SetFillColorN(c1, ..., cn [,pattern-name]) | scn | Same as SetStrokeColorN, but for non-stroking operations.
+SetStrokeGray(level) | G | Set the stroking colour space to DeviceGray and set the gray level to use for stroking operations, between 0.0 (black) and 1.0 (white).
+SetFillGray(level) | g | Same as G but used for non-stroking operations.
+SetStrokeRGB(r, g, b) | RG | Set the stroking colour space to DeviceRGB and set the colour to use for stroking operations. Each operand is a number between 0.0 (minimum intensity) and 1.0 (maximum intensity).
+SetFillRGB(r, g, b) | rg | Same as RG but used for non-stroking operations.
+SetFillCMYK(c, m, y, k) | K | Set the stroking colour space to DeviceCMYK and set the colour to use for stroking operations. Each operand is a number between 0.0 (zero concentration) and 1.0 (maximum concentration). The behaviour of this operator is affected by the OverprintMode graphics state.
+SetStrokeRGB(c, m, y, k) | k | Same as K but used for non-stroking operations.
+
+### Graphics State
+
+Method | Code | Description
+--- | --- | ---
+Save() | q | Save the current graphics state on the graphics state stack
+Restore() | Q | Restore the graphics state by removing the most recently saved state from the stack and making it the current state.
+ConcatMatrix(a, b, c, d, e, f) | cm | Modify the current transformation matrix (CTM) by concatenating the specified matrix
+SetLineWidth(width) | w | Set the line width in the graphics state
+SetLineCap(cap-style) | J | Set the line cap style in the graphics state (see LineCap enum)
+SetLineJoin(join-style) | j | Set the line join style in the graphics state (see LineJoin enum)
+SetMiterLimit(ratio) | M | Set the miter limit in the graphics state
+SetDashPattern(dashArray, dashPhase) | d | Set the line dash pattern in the graphics state
+SetRenderingIntent(intent) | ri | Set the colour rendering intent in the graphics state: AbsoluteColorimetric, RelativeColormetric, Saturation, or Perceptual
+SetFlatness(flat) | i | Set the flatness tolerance in the graphics state. flatness is a number in the range 0 to 100; 0 specifies the output device’s default flatness tolerance.
+SetGraphics(dictName) | gs | Set the specified parameters in the graphics state. dictName is the name of a graphics state parameter dictionary in the ExtGState resource sub-dictionary
+
+### Text Operators
+
+Method | Code | Description
+--- | --- | ---
+BeginText() | BT | Begin a text object, initializing $.TextMatrix, to the identity matrix. Text objects cannot be nested.
+EndText() | ET | End a text object, discarding the text matrix.
+TextMove(tx, ty) | Td | Move to the start of the next line, offset from the start of the current line by (tx, ty ); where tx and ty are expressed in unscaled text space units.
+TextMoveSet(tx, ty) | TD | Move to the start of the next line, offset from the start of the current line by (tx, ty ). Set $.TextLeading to ty.
+SetTextMatrix(a, b, c, d, e, f) | Tm | Set $.TextMatrix
+TextNextLine| T* | Move to the start of the next line
+ShowText(string) | Tj | Show a text string
+MoveShowText(string) | ' | Move to the next line and show a text string.
+MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting $.WordSpacing to  aw and $.CharSpacing to ac
+ShowSpacetext(array) |  TJ | Show one or more text strings, allowing individual glyph positioning. Each element of array is either a string or a number. If the element is a string, show it. If it is a number, adjust the text position by that amount
+
+### Path Construction
+
+Method | Code | Description
+--- | --- | ---
+MoveTo(x, y) | m | Begin a new sub-path by moving the current point to coordinates (x, y), omitting any connecting line segment. If the previous path construction operator in the current path was also m, the new m overrides it.
+LineTo(x, y) | l | Append a straight line segment from the current point to the point (x, y). The new current point is (x, y).
+CurveTo(x1, y1, x2, y2, x3, y3) | c | Append a cubic Bézier curve to the current path. The curve extends from the current point to the point (x3, y3 ), using (x1 , y1 ) and (x2, y2 ) as the Bézier control points. The new current point is (x3, y3 ).
+ClosePath | h | Close the current sub-path by appending a straight line segment from the current point to the starting point of the sub-path.
+Rectangle(x, y, width, Height) | re | Append a rectangle to the current path as a complete sub-path, with lower-left corner (x, y) and dimensions `width` and `height`.
+
+### Path Painting Operators
+
+Method | Code | Description
+--- | --- | ---
+Stroke() | S | Stroke the path.
+CloseStroke() | s | Close and stroke the path. Same as: $.Close; $.Stroke
+Fill() | f | Fill the path, using the nonzero winding number rule to determine the region. Any open sub-paths are implicitly closed before being filled.
+EOFill() | f* | Fill the path, using the even-odd rule to determine the region to fill
+FillStroke() | B | Fill and then stroke the path, using the nonzero winding number rule to determine the region to fill.
+EOFillStroke() | B* | Fill and then stroke the path, using the even-odd rule to determine the region to fill.
+CloseFillStroke() | b | Close, fill, and then stroke the path, using the nonzero winding number rule to determine the region to fill.
+CloseEOFillStroke() | b* | Close, fill, and then stroke the path, using the even-odd rule to determine the region to fill.
+EndPath() | n | End the path object without filling or stroking it. This operator is a path-painting no-op, used primarily for the side effect of changing the current clipping path.
+
+### Path Clipping
+
+Method | Code | Description
+--- | --- | ---
+Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path.
+EOClip() | W* | Modify the current clipping path by intersecting it with the current path, using the even-odd rule to determine which regions lie inside the clipping path.
+
