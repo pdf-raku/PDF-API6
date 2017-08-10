@@ -509,6 +509,11 @@ A Pattern is another graphical sub-element. Its construction is similar to a for
 
 Patterns are typically used to achieve advanced tiling or shading effects.
 
+Please see [examples/preferences.p6](examples/pattern.p6), which produced:
+
+![pattern.pdf](examples/.previews/pattern-001.png)
+
+
 ### tiling-pattern
 
 ### use-pattern
@@ -731,7 +736,7 @@ parameter is to be retained unchanged.
 
     $pdf.preferences: :hide-toolbar, :first-page{ :page(2), :fit };
 
-[see also examples/preferences.p6](examples/preferences.p6)
+see also [examples/preferences.p6](examples/preferences.p6)
 
 ### version
 
