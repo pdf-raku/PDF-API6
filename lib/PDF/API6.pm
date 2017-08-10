@@ -34,16 +34,16 @@ class PDF::API6:ver<0.0.1>
 	if !$update and self.reader {
             with $.catalog<AcroForm> {
                 # guard against signature invalidation
-                my $sig-flags = .<SigFlags>;
                 constant AppendOnly = 2;
+                my $sig-flags = .<SigFlags>;
                 if $sig-flags && $sig-flags.flag-is-set: AppendOnly {
                     with $update {
                         # callee has specified :!update
                         die "This PDF contains digital signatures that will be invalidated with .save-as :!update"
                     }
                     else {
-                        # set :update to preserve digital signatures
-                        $update = True;
+                        # save in :update mode to preserve digital signatures
+                        $_ = True;
                     }
                 }
             }

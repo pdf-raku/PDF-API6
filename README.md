@@ -305,7 +305,7 @@ Deletes a page, by page-number
 
 # SECTION II: Graphics Methods (inherited from PDF::Lite)
 
-## Graphics Introduction
+## Introduction to Graphics
 
 Graphics form the basis of PDF rendering and display. This includes text, images,
 graphics, colors and painting.
@@ -323,10 +323,10 @@ my $gfx = $page.gfx;
 dd $gfx.content-dump; # dump existing graphics operations
 
 # add some more text to the page
-$gfx.font = .core-font; :family<Courier>;
-$gfx.TextMove = [10, 30];
+$gfx.font = $gfx.core-font: :family<Courier>;
 $gfx.BeginText;
-$gfx.say("Demo added text")l
+$gfx.TextMove = [10, 30];
+$gfx.say("Demo added text");
 $gfx.EndText;
 
 ```
@@ -386,7 +386,7 @@ Synopsis: `$gfx.text-transform: :$matrix, :translate[$x,$y], :rotate($rad), :sca
 
 Applies a text transform, such as translation, rotation, scaling, etc.
 
-    $gfx.transform: :translate[110, 10];
+    $gfx.text-transform: :translate[110, 10];
 
 - Text transforms are applied after any [Graphics Transform](#transform).
 
@@ -421,7 +421,7 @@ Synopsis: `$gfx.transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s
 
 Applies a graphics transform, such as translation, rotation, scaling, etc.
 
-    $gfx.transform: :translate[110, 10];
+    $gfx.transform: :rotate(pi/4), :scale(2);
 
 Unlike [Text Transforms](#text-transform), Graphics Transforms accumulate; and are applied in addition to any existing transforms.
 
@@ -461,10 +461,51 @@ Displays an image or form.
 
 A Form is a graphical sub-element. Its usage is the same as an image.
 
+### xobject-form
+
+This graphical method is used to create a new, empty form object:
+```
+use v6;
+use PDF::API6;
+
+my PDF::API6 $pdf .= new;
+my $page = $pdf.add-page;
+$page.MediaBox = [0, 0, 275, 100];
+# create a new XObject form of size 120 x 50
+my @BBox = [0, 0, 120, 50];
+my $form = $page.xobject-form: :@BBox;
+
+$form.graphics: {
+    # color the entire form
+    .FillColor = :DeviceRGB[.9, .8, .8];
+    .Rectangle: |@BBox;
+    .paint: :fill, :stroke;
+}
+
+$form.text: {
+    # some sample text
+    .font = .core-font('Helvetica');
+    .TextMove = 10, 10;
+    .say: "Sample form";
+}
+
+# display the form a couple of times
+$page.graphics: {
+    .transform: :translate(10, 10);
+    .do($form);
+    .transform: :translate(130, 0), :rotate(.1);
+    .do($form);
+}
+
+$pdf.save-as: "examples/sample-form.pdf";
+```
+
+![example.pdf](examples/.previews/sample-form-001.png)
+
 
 ## Patterns
 
-A Pattern is another graphical sub-element. Its usage is the same as a color.
+A Pattern is another graphical sub-element. Its construction is similar to a form; its usage is the same as a color.
 
 Patterns are typically used to achieve advanced tiling or shading effects.
 
