@@ -8,7 +8,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain
    - [PDF::API6](#pdfapi6)
    - [TODO](#todo)
 - [SYNOPSIS](#synopsis)
-- [SECTION I: Low Level Methods](#section-i-low-level-methods)
+- [SECTION I: Low Level Methods (inherited from PDF)](#section-i-low-level-methods-inherited-from-pdf)
    - [Input/Output](#inputoutput)
        - [new](#new)
        - [open](#open)
@@ -19,12 +19,16 @@ PDF::API6 - A Perl 6 PDF Tool-chain
    - [Serialization Methods](#serialization-methods)
        - [Str, Blob](#str-blob)
        - [ast](#ast)
+- [SECTION II: Content Methods (inherited from PDF::Lite)](#section-ii-content-methods-inherited-from-pdflite)
    - [Pages](#pages)
        - [page-count](#page-count)
        - [page](#page)
        - [add-page](#add-page)
        - [delete-page](#delete-page)
-- [SECTION II: Graphics Methods (inherited from PDF::Lite)](#section-ii-graphics-methods-inherited-from-pdflite)
+   - [Page Methods](#page-methods)
+       - [to-xobject](#to-xobject)
+       - [images](#images)
+       - [Rotate](#rotate)
    - [Introduction to Graphics](#introduction-to-graphics)
    - [Text Methods](#text-methods)
        - [text](#text)
@@ -44,28 +48,19 @@ PDF::API6 - A Perl 6 PDF Tool-chain
    - [Patterns](#patterns)
        - [tiling-pattern](#tiling-pattern)
        - [use-pattern](#use-pattern)
-   - [Page Methods](#page-methods)
-       - [to-xobject](#to-xobject)
-       - [images](#images)
    - [Low Level Graphics](#low-level-graphics)
        - [Colors](#colors)
-       - [Text](#text)
        - [Painting](#painting)
-       - [Clipping](#clipping)
-       - [Graphics State](#graphics-state)
    - [Rendering Methods](#rendering-methods)
        - [render](#render)
 - [SECTION III: PDF::API6 Specific Methods](#section-iii-pdfapi6-specific-methods)
        - [info](#info)
        - [preferences](#preferences)
-       - [Page Layout Options:](#page-layout-options)
-       - [Viewer Options:](#viewer-options)
-       - [Initial Page Options:](#initial-page-options)
        - [Examples](#examples)
        - [version](#version)
        - [PageLabels](#pagelabels)
        - [xmp-metadata](#xmp-metadata)
-- [APPENDIX: Graphics Operators and Variables](#appendix-graphics-operators-and-variables)
+- [APPENDIX](#appendix)
    - [Appendix I: Graphics](#appendix-i-graphics)
        - [Graphics Variables](#graphics-variables)
        - [Graphic Operators](#graphic-operators)
@@ -74,7 +69,6 @@ PDF::API6 - A Perl 6 PDF Tool-chain
        - [Path Construction](#path-construction)
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
-
 
 # NAME
 
@@ -107,10 +101,10 @@ $page.graphics: {
     .do($img, 20 + $text-block.width, 10);
 }
 
-$pdf.save-as: "examples/hello-world.pdf";
+$pdf.save-as: "tmp/hello-world.pdf";
 ```
 
-![example.pdf](examples/.previews/hello-world-001.png)
+![example.pdf](tmp/.previews/hello-world-001.png)
 
 # DIFFERENCES BETWEEN PDF::API2 AND PDF::API6
 
@@ -188,9 +182,7 @@ Some PDF::API2 features that are not yet available in PDF::API6
     # Save the PDF
     $pdf.save-as('/path/to/new.pdf');
 
-# SECTION I: Low Level Methods
-
-Methods inherited from PDF
+# SECTION I: Low Level Methods (inherited from PDF)
 
 ## Input/Output
 
@@ -275,6 +267,9 @@ Return an AST tree representation of a PDF.
 
      my %ast = $pdf.ast
 
+
+# SECTION II: Content Methods (inherited from PDF::Lite)
+
 ## Pages
 
 ### page-count
@@ -345,8 +340,6 @@ The `:inline` flag will check for any image objects in the graphical content str
 
 Read/write accessor to rotate the page. Angles must be multiples of 90 degrees.
 
-# SECTION II: Graphics Methods (inherited from PDF::Lite)
-
 ## Introduction to Graphics
 
 Graphics form the basis of PDF rendering and display. This includes text, images,
@@ -358,7 +351,7 @@ Each page has associated graphics these can be access by the`.gfx` method.
 use v6;
 use PDF::API6;
 
-my PDF::API6 $pdf .= open("examples/hello-world.pdf");
+my PDF::API6 $pdf .= open("tmp/hello-world.pdf");
 # dump existing graphics on page 1
 my $page = $pdf.page(1);
 my $gfx = $page.gfx;
@@ -408,6 +401,19 @@ Todo: Other font types (`tt-font`, `ps-font`, `uni-font`, ...)
 Read/write accessor to set, or get the current font
 
 ### print
+
+    need PDF::Content::Text::Block;
+    my PDF::Content::Text::Block $text-block;
+    
+    $gfx.WordSpacing = 2; # add extra spacing between words
+    my $font = PDF::Content::Util::Font::core-font( :family<Helvetica>, :weight<bold> );
+    my $font-size = 16;
+    my $text = "Hello.  Ting, ting-ting. Attention! … ATTENTION! ";
+    
+    $text-block = $gfx.print: $text, :$font, :$font-size, :width(120);
+    
+    note "text block has size {.width} X {.height}"
+        with $text-block;
 
 Synopsis: `my $text-block = print($text-str-or-chunks-or-block,
                  :align<left|center|right>, :valign<top|center|bottom>,
@@ -492,6 +498,8 @@ Loads an image in a supported format (currently PNG, GIF and JPEG).
 
 ### do
 
+     $gfx.do($img, 10, 20)
+
 Synopsis: `$gfx.do($image-or-form, $x = 0, $y = 0,
                    :$width, :$height, :inline,
                    :align<left center right> = 'left',
@@ -539,10 +547,10 @@ $page.graphics: {
     .do($form);
 }
 
-$pdf.save-as: "examples/sample-form.pdf";
+$pdf.save-as: "tmp/sample-form.pdf";
 ```
 
-![example.pdf](examples/.previews/sample-form-001.png)
+![example.pdf](tmp/.previews/sample-form-001.png)
 
 
 ## Patterns
@@ -551,9 +559,9 @@ A Pattern is another graphical sub-element. Its construction is similar to a for
 
 Patterns are typically used to achieve advanced tiling or shading effects.
 
-Please see [examples/preferences.p6](examples/pattern.p6), which produced:
+Please see [examples/pattern.p6](examples/pattern.p6), which produced:
 
-![pattern.pdf](examples/.previews/pattern-001.png)
+![pattern.pdf](tmp/.previews/pattern-001.png)
 
 
 ### tiling-pattern
@@ -612,7 +620,7 @@ The `graphics` method simply adds `Save` and `Restore` operators
 
 ### Colors
 
-The PDF Model maintains two seperate colors; for filling and stroking:
+The PDF Model maintains two separate colors; for filling and stroking:
 
 #### FillColor, FillAlpha
 
@@ -663,20 +671,33 @@ operation. For example:
     $gfx.MoveTo(50, 50);
     $gfx.LineTo(175,50);
     $gfx.LineTo(112.5,158.25);
-    $gfx.CloseFillStroke; # or $gfx.path: :close, :fill, :stroke;
-
-### Graphics State
-
-#### CTM (Transform Matrix)
-#### Save
-#### Restore
-
-...
+    $gfx.CloseFillStroke; # or $gfx.paint: :close, :fill, :stroke;
 
 ## Rendering Methods
 
 ### render
 
+This method is used to process graphics; normally after installing
+callbacks. These callbacks have access to the graphics state via
+the `$*gfx` dynamic variable.
+
+```
+use PDF::API6;
+use PDF::Content::Ops :OpCode;
+my PDF::API6 $pdf .= open: "tmp/basic.pdf";
+my $page = $pdf.page: 1;
+
+my sub callback($op, *@args) {
+   given $op {
+       when TextMove|TextMoveSet|SetTextMatrix {
+           note "Text matrix updated by $op to {$*gfx.TextMatrix}";
+       }
+   }
+}
+
+my $gfx = $page.new-gfx: :&callback;
+$page.render($gfx);
+```
 
 # SECTION III: PDF::API6 Specific Methods
 
@@ -704,8 +725,6 @@ Thumbnail images visible.
 
 Document outline visible.
 
-
-### Page Layout Options:
 
 #### `:page-layout<singlepage>`
 
@@ -736,8 +755,6 @@ The predominant reading order for text:
 
 Disables application page-scaling.
 
-
-### Viewer Options:
 
 #### `:hide-toolbar`
 
@@ -789,12 +806,12 @@ Print duplex by default and flip on the short edge of the sheet.
 
 Print duplex by default and flip on the long edge of the sheet.
 
-### Initial Page Options:
-
 #### `:firstpage{ :$page, *%options }`
 
 Specifying the page (either a page number or a page object) to be
 displayed, plus one of the following options:
+
+#### `:firstpage` Options:
 
 ##### `:fit`
 
@@ -912,9 +929,9 @@ Example:
 
     $pdf.xmp-metadata = $xml
 
-...
 
-# APPENDIX: Graphics Operators and Variables
+
+# APPENDIX
 
 ## Appendix I: Graphics
 
@@ -924,28 +941,28 @@ Example:
 
 Accessor | Code | Description | Default | Example Setters
 -------- | ------ | ----------- | ------- | -------
-TextMatrix | Tm | Text transformation matrix | [1,0,0,1,0,0] | .TextMatrix = :scale(1.5);
-CharSpacing | Tc | Character spacing | 0.0 | .CharSpacing = 1.0
-WordSpacing | Tw | Word extract spacing | 0.0 | .WordSpacing = 2.5
-HorizScaling | Th | Horizontal scaling (percent) | 100 | .HorizScaling = 150
-TextLeading | Tl | New line Leading | 0.0 | .TextLeading = 12; 
-Font | [Tf, Tfs] | Text font and size | | .font = [ .core-font( :family\<Helvetica> ), 12 ]
-TextRender | Tmode | Text rendering mode | 0 | .TextRender = TextMode::OutlineText
-TextRise | Trise | Text rise | 0.0 | .TextRise = 3
+TextMatrix | Tm | Text transformation matrix | [1,0,0,1,0,0] | `use PDF::Content::Matrix :scale; .TextMatrix = :scale(1.5);`
+CharSpacing | Tc | Character spacing | 0.0 | `.CharSpacing = 1.0`
+WordSpacing | Tw | Word extract spacing | 0.0 | `.WordSpacing = 2.5`
+HorizScaling | Th | Horizontal scaling (percent) | 100 | `.HorizScaling = 150`
+TextLeading | Tl | New line Leading | 0.0 | `.TextLeading = 12;`
+Font | [Tf, Tfs] | Text font and size | | `.font = [ .core-font( :family<Helvetica> ), 12 ]`
+TextRender | Tmode | Text rendering mode | 0 | `.TextRender = TextMode::OutlineText`
+TextRise | Trise | Text rise | 0.0 | `.TextRise = 3`
 
 #### General Graphics - Common
 
 Accessor | Code | Description | Default | Example Setters
 -------- | ------ | ----------- | ------- | -------
-CTM |  | The current transformation matrix | [1,0,0,1,0,0] | use PDF::Content::Matrix :scale;<br>.ConcatMatrix: :scale(1.5); 
-DashPattern | D |  A description of the dash pattern to be used when paths are stroked | solid | .DashPattern = [[3, 5], 6];
-FillAlpha | ca | The constant shape or constant opacity value to be used for other painting operations | 1.0 | .FillAlpha = 0.25
-FillColor| | current fill color-space and color | :DeviceGray[0.0] | .FillColor = :DeviceCMYK[.7,.2,.2,.1]
-LineCap  |  LC | A code specifying the shape of the endpoints for any open path that is stroked | 0 (butt) | .LineCap = LineCaps::RoundCaps;
-LineJoin | LJ | A code specifying the shape of joints between connected segments of a stroked path | 0 (miter) | .LineJoin = LineJoin::RoundJoin
-LineWidth | w | Stroke line-width | 1.0 | .LineWidth = 2.5
-StrokeAlpha | CA | The constant shape or constant opacity value to be used when paths are stroked | 1.0 | .StrokeAlpha = 0.5;
-StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | .StrokeColor = :DeviceRGB[.7,.2,.2]
+CTM |  | The current transformation matrix | [1,0,0,1,0,0] | `use PDF::Content::Matrix :scale; .ConcatMatrix: :scale(1.5);`
+DashPattern | D |  A description of the dash pattern to be used when paths are stroked | solid | `.DashPattern = [[3, 5], 6];`
+FillAlpha | ca | The constant shape or constant opacity value to be used for other painting operations | 1.0 | `.FillAlpha = 0.25`
+FillColor| | current fill color-space and color | :DeviceGray[0.0] | `.FillColor = :DeviceCMYK[.7,.2,.2,.1]`
+LineCap  |  LC | A code specifying the shape of the endpoints for any open path that is stroked | 0 (butt) | `.LineCap = LineCaps::RoundCaps;`
+LineJoin | LJ | A code specifying the shape of joints between connected segments of a stroked path | 0 (miter) | `.LineJoin = LineJoin::RoundJoin`
+LineWidth | w | Stroke line-width | 1.0 | `.LineWidth = 2.5`
+StrokeAlpha | CA | The constant shape or constant opacity value to be used when paths are stroked | 1.0 | `.StrokeAlpha = 0.5;`
+StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | `.StrokeColor = :DeviceRGB[.7,.2,.2]`
 
 #### General Graphics - Advanced
 

@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 7;
+plan 9;
 use PDF::API6;
 
 my PDF::API6 $pdf .= new;
@@ -34,5 +34,14 @@ my $xml = q:to<EOT>;
 lives-ok { $pdf.xmp-metadata = $xml}, 'set xmp metadata';
 is $pdf.xmp-metadata, $xml, 'get xmp metadata';
 
-$pdf.add-page;
-$pdf.save-as: "t/basic.pdf";
+my $page = $pdf.add-page;
+dies-ok {$page.Rotate = 89}, 'invalid rotation';
+lives-ok {$page.Rotate = 90}, '90 degree rotation';
+
+$page.text: {
+    .font = .core-font('Helvetica');
+    .TextMove = 10, 10;
+    .say: "Rotated Text";
+}
+
+$pdf.save-as: "tmp/basic.pdf";

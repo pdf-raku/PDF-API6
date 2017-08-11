@@ -1,6 +1,7 @@
 #!/usr/bin/env perl6
 use v6;
 use PDF::API6;
+use PDF::Reader;
 
 sub MAIN(Str $infile,              #| input PDF
 	 Str :$password = '',      #| password for the input PDF, if encrypted
@@ -12,9 +13,9 @@ sub MAIN(Str $infile,              #| input PDF
         ?? $*IN
 	!! $infile;
 
-    my $doc = PDF::API6.open( $input, :$password);
+    my PDF::Reader $reader = PDF::API6.open( $input, :$password).reader;
 
-    my UInt $revs = + $doc.reader.xrefs;
+    my UInt $revs = + $reader.xrefs;
 
     if $count {
 	say $revs;
@@ -26,9 +27,9 @@ sub MAIN(Str $infile,              #| input PDF
 	die "Error: there is only one revision in this PDF document.  It cannot be reverted.\n";
     }
     else {
-        my UInt $prev = $doc.reader.xrefs[*-2];
-	my Str $body = $doc.reader.input.substr(0, $prev);
-	my Str $xref = $doc.reader.input.substr($prev);
+        my UInt $prev = $reader.xrefs[*-2];
+	my Str $body = $reader.input.substr(0, $prev);
+	my Str $xref = $reader.input.substr($prev);
         $xref ~~ s/<after \n'%%EOF'> .* $/\n/;
 
 	my $fh = $save-as eq q{-}
