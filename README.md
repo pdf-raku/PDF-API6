@@ -339,6 +339,11 @@ This method returns image objects for a given page, or other graphical element:
 
 The `:inline` flag will check for any image objects in the graphical content stream.
 
+### Rotate
+
+    $page.Rotate = 90;
+
+Read/write accessor to rotate the page. Angles must be multiples of 90 degrees.
 
 # SECTION II: Graphics Methods (inherited from PDF::Lite)
 
@@ -611,7 +616,7 @@ The PDF Model maintains two seperate colors; for filling and stroking:
 
 #### FillColor, FillAlpha
 
-To set an RGB color for filling:
+To set an RGB color for filling, or for displaying text:
 
     $gfx.FillColorSpace = 'DeviceRGB';
     $gfx.FillColorN = [1.0, .5, .5];
@@ -645,11 +650,20 @@ These are identical to `FillColor`, and `FillAlpha`, except that they are applie
     $gfx.Rectangle(10,10,50,75);
     $gfx.Stroke;
 
-### Text
 
 ### Painting
 
-### Clipping
+PDF has some [Path Construction](#path-construction) operators, including `MoveTo`,
+`LineTo`, `CurveTo` and `ClosePath`. These are normally
+followed by either a [Painting](#path-painting-operators) or [Clipping](#path-clipping)
+operation. For example:
+
+    $gfx.FillColor = :DeviceRGB[.9, .5, .5];
+    $gfx.StrokeColor = :DeviceRGB[.5, .5, .9];
+    $gfx.MoveTo(50, 50);
+    $gfx.LineTo(175,50);
+    $gfx.LineTo(112.5,158.25);
+    $gfx.CloseFillStroke; # or $gfx.path: :close, :fill, :stroke;
 
 ### Graphics State
 
@@ -916,7 +930,7 @@ WordSpacing | Tw | Word extract spacing | 0.0 | .WordSpacing = 2.5
 HorizScaling | Th | Horizontal scaling (percent) | 100 | .HorizScaling = 150
 TextLeading | Tl | New line Leading | 0.0 | .TextLeading = 12; 
 Font | [Tf, Tfs] | Text font and size | | .font = [ .core-font( :family\<Helvetica> ), 12 ]
-TextRender | Tmode | Text rendering mode | 0 | .TextRender = TextMode::Outline::Text
+TextRender | Tmode | Text rendering mode | 0 | .TextRender = TextMode::OutlineText
 TextRise | Trise | Text rise | 0.0 | .TextRise = 3
 
 #### General Graphics - Common
@@ -938,7 +952,7 @@ StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | .Stroke
 Accessor | Code | Description | Default
 -------- | ------ | ----------- | -------
 AlphaSource | AIS | A flag specifying whether the current soft mask and alpha constant parameters are interpreted as shape values or opacity values. This flag also governs the interpretation of the SMask entry | false |
-BlackGeneration | BG2 | A function that calculates the level of the black colour component to use when converting RGB colours to CMYK
+BlackGenerationFunction | BG2 | A function that calculates the level of the black colour component to use when converting RGB colours to CMYK
 BlendMode | BM | The current blend mode to be used in the transparent imaging model |
 Flatness | FT | The precision with which curves are rendered on the output device. The value of this parameter gives the maximum error tolerance, measured in output device pixels; smaller numbers give smoother curves at the expense of more computation | 1.0 
 Halftone dictionary | HT |  A halftone screen for gray and colour rendering
