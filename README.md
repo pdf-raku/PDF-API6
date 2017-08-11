@@ -25,12 +25,13 @@ PDF::API6 - A Perl 6 PDF Tool-chain
        - [add-page](#add-page)
        - [delete-page](#delete-page)
 - [SECTION II: Graphics Methods (inherited from PDF::Lite)](#section-ii-graphics-methods-inherited-from-pdflite)
-   - [Graphics Introduction](#graphics-introduction)
+   - [Introduction to Graphics](#introduction-to-graphics)
    - [Text Methods](#text-methods)
        - [text](#text)
        - [font, core-font](#font-core-font)
        - [print](#print)
        - [say](#say)
+       - [text-transform](#text-transform)
    - [Graphics Methods](#graphics-methods)
        - [graphics](#graphics)
        - [transform](#transform)
@@ -39,6 +40,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain
        - [load-image](#load-image)
        - [do](#do)
    - [XObject Forms](#xobject-forms)
+       - [xobject-form](#xobject-form)
    - [Patterns](#patterns)
        - [tiling-pattern](#tiling-pattern)
        - [use-pattern](#use-pattern)
@@ -65,13 +67,14 @@ PDF::API6 - A Perl 6 PDF Tool-chain
        - [xmp-metadata](#xmp-metadata)
 - [APPENDIX: Graphics Operators and Variables](#appendix-graphics-operators-and-variables)
    - [Appendix I: Graphics](#appendix-i-graphics)
+       - [Graphics Variables](#graphics-variables)
        - [Graphic Operators](#graphic-operators)
        - [Graphics State](#graphics-state)
        - [Text Operators](#text-operators)
        - [Path Construction](#path-construction)
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
-       - [Graphics Variables](#graphics-variables)
+
 
 # NAME
 

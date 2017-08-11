@@ -264,7 +264,7 @@ class PDF::API6:ver<0.0.1>
         Proxy.new(
             STORE => sub ($, List $_) {
                 my PageLabelEntry @labels = .list;
-                $.catalog<PageLabels> = %{ Nums => to-page-labels(@labels) };
+                $.catalog<PageLabels> = %( Nums => to-page-labels(@labels) );
             },
             FETCH => sub ($) {
                 from-page-labels($.catalog<PageLabels>);
