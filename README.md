@@ -306,6 +306,40 @@ Deletes a page, by page-number
     $pdf.add-page($moved-page);
 
 
+## Page Methods
+
+### to-xobject
+
+Converts a page to an [XObject Form](#xobject-forms).
+
+This is useful if you want to transpose the imported page somewhat differently onto a page (e.g. two-up, four-up, etc.).
+
+Example:
+
+    use PDF::API6;
+    my PDF::API6 $old .= open('our/old.pdf');
+    my PDF::API6 $pdf .= new;
+    my $page = $pdf.add-page;
+    my $gfx = $page.gfx;
+
+    # Import Page 2 from the old PDF
+    my $xo = $pdf.page(2).to-xobject;
+
+    # Add it to the new PDF's first page at 1/2 scale
+    my $width = $xo.width / 2;
+    $gfx.do($xo, 0, 0, :$width);
+
+    $pdf.save-as('our/new.pdf');
+
+### images
+
+Synopsis: `my PDF::Content::XObject[Image] @images = $gfx.images: :inline;`
+
+This method returns image objects for a given page, or other graphical element:
+
+The `:inline` flag will check for any image objects in the graphical content stream.
+
+
 # SECTION II: Graphics Methods (inherited from PDF::Lite)
 
 ## Introduction to Graphics
@@ -519,23 +553,97 @@ Please see [examples/preferences.p6](examples/pattern.p6), which produced:
 
 ### tiling-pattern
 
+Synopsis: `my $pattern = $gfx.tiling-pattern( :@BBox, :@Matrix, :$XStep, :$YStep, :$group = True)`
+
+Creates a new tiling pattern.
+
 ### use-pattern
 
+Synopsis: `$gfx.FillColor = $gfx.use-pattern($pattern)`
 
-## Page Methods
-
-### to-xobject
-
-### images
+Use a pattern; registering it as graphics resource.
 
 
 ## Low Level Graphics
 
+PDF::API6 fully supports the PDF graphics instruction set, both for reading and
+writing PDF files. Direct calls to instructions are camel-cased, such as:
+
+    $gfx.TextMove(10,20);
+
+It is also possible to directly call the TextMove operator 'Td' directly:
+
+    use PDF::Content::Ops :OpCode
+    $gfx.op(OpCode::TextMove, 10,20);
+    $gfx.op('Td', 10,20);  # TextMove
+
+A number of graphics variables are tracked as the instructions are executed. For example,
+to set the line-width for stroking operations:
+
+    $gfx.LineWidth = 2.5;
+
+This is equivalent to:
+
+    $gfx.SetLineWidth(2.5)
+         unless $gfx.LineWidth == 2.5;
+
+The `Save` and `Restore` operators may be used to save and restore graphics variables.
+
+    $gfx.LineWidth = 1.5;
+    $gfx.Save;
+    $gfx.LineWidth = 2.5;
+    #...
+    $gfx.Restore;
+    say $gfx.LineWidth; # 1.5
+
+The `graphics` method simply adds `Save` and `Restore` operators
+
+    $gfx.LineWidth = 1.5;
+    $gfx.graphics: {
+        .LineWidth = 2.5;
+        #...
+    }
+    say $gfx.LineWidth; # 1.5
+
 ### Colors
+
+The PDF Model maintains two seperate colors; for filling and stroking:
+
+#### FillColor, FillAlpha
+
+To set an RGB color for filling:
+
+    $gfx.FillColorSpace = 'DeviceRGB';
+    $gfx.FillColorN = [1.0, .5, .5];
+
+Or more commonly:
+
+    $gfx.FillColor = :DeviceRGB[1.0, .5, .5];
+
+There are also Gray and CMYK color-spaces
+
+    $gfx.FillColor = :DeviceGray[.7];
+    $gfx.FillColor = :DeviceCMYK[.3, .2, .2, .15];
+
+Also settable is the `FillAlpha`. This is a value between 0.0 (fully transparent) and
+1.0 (fully opaque).
+
+Note that `FillAlpha` can also be used to draw semi-transparent images:
+
+    $gfx.FillAlpha = .3;  # make the fill color semi-transparent
+    $gfx.Rectangle(10,10,50,75);
+    $gfx.Fill; # fill, semi-transparently
+    $gfx.do($image, 20,20);  # overlay image, semi-transparently
 
 #### StrokeColor, StrokeAlpha
 
-#### FillColor, FillAlpha
+These are identical to `FillColor`, and `FillAlpha`, except that they are applied to stroking colors:
+
+    # draw a semi-transparent rectangle with red border
+    $gfx.StrokeAlpha = .5;  # make the stroke color semi-transparent
+    $gfx.StrokeColor = :DeviceRGB[.9, .1, .1];
+    $gfx.Rectangle(10,10,50,75);
+    $gfx.Stroke;
 
 ### Text
 
