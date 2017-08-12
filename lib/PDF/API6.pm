@@ -185,7 +185,7 @@ class PDF::API6:ver<0.0.1>
     }
 
     method is-encrypted { ? self.Encrypt }
-    method info { self<Info> //= {} }
+    method info { self.Info //= {} }
     method xmp-metadata is rw {
         my $metadata = $.catalog<Metadata> //= PDF::DAO.coerce: :stream{
             :dict{

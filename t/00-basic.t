@@ -9,8 +9,8 @@ is $pdf.version, v1.3, 'PDF default version';
 lives-ok { $pdf.version = v1.5 }, 'set version';
 is $pdf.version, v1.5, 'PDF updated version';
 
-lives-ok { $pdf.info<Title> = 'Test Title'; }, 'set info field';
-is $pdf.info<Title>, 'Test Title', 'get info field';
+lives-ok { $pdf.info.Title = 'Test Title'; }, 'set info field';
+is $pdf.info.Title, 'Test Title', 'get info field';
 
 my $xml = q:to<EOT>;
     <?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?>
