@@ -703,11 +703,11 @@ $page.render($gfx);
 
 ### info
 
-    %info := $pdf.info;
+    $info := $pdf.info;
 
 Gets/sets the info for the document
 
-    $pdf.info<Title> = 'Some Publication';
+    $pdf.info.Title = 'Some Publication';
 
 ### preferences
 
