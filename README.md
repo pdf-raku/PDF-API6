@@ -54,12 +54,13 @@ PDF::API6 - A Perl 6 PDF Tool-chain
    - [Rendering Methods](#rendering-methods)
        - [render](#render)
 - [SECTION III: PDF::API6 Specific Methods](#section-iii-pdfapi6-specific-methods)
+   - [Metadata Methods](#metadata-methods)
        - [info](#info)
+       - [xmp-metadata](#xmp-metadata)
+   - [Settings Methods](#settings-methods)
        - [preferences](#preferences)
-       - [Examples](#examples)
        - [version](#version)
        - [PageLabels](#pagelabels)
-       - [xmp-metadata](#xmp-metadata)
 - [APPENDIX](#appendix)
    - [Appendix I: Graphics](#appendix-i-graphics)
        - [Graphics Variables](#graphics-variables)
@@ -701,6 +702,8 @@ $page.render($gfx);
 
 # SECTION III: PDF::API6 Specific Methods
 
+## Metadata Methods
+
 ### info
 
     $info := $pdf.info;
@@ -709,9 +712,45 @@ Gets/sets the info for the document
 
     $pdf.info.Title = 'Some Publication';
 
+Standard Info fields include: Title, Author, Subject, Keywords, Creator, Producer, CreationDate, ModDate
+
+### xmp-metadata
+
+    Str $xml = $pdf.xmp-metadata;
+
+Gets/sets the XMP XML data stream.
+
+Example:
+
+    my $xml = q:to<EOT>;
+        <?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?>
+        <?adobe-xap-filters esc="CRLF"?>
+        <x:xmpmeta
+          xmlns:x='adobe:ns:meta/'
+          x:xmptk='XMP toolkit 2.9.1-14, framework 1.6'>
+            <rdf:RDF
+              xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+              xmlns:iX='http://ns.adobe.com/iX/1.0/'>
+                <rdf:Description
+                  rdf:about='uuid:b8659d3a-369e-11d9-b951-000393c97fd8'
+                  xmlns:pdf='http://ns.adobe.com/pdf/1.3/'
+                  pdf:Producer='Perl 6 PDF::API6 version 0.0.1'></rdf:Description>
+                </rdf:Description>
+            </rdf:RDF>
+        </x:xmpmeta>
+        <?xpacket end='w'?>
+        EOT
+
+    $pdf.xmp-metadata = $xml
+
+
+## Settings Methods
+
 ### preferences
 
-Controls viewing preferences for the PDF.
+    $pdf.preferences: :hide-toolbar, :first-page{ :page(2), :fit };
+
+Controls viewing preferences for the PDF. Options are:
 
 #### `:page-mode<fullscreen>`
 
@@ -874,10 +913,6 @@ the page magnified by the factor zoom. A zero (0) value for any of the
 parameters left, top, or zoom specifies that the current value of that
 parameter is to be retained unchanged.
 
-### Examples
-
-    $pdf.preferences: :hide-toolbar, :first-page{ :page(2), :fit };
-
 see also [examples/preferences.p6](examples/preferences.p6)
 
 ### version
@@ -899,37 +934,6 @@ by a page entry hash. For example
                       32 => { :start(1), :prefix<A-> },
                       36 => { :start(1), :prefix<B-> },
                       40 => { :Style(PageLabel::RomanUpper), :start(1), :prefix<B-> };
-
-### xmp-metadata
-
-    Str $xml = $pdf.xmp-metadata;
-
-Gets/sets the XMP XML data stream.
-
-Example:
-
-    my $xml = q:to<EOT>;
-        <?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?>
-        <?adobe-xap-filters esc="CRLF"?>
-        <x:xmpmeta
-          xmlns:x='adobe:ns:meta/'
-          x:xmptk='XMP toolkit 2.9.1-14, framework 1.6'>
-            <rdf:RDF
-              xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
-              xmlns:iX='http://ns.adobe.com/iX/1.0/'>
-                <rdf:Description
-                  rdf:about='uuid:b8659d3a-369e-11d9-b951-000393c97fd8'
-                  xmlns:pdf='http://ns.adobe.com/pdf/1.3/'
-                  pdf:Producer='Acrobat Distiller 6.0.1 for Macintosh'></rdf:Description>
-                </rdf:Description>
-            </rdf:RDF>
-        </x:xmpmeta>
-        <?xpacket end='w'?>
-        EOT
-
-    $pdf.xmp-metadata = $xml
-
-
 
 # APPENDIX
 
