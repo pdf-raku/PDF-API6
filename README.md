@@ -60,7 +60,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain
    - [Settings Methods](#settings-methods)
        - [preferences](#preferences)
        - [version](#version)
-       - [PageLabels](#pagelabels)
+       - [page-labels](#page-labels)
 - [APPENDIX](#appendix)
    - [Appendix I: Graphics](#appendix-i-graphics)
        - [Graphics Variables](#graphics-variables)
@@ -921,19 +921,19 @@ see also [examples/preferences.p6](examples/preferences.p6)
 
 Get or set the PDF Version
 
-### PageLabels
+### page-labels
 
 Get or sets page numbers to identify each page number, for display or printing:
 
-PageLabels is an array of ascending ascending integer indexes. Each is followed
+page-labels is an array of ascending ascending integer indexes. Each is followed
 by a page entry hash. For example
 
     constant PageLabel = PDF::API6::PageLabel;
-    $pdf.PageLabels = 0  => { :style(PageLabel::RomanUpper) },
-                      4  => { :style(PageLabel::Decimal) },
-                      32 => { :start(1), :prefix<A-> },
-                      36 => { :start(1), :prefix<B-> },
-                      40 => { :Style(PageLabel::RomanUpper), :start(1), :prefix<B-> };
+    $pdf.page-labels = 0  => { :style(PageLabel::Roman) },
+                       4  => { :style(PageLabel::Decimal) },
+                      32  => { :start(1), :prefix<A-> },
+                      36  => { :start(1), :prefix<B-> },
+                      40  => { :Style(PageLabel::Roman), :start(1), :prefix<B-> };
 
 # APPENDIX
 
