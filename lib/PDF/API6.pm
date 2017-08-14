@@ -199,8 +199,8 @@ class PDF::API6:ver<0.0.1>
 
     our Str enum PageLabel «
          :Decimal<d>
-         :Roman<R>, :RomanUpper<R> :RomanLower<r>
-         :Alpha<A>, :AlphaUpper<A> :AlphaLower<a>
+         :Roman<R> :RomanUpper<R> :RomanLower<r>
+         :Alpha<A> :AlphaUpper<A> :AlphaLower<a>
         »;
 
     sub to-page-label(Hash $l) {
