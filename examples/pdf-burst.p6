@@ -38,15 +38,14 @@ sub MAIN(Str $infile,            #| input PDF
 
 	my $page = $doc.page($page-num);
 
-        with $catalog.Pages {
-            # pretend this is the only page in the document
-	    temp .Kids = [ $page, ];
-	    temp .Count = 1;
-            temp $page.Parent = $catalog;
+        # pretend this is the only page in the document
+        my %Pages = $catalog.Pages.clone;
+        %Pages<Kids> = [ $page, ];
+        %Pages<Count> = 1;
+        temp $catalog.Pages = %Pages;
 
-	    warn "saving page: $save-page-as";
-	    $doc.save-as( $save-page-as, :rebuild );
-        }
+        warn "saving page: $save-page-as";
+	$doc.save-as( $save-page-as, :rebuild );
     }
 }
 

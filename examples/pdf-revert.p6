@@ -34,7 +34,7 @@ sub MAIN(Str $infile,              #| input PDF
 
 	my $fh = $save-as eq q{-}
 	   ?? $*OUT
-	   !! $outfile.IO.open( :w, :enc<latin-1> );
+	   !! $save-as.IO.open( :w, :enc<latin-1> );
 
 	$fh.print: $body;
 	$fh.print: $xref;

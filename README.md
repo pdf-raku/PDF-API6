@@ -712,7 +712,7 @@ Gets/sets the info for the document
 
     $pdf.info.Title = 'Some Publication';
 
-Standard Info fields include: Title, Author, Subject, Keywords, Creator, Producer, CreationDate, ModDate
+Standard `Info` fields include: `Title`, `Author`, `Subject`, `Keywords`, `Creator`, `Producer`, `CreationDate` and `ModDate`.
 
 ### xmp-metadata
 
