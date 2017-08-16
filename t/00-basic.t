@@ -40,7 +40,7 @@ lives-ok {$page.Rotate = 90}, '90 degree rotation';
 
 $page.text: {
     .font = .core-font('Helvetica');
-    .TextMove = 10, 10;
+    .text-position = 10, 10;
     .say: "Rotated Text";
 }
 

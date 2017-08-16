@@ -1,5 +1,5 @@
 use v6;
-use PDF::Lite;
+use PDF::Lite:ver(v0.0.2+);
 
 class PDF::API6:ver<0.0.1>
     is PDF::Lite {
