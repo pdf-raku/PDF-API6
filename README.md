@@ -33,6 +33,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain
    - [Text Methods](#text-methods)
        - [text](#text)
        - [font, core-font](#font-core-font)
+       - [text-position](#text-position)
        - [print](#print)
        - [say](#say)
        - [text-transform](#text-transform)
@@ -94,7 +95,7 @@ $page.MediaBox = [0, 0, 200, 100];
 $page.graphics: {
     my $text-block = .text: {
         .font = .core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
-        .TextMove = [10, 10];
+        .text-position = [10, 10];
         .say: 'Hello, world';
     }
 
@@ -176,7 +177,7 @@ Some PDF::API2 features that are not yet available in PDF::API6
     # Add some text to the page
     $page.text: {
         .font = $font, 20;
-        .TextMove = 200, 700;
+        .text-position = 200, 700;
         .say('Hello World!');
     }
 
@@ -361,7 +362,7 @@ dd $gfx.content-dump; # dump existing graphics operations
 # add some more text to the page
 $gfx.font = $gfx.core-font: :family<Courier>;
 $gfx.BeginText;
-$gfx.TextMove = [10, 30];
+$gfx.TextMove(10, 30);
 $gfx.say("Demo added text");
 $gfx.EndText;
 
@@ -379,7 +380,7 @@ This is a convenience method, that executes code in a text block. Text blocks
 cannot be nested. Nor can they contain a graphics block.
 
     $page.text: {
-        .TextMove = 30, 50;
+        .text-position = 30, 50;
         .say "hi";
     }
 
@@ -388,7 +389,7 @@ is equivalent to:
     my $gfx = $page.gfx;
     with $gfx {
         .BeginText;
-        .TextMove = 30, 50;
+        .text-position = 30, 50;
         .say "hi";
         .EndText;
     }
@@ -400,6 +401,13 @@ is equivalent to:
 Todo: Other font types (`tt-font`, `ps-font`, `uni-font`, ...)
 
 Read/write accessor to set, or get the current font
+
+### text-position
+
+    $gfx.text-position = 10,20;
+    $gfx.say('text @10,20');
+
+Gets or sets the current text output position.
 
 ### print
 
@@ -427,7 +435,7 @@ Outputs a text string, or [Text Block](https://github.com/p6-pdf/PDF-Content-p6/
 
 ### say
 
-Takes the same parameters as `print`. Sets the text position (`$.TextMove`) to the next line.
+Takes the same parameters as `print`. Sets the text position (`$.text-position`) to the next line.
 
 ### text-transform
 
@@ -536,7 +544,7 @@ $form.graphics: {
 $form.text: {
     # some sample text
     .font = .core-font('Helvetica');
-    .TextMove = 10, 10;
+    .text-position = 10, 10;
     .say: "Sample form";
 }
 
@@ -946,10 +954,10 @@ by a page entry hash. For example
 Accessor | Code | Description | Default | Example Setters
 -------- | ------ | ----------- | ------- | -------
 TextMatrix | Tm | Text transformation matrix | [1,0,0,1,0,0] | `use PDF::Content::Matrix :scale; .TextMatrix = :scale(1.5);`
-CharSpacing | Tc | Character spacing | 0.0 | `.CharSpacing = 1.0`
-WordSpacing | Tw | Word extract spacing | 0.0 | `.WordSpacing = 2.5`
+CharSpacing | Tc | Character spacing adjustment | 0.0 | `.CharSpacing = 1.0`
+WordSpacing | Tw | Word spacing adjustment | 0.0 | `.WordSpacing = 2.5`
 HorizScaling | Th | Horizontal scaling (percent) | 100 | `.HorizScaling = 150`
-TextLeading | Tl | New line Leading | 0.0 | `.TextLeading = 12;`
+TextLeading | Tl | Line height | 0.0 | `.TextLeading = 12;`
 Font | [Tf, Tfs] | Text font and size | | `.font = [ .core-font( :family<Helvetica> ), 12 ]`
 TextRender | Tmode | Text rendering mode | 0 | `.TextRender = TextMode::OutlineText`
 TextRise | Trise | Text rise | 0.0 | `.TextRise = 3`
