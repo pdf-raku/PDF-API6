@@ -34,9 +34,9 @@ PDF::API6 - A Perl 6 PDF Tool-chain
        - [text](#text)
        - [font, core-font](#font-core-font)
        - [text-position](#text-position)
+       - [text-transform](#text-transform)
        - [print](#print)
        - [say](#say)
-       - [text-transform](#text-transform)
    - [Graphics Methods](#graphics-methods)
        - [graphics](#graphics)
        - [transform](#transform)
@@ -71,6 +71,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain
        - [Path Construction](#path-construction)
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
+       - [Marked Content](#marked-content)
 
 # NAME
 
@@ -162,11 +163,11 @@ Some PDF::API2 features that are not yet available in PDF::API6
     my $page = $pdf.add-page();
 
     # Retrieve an existing page
-    $page = $pdf.page($page_number);
+    $page = $pdf.page($page-number);
 
     # Set the page size
     use PDF::Content::Page :PageSizes;
-    $page.MediaBox = Letter;
+    $page.media-box = Letter;
 
     # Add a built-in font to the PDF
     $font = $pdf.core-font('Helvetica-Bold');
@@ -239,9 +240,9 @@ A PDF file can also be saved as, and opened from an intermediate JSON representa
 
     PDF::API6 $pdf .= new;
     #...
-    $pdf.save-as: 'our/pdf-ast.json';
+    $pdf.save-as: 'our/ast.json';
     # ...
-    $pdf.open: 'our/pdf-ast.json';
+    $pdf.open: 'our/ast.json';
 
 ### encrypt
 
@@ -361,10 +362,10 @@ dd $gfx.content-dump; # dump existing graphics operations
 
 # add some more text to the page
 $gfx.font = $gfx.core-font: :family<Courier>;
-$gfx.BeginText;
-$gfx.TextMove(10, 30);
-$gfx.say("Demo added text");
-$gfx.EndText;
+$gfx.text: {
+    .text-position = (10, 30);
+    .say("Demo added text");
+}
 
 ```
 
@@ -386,8 +387,7 @@ cannot be nested. Nor can they contain a graphics block.
 
 is equivalent to:
 
-    my $gfx = $page.gfx;
-    with $gfx {
+    given $page.gfx {
         .BeginText;
         .text-position = 30, 50;
         .say "hi";
@@ -397,6 +397,8 @@ is equivalent to:
 ### font, core-font
 
     $gfx.font = $gfx.core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
+    $gfx.font = $gfx.core-font('Times-Bold');
+    $gfx.font = $gfx.core-font('ZapfDingbats');
 
 Todo: Other font types (`tt-font`, `ps-font`, `uni-font`, ...)
 
@@ -408,6 +410,18 @@ Read/write accessor to set, or get the current font
     $gfx.say('text @10,20');
 
 Gets or sets the current text output position.
+
+### text-transform
+
+Synopsis: `$gfx.text-transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s, $sy?], :skew[$x,y];`
+
+Applies text transforms, such as translation, rotation, scaling, etc.
+
+    $gfx.text-transform: :translate[110, 10], :rotate(.1);
+
+- Text transforms are applied after any [Graphics Transform](#transform).
+
+- This replaces any existng text positioning or transforms.
 
 ### print
 
@@ -435,19 +449,7 @@ Outputs a text string, or [Text Block](https://github.com/p6-pdf/PDF-Content-p6/
 
 ### say
 
-Takes the same parameters as `print`. Sets the text position (`$.text-position`) to the next line.
-
-### text-transform
-
-Synopsis: `$gfx.text-transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s, $sy?], :skew[$x,y];`
-
-Applies a text transform, such as translation, rotation, scaling, etc.
-
-    $gfx.text-transform: :translate[110, 10];
-
-- Text transforms are applied after any [Graphics Transform](#transform).
-
-- This replaces any existing Text Transforms.
+Takes the same parameters as `print`. Sets the final text position (`$.text-position`) to the next line.
 
 ## Graphics Methods
 
@@ -464,8 +466,7 @@ This is a convenience method, that executes code in a nested Save/Restore block.
 
 is equivalent to:
 
-    my $gfx = $page.gfx;
-    with $gfx {
+    given $page.gfx {
         .Save;
         .Rectangle(10,20,100,50);
         .Fill;
@@ -486,7 +487,7 @@ Unlike [Text Transforms](#text-transform), Graphics Transforms accumulate; and a
 
 Synopsis: `$gfx.paint( :close, :stroke, :fill, :even-odd)`
 
-`paint` is a general purpose method for painting and filling shapes.
+`paint` is a general purpose method for closing, stroking and filling shapes.
 
     # fill and stroke a rectangle
     $gfx.FillColor = :DeviceRGB[.7, .7, .9];
@@ -502,7 +503,7 @@ Synopsis: `$gfx.paint( :close, :stroke, :fill, :even-odd)`
 
 Loads an image in a supported format (currently PNG, GIF and JPEG).
 
-     my $img = .load-image("t/images/lightbulb.gif");
+     my $img = $gfx.load-image("t/images/lightbulb.gif");
      note "image has size {$img.width} X {$image.height}";
 
 ### do
@@ -542,7 +543,7 @@ $form.graphics: {
 }
 
 $form.text: {
-    # some sample text
+    # add some sample text
     .font = .core-font('Helvetica');
     .text-position = 10, 10;
     .say: "Sample form";
@@ -1077,3 +1078,12 @@ Method | Code | Description
 Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path.
 EOClip() | W* | Modify the current clipping path by intersecting it with the current path, using the even-odd rule to determine which regions lie inside the clipping path.
 
+### Marked Content
+
+Method | Code | Description
+--- | --- | ---
+MarkPoint(tag) | MP | Designate a marked-content point.
+MarkPointDict(tag,props) | DP | Designate a marked-content point with an associated property dictionary.
+BeginMarkContent(tag) | BMC |  Begin a marked-content sequence terminated by a balancing `EMC` (EndMarkedContent) operator.
+BeginMarkedContentDict(tag,props) |  BDC |  Begin a marked-content sequence with an associated property dictionary
+EndMarkContent | EMC | End a marked-content sequence begun by a BMC (BeginMarkedContent) or BDC (BeginMarkedContentDict) operator.
