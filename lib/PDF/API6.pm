@@ -1,8 +1,8 @@
 use v6;
-use PDF::Lite:ver(v0.0.2+);
+use PDF::Zen;
 
 class PDF::API6:ver<0.0.1>
-    is PDF::Lite {
+    is PDF::Zen {
 
     use PDF::DAO;
     use PDF::Content::Page;
@@ -20,59 +20,7 @@ class PDF::API6:ver<0.0.1>
 
     subset PageRef where {!.defined || $_ ~~ UInt|PDF::Content::Page};
 
-    method open(|c) {
-	my $doc = callsame;
-	die "PDF file has wrong type: " ~ $doc.reader.type
-	    unless $doc.reader.type eq 'PDF';
-	$doc;
-    }
-
     method catalog { self<Root> }
-
-    method save-as($spec, Bool :$preserve is copy, |c) {
-
-	if !$preserve and self.reader {
-            with $.catalog<AcroForm> {
-                # guard against signature invalidation
-                with .<SigFlags> {
-                    constant AppendOnly = 2;
-                    if .flag-is-set(AppendOnly) {
-                        with $preserve {
-                            die "This PDF contains digital signatures that will be invalidated with .save-as :!preserve"
-                        }
-                        else {
-                            # save in :preserve mode to preserve digital signatures
-                            $_ = True
-                        }
-                    }
-                }
-            }
-	}
-
-        do {
-            my $now = DateTime.now;
-            my $info = self.info;
-
-            with self.reader {
-                # updating
-                $info<ModDate> = $now;
-            }
-            else {
-                # creating
-                $info<Producer> //= "Perl 6 PDF::API6 {self.^ver}";
-                $info<CreationDate> //= $now
-            }
-        }
-	nextwith($spec, :$preserve, |c);
-    }
-
-    method update(|c) {
-        # for the benefit of the test suite
-        my $now = DateTime.now;
-        my $Info = self<Info> //= {};
-        $Info<ModDate> = $now;
-        nextsame;
-    }
 
     method preferences(
         Bool :$hide-toolbar,
@@ -108,9 +56,9 @@ class PDF::API6:ver<0.0.1>
             :none<UseNone>,
             );
 
-        $catalog<PageMode> = to-name( %PageModes{$page-mode} );
+        $catalog.PageMode = to-name( %PageModes{$page-mode} );
 
-        $catalog<PageLayout> = to-name( %(
+        $catalog.PageLayout = to-name( %(
             :single-page<SinglePage>,
             :one-column<OneColumn>,
             :two-column-left<TwoColumnLeft>,
@@ -118,7 +66,7 @@ class PDF::API6:ver<0.0.1>
             :single-page<SinglePage>,
             ){$page-layout});
 
-        given $catalog<ViewerPreferences> //= { } {
+        given $catalog.ViewerPreferences //= { } {
             .<HideToolbar> = True if $hide-toolbar;
             .<HideMenubar> = True if $hide-menubar;
             .<HideWindowUI> = True if $hide-windowui;
@@ -129,7 +77,7 @@ class PDF::API6:ver<0.0.1>
             .<NonFullScreenPageMode> = to-name( %PageModes{$after-fullscreen});
             .<PrintScaling> = to-name('None') if $print-scaling ~~ 'none';
             with $duplex -> $dpx {
-                .<Duplex> = to-name( %(
+                .Duplex = to-name( %(
                       :simplex<Simplex>,
                       :flip-long-edge<DuplexFlipLongEdge>,
                       :flip-short-edge<DuplexFlipShortEdge>,
@@ -140,7 +88,7 @@ class PDF::API6:ver<0.0.1>
             my $page-ref = $page ~~ Numeric
                 ?? self.page($page)
                 !! $page;
-            my $open-action = $catalog<OpenAction> = [$page-ref];
+            my $open-action = $catalog.OpenAction = [$page-ref];
             with $open-action {
                 when $fit   { .push: to-name('Fit') }
                 when $fith  { .push($fith) }
@@ -176,10 +124,10 @@ class PDF::API6:ver<0.0.1>
     method version {
         Proxy.new(
             FETCH => sub ($) {
-                Version.new: $.catalog<Version> // self.reader.?version // '1.3'
+                Version.new: $.catalog.Version // self.reader.?version // '1.3'
             },
             STORE => sub ($, Version $v) {
-                $.catalog<Version> = to-name( $v.Str );
+                $.catalog.Version = $v.Str;
             },
         );
     }
@@ -187,7 +135,7 @@ class PDF::API6:ver<0.0.1>
     method is-encrypted { ? self.Encrypt }
     method info { self.Info //= {} }
     method xmp-metadata is rw {
-        my $metadata = $.catalog<Metadata> //= PDF::DAO.coerce: :stream{
+        my $metadata = $.catalog.Metadata //= PDF::DAO.coerce: :stream{
             :dict{
                 :Type( to-name(<Metadata>) ),
                 :Subtype( to-name(<XML>) ),
@@ -264,10 +212,10 @@ class PDF::API6:ver<0.0.1>
         Proxy.new(
             STORE => sub ($, List $_) {
                 my PageLabelEntry @labels = .list;
-                $.catalog<PageLabels> = %( Nums => to-page-labels(@labels) );
+                $.catalog.PageLabels = %( Nums => to-page-labels(@labels) );
             },
             FETCH => sub ($) {
-                from-page-labels($.catalog<PageLabels>);
+                from-page-labels($.catalog.PageLabels);
             }
             )
     }
