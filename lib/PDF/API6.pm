@@ -125,24 +125,13 @@ class PDF::API6:ver<0.1.0>
         }
     }
 
-    method version {
-        Proxy.new(
-            FETCH => sub ($) {
-                Version.new: $.catalog.Version // self.reader.?version // '1.3'
-            },
-            STORE => sub ($, Version $v) {
-                $.catalog.Version = $v.Str;
-            },
-        );
-    }
-
     method is-encrypted { ? self.Encrypt }
     method info { self.Info //= {} }
     method xmp-metadata is rw {
         my $metadata = $.catalog.Metadata //= {
             :Type( to-name(<Metadata>) ),
             :Subtype( to-name(<XML>) ),
-        };
+        }; # autoloads PDF::Metadata::XML
 
         $metadata.decoded; # rw target
     }
@@ -164,11 +153,11 @@ class PDF::API6:ver<0.1.0>
 
     subset PageLabelEntry of Pair where {.key ~~ UInt && .value ~~ Hash }
 
-    sub to-page-labels($labels) {
+    sub to-page-labels(Pair @labels) {
         my @page-labels;
         my UInt $seq;
         my UInt $n = 0;
-        for $labels.list {
+        for @labels {
             my $idx  = .key;
             my $dict = .value;
             ++$n;
@@ -181,7 +170,7 @@ class PDF::API6:ver<0.1.0>
         @page-labels;
     }
 
-    sub from-page-label(Hash $l) {
+    sub from-page-label(Hash $l --> Hash) {
         my % = $l.keys.map: {
             when 'S'  { style  => $l{$_} }
             when 'St' { start  => $l{$_} }
@@ -191,7 +180,7 @@ class PDF::API6:ver<0.1.0>
     }
 
     sub from-page-labels(Hash $labels) {
-        my @page-labels;
+        my PageLabelEntry @page-labels;
         my UInt $n = 0;
         with $labels<Nums> {
             my $elems = .elems;

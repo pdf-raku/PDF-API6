@@ -3,6 +3,9 @@ sudo: false
 perl6:
   - latest
   - 2017.07
+branches:
+  except:
+    - zen
 install:
   - rakudobrew build zef
   - zef --depsonly install .
