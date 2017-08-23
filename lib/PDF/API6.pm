@@ -1,7 +1,7 @@
 use v6;
 use PDF::Zen;
 
-class PDF::API6:ver<0.0.1>
+class PDF::API6:ver<0.1.0>
     is PDF::Zen {
 
     use PDF::DAO;
@@ -56,15 +56,15 @@ class PDF::API6:ver<0.0.1>
             :none<UseNone>,
             );
 
-        $catalog.PageMode = to-name( %PageModes{$page-mode} );
+        $catalog.PageMode = %PageModes{$page-mode};
 
-        $catalog.PageLayout = to-name( %(
+        $catalog.PageLayout = %(
             :single-page<SinglePage>,
             :one-column<OneColumn>,
             :two-column-left<TwoColumnLeft>,
             :two-column-right<TwoColumnRight>,
             :single-page<SinglePage>,
-            ){$page-layout});
+            ){$page-layout};
 
         given $catalog.ViewerPreferences //= { } {
             .HideToolbar = True if $hide-toolbar;
@@ -73,15 +73,15 @@ class PDF::API6:ver<0.0.1>
             .FitWindow = True if $fit-window;
             .CenterWindow = True if $center-window;
             .DisplayDocTitle = True if $display-title;
-            .Direction = to-name(.uc) with $direction;
-            .NonFullScreenPageMode = to-name( %PageModes{$after-fullscreen});
-            .PrintScaling = to-name('None') if $print-scaling ~~ 'none';
+            .Direction = .uc with $direction;
+            .NonFullScreenPageMode = %PageModes{$after-fullscreen};
+            .PrintScaling = 'None' if $print-scaling ~~ 'none';
             with $duplex -> $dpx {
-                .Duplex = to-name( %(
+                .Duplex = %(
                       :simplex<Simplex>,
                       :flip-long-edge<DuplexFlipLongEdge>,
                       :flip-short-edge<DuplexFlipShortEdge>,
-                    ){$dpx});
+                    ){$dpx};
             }
         }
         if $page {
@@ -139,11 +139,9 @@ class PDF::API6:ver<0.0.1>
     method is-encrypted { ? self.Encrypt }
     method info { self.Info //= {} }
     method xmp-metadata is rw {
-        my $metadata = $.catalog.Metadata //= PDF::DAO.coerce: :stream{
-            :dict{
-                :Type( to-name(<Metadata>) ),
-                :Subtype( to-name(<XML>) ),
-            }
+        my $metadata = $.catalog.Metadata //= {
+            :Type( to-name(<Metadata>) ),
+            :Subtype( to-name(<XML>) ),
         };
 
         $metadata.decoded; # rw target

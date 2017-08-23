@@ -41,5 +41,7 @@ is-json-equiv $pdf.catalog.PageLabels, {
         ],
 }, 'raw .PageLabels';
 
+$pdf.save-as: "tmp/preferences.pdf";
+
 done-testing;
 
