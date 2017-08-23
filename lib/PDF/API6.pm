@@ -67,15 +67,15 @@ class PDF::API6:ver<0.0.1>
             ){$page-layout});
 
         given $catalog.ViewerPreferences //= { } {
-            .<HideToolbar> = True if $hide-toolbar;
-            .<HideMenubar> = True if $hide-menubar;
-            .<HideWindowUI> = True if $hide-windowui;
-            .<FitWindow> = True if $fit-window;
-            .<CenterWindow> = True if $center-window;
-            .<DisplayDocTitle> = True if $display-title;
-            .<Direction> = to-name(.uc) with $direction;
-            .<NonFullScreenPageMode> = to-name( %PageModes{$after-fullscreen});
-            .<PrintScaling> = to-name('None') if $print-scaling ~~ 'none';
+            .HideToolbar = True if $hide-toolbar;
+            .HideMenubar = True if $hide-menubar;
+            .HideWindowUI = True if $hide-windowui;
+            .FitWindow = True if $fit-window;
+            .CenterWindow = True if $center-window;
+            .DisplayDocTitle = True if $display-title;
+            .Direction = to-name(.uc) with $direction;
+            .NonFullScreenPageMode = to-name( %PageModes{$after-fullscreen});
+            .PrintScaling = to-name('None') if $print-scaling ~~ 'none';
             with $duplex -> $dpx {
                 .Duplex = to-name( %(
                       :simplex<Simplex>,
@@ -88,7 +88,7 @@ class PDF::API6:ver<0.0.1>
             my $page-ref = $page ~~ Numeric
                 ?? self.page($page)
                 !! $page;
-            my $open-action = $catalog.OpenAction = [$page-ref];
+            my $open-action = [$page-ref];
             with $open-action {
                 when $fit   { .push: to-name('Fit') }
                 when $fith  { .push($fith) }
@@ -117,7 +117,11 @@ class PDF::API6:ver<0.0.1>
                         .push: $v;
                     }
                 }
+                default {
+                    .push: to-name('Fit');
+                }
             }
+            $catalog.OpenAction = $open-action;
         }
     }
 
@@ -153,9 +157,9 @@ class PDF::API6:ver<0.0.1>
 
     sub to-page-label(Hash $l) {
         my % = $l.keys.map: {
-            when 'style'|'S'  { S  => to-name($l{$_}.Str) }
-            when 'start'|'St' { St => $l{$_}.Int }
-            when 'prefix'|'P' { P  => to-name($l{$_}.Str) }
+            when 'style'  { S  => to-name($l{$_}.Str) }
+            when 'start'  { St => $l{$_}.Int }
+            when 'prefix' { P  => to-name($l{$_}.Str) }
             default { warn "ignoring PageLabel field: $_" } 
         }
     }
@@ -216,8 +220,8 @@ class PDF::API6:ver<0.0.1>
             },
             FETCH => sub ($) {
                 from-page-labels($.catalog.PageLabels);
-            }
-            )
+            },
+        )
     }
 
 }
