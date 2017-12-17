@@ -90,8 +90,8 @@ use v6;
 use PDF::API6;
 
 my PDF::API6 $pdf .= new;
+$pdf.media-box = [0, 0, 200, 100];
 my $page = $pdf.add-page;
-$page.MediaBox = [0, 0, 200, 100];
 
 $page.graphics: {
     my $text-block = .text: {
@@ -165,7 +165,11 @@ Some PDF::API2 features that are not yet available in PDF::API6
     # Retrieve an existing page
     $page = $pdf.page($page-number);
 
-    # Set the page size
+    # Set the default page size
+    use PDF::Content::Page :PageSizes;
+    $pdf.media-box = A4;
+
+    # Set a specific page size
     use PDF::Content::Page :PageSizes;
     $page.media-box = Letter;
 
@@ -173,7 +177,10 @@ Some PDF::API2 features that are not yet available in PDF::API6
     $font = $pdf.core-font('Helvetica-Bold');
 
     # Add an external TTF font to the PDF
-    #NYI $font = $pdf.ttfont('/path/to/font.ttf');
+    # (requires PDF::Font::Loader module)
+    $font = PDF::Font::Loader.load-font: :file</path/to/font.ttf>;
+    # (requires PDF::Font::Loader and fontconfig)
+    $font = PDF::Font::Loader.load-font: :name<Vera>, :weight<Bold>;
 
     # Add some text to the page
     $page.text: {
@@ -540,7 +547,7 @@ use PDF::API6;
 
 my PDF::API6 $pdf .= new;
 my $page = $pdf.add-page;
-$page.MediaBox = [0, 0, 275, 100];
+$page.media-box = [0, 0, 275, 100];
 # create a new XObject form of size 120 x 50
 my @BBox = [0, 0, 120, 50];
 my $form = $page.xobject-form: :@BBox;
