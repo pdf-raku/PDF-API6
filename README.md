@@ -19,7 +19,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
    - [Serialization Methods](#serialization-methods)
        - [Str, Blob](#str-blob)
        - [ast](#ast)
-- [SECTION II: Content Methods (inherited from PDF::Lite)](#section-ii-content-methods-inherited-from-pdflite)
+- [SECTION II: Content Methods (inherited from PDF::Class)](#section-ii-content-methods-inherited-from-pdfclass)
    - [Pages](#pages)
        - [page-count](#page-count)
        - [page](#page)
@@ -28,6 +28,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
    - [Page Methods](#page-methods)
        - [to-xobject](#to-xobject)
        - [images](#images)
+       - [media-box, crop-box, trim-box, bleed-box, art-box](#media-box-crop-box-trim-box-bleed-box-art-box)
        - [Rotate](#rotate)
    - [Introduction to Graphics](#introduction-to-graphics)
    - [Text Methods](#text-methods)
@@ -125,14 +126,6 @@ values such as Integers, Reals and Strings.
 ## TODO
 
 Some PDF::API2 features that are not yet available in PDF::API6
-
-- Fonts. PDF::API6 currently only handles the standard 14 core fonts. No yet supported:
-
-    - `psfont' - for loading postscript fonts
-    - `ttfont` - for loading true type fonts
-    - `synfont` - for creating synthetic fonts
-    - `bdfont` - for creating BDF fonts
-    - `unifont` - for Unicode fonts
 
 - Images. PDF::API6 supports PNG, JPEG and GIF images
 
@@ -277,7 +270,7 @@ Check if document is encrypted
 
 ### Str, Blob
 
-Return a binary representation of a PDF as a latin-01 string, or binary Blob
+Return a binary representation of a PDF as a latin-1 string, or binary Blob
 
     Str $latin-1 = $pdf.Str;  Blob $bytes = $pdf.Blob;
 
@@ -288,7 +281,7 @@ Return an AST tree representation of a PDF.
     my %ast = $pdf.ast
 
 
-# SECTION II: Content Methods (inherited from PDF::Lite)
+# SECTION II: Content Methods (inherited from PDF::Class)
 
 ## Pages
 
@@ -308,7 +301,8 @@ Returns the nth page from the PDF
 
 Synopsis: `$pdf.add-page($page-object?)`
 
-    my $add-page = $pdf.add-page;
+    use PDF::Page;
+    my PDF::Page page = $pdf.add-page;
 
 Adds a page to the end of a PDF. Creates a new blank page by default.
 
@@ -332,13 +326,15 @@ This is useful if you want to transpose the imported page somewhat differently o
 Example:
 
     use PDF::API6;
+    use PDF::Page;
+    use PDF::XObject;
     my PDF::API6 $old .= open('our/old.pdf');
     my PDF::API6 $pdf .= new;
-    my $page = $pdf.add-page;
+    my PDF::Page $page = $pdf.add-page;
     my $gfx = $page.gfx;
 
     # Import Page 2 from the old PDF
-    my $xo = $pdf.page(2).to-xobject;
+    my PDF::XObject $xo = $pdf.page(2).to-xobject;
 
     # Add it to the new PDF's first page at 1/2 scale
     my $width = $xo.width / 2;
@@ -354,11 +350,30 @@ This method returns image objects for a given page, or other graphical element:
 
 The `:inline` flag will check for any image objects in the graphical content stream.
 
+### media-box, crop-box, trim-box, bleed-box, art-box
+
+A page can have several different bounding boxes:
+
+- media-box -- width and height of the printed page
+- crop-box -- the region of the PDF that is displayed or printed
+- trim-box -- the intended dimensions of the finished page
+- bleed-box -- the region to which the page contents needs to be clipped when output in a production environment.
+- art-box -- for general use
+
+Example:
+
+    use PDF::Content::Page :PageSizes;
+    sub postfix:<mm>( 2.83 );
+    $page.media-box = Letter;
+    # set-up symmetrical 3mm bleed
+    $page-bleed-box = .[0] - 3mm, .[1] - 3mm, .[2] + 3mm, [.3] + 3mm
+        with $page.media-box;
+
 ### Rotate
 
     $page.Rotate = 90;
 
-Read/write accessor to rotate the page. Angles must be multiples of 90 degrees.
+Read/write accessor to rotate the page, clockwise. Angles must be multiples of 90 degrees.
 
 ## Introduction to Graphics
 
@@ -417,9 +432,14 @@ is equivalent to:
     $gfx.font = $gfx.core-font('Times-Bold');
     $gfx.font = $gfx.core-font('ZapfDingbats');
 
-Todo: Other font types (`tt-font`, `ps-font`, `uni-font`, ...)
+Read/write accessor to set, or get the current font.
 
-Read/write accessor to set, or get the current font
+Note: Other fonts can be loaded via the PDF::Font::Loader module:
+
+    use PDF::Font::Loader :load-font;
+    $gfx.font = load-font: :file</usr/share/fonts/truetype/tlwg/Garuda-BoldOblique.ttf>;
+    # this also requires the fontconfig package on your system
+    $gfx.font = load-font: :name<Garuda>, :weight<Bold>, :slant<Oblique>;
 
 ### text-position
 

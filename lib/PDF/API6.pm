@@ -70,12 +70,12 @@ class PDF::API6:ver<0.1.0>
             ){$page-layout};
 
         given $catalog.ViewerPreferences //= { } {
-            .HideToolbar = True if $hide-toolbar;
-            .HideMenubar = True if $hide-menubar;
-            .HideWindowUI = True if $hide-windowui;
-            .FitWindow = True if $fit-window;
-            .CenterWindow = True if $center-window;
-            .DisplayDocTitle = True if $display-title;
+            .HideToolbar = $_ with $hide-toolbar;
+            .HideMenubar = $_ with $hide-menubar;
+            .HideWindowUI = $_ with $hide-windowui;
+            .FitWindow = $_ with $fit-window;
+            .CenterWindow = $_ with $center-window;
+            .DisplayDocTitle = $_ with $display-title;
             .Direction = .uc with $direction;
             .NonFullScreenPageMode = %PageModes{$after-fullscreen};
             .PrintScaling = 'None' if $print-scaling ~~ 'none';
