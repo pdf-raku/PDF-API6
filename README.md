@@ -708,6 +708,44 @@ These are identical to `FillColor`, and `FillAlpha`, except that they are applie
     $gfx.Rectangle(10,10,50,75);
     $gfx.Stroke;
 
+#### Named Colors
+
+This PDF::Content::Color `:ColorName` asd `color` exports provide a selection of built in named colors.
+
+-  Aqua, Black, Blue, Fuchsia, Gray, Green, Lime, Maroon Navy, Olive Orange, Purple,
+   Red, Silver, Teal, Yellow, Cyan, Magenta
+
+A wider selection is available via the `Color::Named` module.
+
+    use PDF::Content::Content :ColorName;
+    use Color::Named;
+    $gfx.FillAlpha = color Blue;
+    $gfx.StrokeAlpha = color Color::Named.new( :name<azure> );
+    
+#### Other Color Formats
+
+The `PDF::Content::Color` `color`  function also supports:
+
+- 3 or six digit RGB hex values, e.g.: `$gfx.FillColor = color '#ca9';`
+- 4 or 8 digit CMYK hex values, e.g. `$gfx.FillColor = color '%ab1020';`
+- 3 value RGB values, e.g.: `$gfx.FillColor = color [200, 50, 0];`
+- 4 digit CMYK values, e.g.: `$gfx.FillColor = color [ 255, 0, 0, 64];`
+- or equivalently `$gfx.FillColor = color [1, 0, 0, .25];`
+
+
+PDF::Content::Color :color, :ColorName;
+
+is color(Blue), (:DeviceRGB[0,0,1]), 'color name';
+is color([1,1,0,0]), (:DeviceCMYK[1,1,0,0]), 'cmyk color list';
+is color([255,255,0,0]), (:DeviceCMYK[1,1,0,0]), 'cmyk color list';
+is color([.1,.2,.3]), (:DeviceRGB[.1,.2,.3]), 'rgb color list';
+is color('#fa1'), (:DeviceRGB[1, 2/3, 17/255]), 'rgb 3 hex digits';
+is color('#ffaa11'), (:DeviceRGB[1, 2/3, 17/255]), 'rgb 6 hex digits';
+is color('%fa12'), (:DeviceCMYK[1, 2/3, 17/255, 34/255]), 'cmyk 3 hex digits';
+is color('%ffaa1122'), (:DeviceCMYK[1, 2/3, 17/255, 34/255]), 'cmyk 6 hex digits';
+is color(Color.new(0,0,255)), (:DeviceRGB[0, 0, 1]), 'color object'
+
+The `PDF::Content` :
 
 ### Painting
 
