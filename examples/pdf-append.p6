@@ -25,9 +25,9 @@ sub MAIN(Str $out-file, *@in-files, Str :$save-as, Bool :$force)  {
 	$pages.add-pages: $in-pdf.Root.Pages;
     }
 
-    if $save-as {
+    with $save-as {
 	# save to a new file
-	$pdf.save-as: $save-as;
+	$pdf.save-as: $_;
     }
     else {
 	# inplace incremental update of first file

@@ -95,20 +95,25 @@ This module is a work in progress in replicating, or mapping the functionality o
 ```
 use v6;
 use PDF::API6;
+use PDF::Page;
+use PDF::Content::Text::Block;
+use PDF::XObject::Image;
 
 my PDF::API6 $pdf .= new;
 $pdf.media-box = [0, 0, 200, 100];
-my $page = $pdf.add-page;
+my PDF::Page $page = $pdf.add-page;
+constant X-Margin = 10;
+constant Padding = 10;
 
 $page.graphics: {
-    my $text-block = .text: {
+    my PDF::Content::Text::Block $text-block = .text: {
         .font = .core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
-        .text-position = [10, 10];
+        .text-position = [X-Margin, 10];
         .say: 'Hello, world';
     }
 
-    my $img = .load-image: "t/images/lightbulb.gif";
-    .do($img, 20 + $text-block.width, 10);
+    my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.gif";
+    .do($img, X-Margin + Padding + $text-block.width, 10);
 }
 
 $pdf.save-as: "tmp/hello-world.pdf";
@@ -198,7 +203,7 @@ Creates a new PDF object.
 
     my PDF::API6 $pdf .= new();
     #...
-    print $pdf.Str;
+    dd $pdf.Str;
     $fh.write: $pdf.Blob;
 
     $pdf = PDF::API6.new();
@@ -545,7 +550,7 @@ Synopsis: `$gfx.paint( :close, :stroke, :fill, :even-odd)`
 
 Loads an image in a supported format (currently PNG, GIF and JPEG).
 
-     my $img = $gfx.load-image("t/images/lightbulb.gif");
+     my PDF::Content::XObject::Image $img = $gfx.load-image("t/images/lightbulb.gif");
      note "image has size {$img.width} X {$image.height}";
 
 ### do
@@ -570,15 +575,16 @@ This graphical method is used to create a new, empty form object:
 use v6;
 use PDF::API6;
 use PDF::Page;
-use PDF::XObject;
+use PDF::XObject::Form;
 use PDF::Content::Color :rgb;
 
 my PDF::API6 $pdf .= new;
 my PDF::Page $page = $pdf.add-page;
 $page.media-box = [0, 0, 275, 100];
+
 # create a new XObject form of size 120 x 50
 my @BBox = [0, 0, 120, 50];
-my PDF::XObject $form = $page.xobject-form: :@BBox;
+my PDF::XObject::Form $form = $page.xobject-form: :@BBox;
 
 $form.graphics: {
     # color the entire form
@@ -621,7 +627,7 @@ Please see [examples/pdf-pattern.p6](examples/pdf-pattern.p6), which produced:
 
 ### tiling-pattern
 
-Synopsis: `my $pattern = $gfx.tiling-pattern( :@BBox, :@Matrix, :$XStep, :$YStep, :$group = True)`
+Synopsis: `my PDF::Pattern::Tiling $pattern = $gfx.tiling-pattern( :@BBox, :@Matrix, :$XStep, :$YStep, :$group = True)`
 
 Creates a new tiling pattern.
 
@@ -672,7 +678,7 @@ The `graphics` method simply adds `Save` and `Restore` operators
     }
     say $gfx.LineWidth; # 1.5
 
-### Colors
+### Basic Colors
 
 The PDF Model maintains two separate colors; for filling and stroking:
 
@@ -1032,14 +1038,15 @@ Get or set the PDF Version
 Get or sets page numbers to identify each page number, for display or printing:
 
 page-labels is an array of ascending ascending integer indexes. Each is followed
-by a page entry hash. For example
+by a page numbering scheme. For example
 
     constant PageLabel = PDF::API6::PageLabel;
-    $pdf.page-labels = 0  => { :style(PageLabel::Roman) },
-                       4  => { :style(PageLabel::Decimal) },
-                      32  => { :start(1), :prefix<A-> },
-                      36  => { :start(1), :prefix<B-> },
-                      40  => { :Style(PageLabel::Roman), :start(1), :prefix<B-> };
+    $pdf.page-labels = 0  => 'i',   # Roman lowercase numbering, starting at i
+                       4  => '1',   # Plain Decimal Numbering
+                      32  => 'A-1', # Decimal with prefix
+                      36  => 'B-1', # Decimal with prefix
+                      # equivalent to 'C-1'
+                      40  => { :style(PageLabel::RomanUpper), :start(1), :prefix<C-> };
 
 ## Color Management
 

@@ -1,5 +1,5 @@
 use v6;
-use PDF::Class;
+use PDF::Class:ver(v0.2.7+);
 
 class PDF::API6:ver<0.1.0>
     is PDF::Class {
@@ -10,6 +10,7 @@ class PDF::API6:ver<0.1.0>
     use PDF::Metadata::XML;
     use PDF::Page;
     use PDF::Destination :Fit;
+    use PDF::Class::Util :from-roman;
 
     sub nums($a, Int $n) {
         with $a {
@@ -95,16 +96,30 @@ class PDF::API6:ver<0.1.0>
     }
 
     our Str enum PageLabel «
-         :Decimal<d>
-         :Roman<R> :RomanUpper<R> :RomanLower<r>
-         :Alpha<A> :AlphaUpper<A> :AlphaLower<a>
+         :Decimal<D>
+         :RomanUpper<R> :RomanLower<r>
+         :AlphaUpper<A> :AlphaLower<a>
         »;
 
-    sub to-page-label(Hash $l) {
-        my % = $l.keys.map: {
-            when 'style'  { S  => to-name($l{$_}.Str) }
+    multi sub to-page-label(UInt $_) {
+        %( S => Decimal.value, St => .Int )
+    }
+    multi sub to-page-label(Str $_ where /^<[ivxlc]>+$/) {
+        %( S => RomanLower.value, St => from-roman($_) )
+    }
+    multi sub to-page-label(Str $_ where /^<[IVXLC]>+$/) {
+        %( S => RomanUpper.value, St => from-roman($_) )
+    }
+    multi sub to-page-label(Str $ where /^(.*?)(\d+)$/) {
+        %( S => Decimal.value, P => $0.Str, St => $1.Int )
+    }
+    multi sub to-page-label(Hash $l) {
+        my % = $l.keys.sort.map: {
+            when 'St'     { $_ => $l{$_}.Int }
+            when 'S'|'P'  { $_ => $l{$_}.Str }
+            when 'style'  { S  => $l{$_}.Str }
             when 'start'  { St => $l{$_}.Int }
-            when 'prefix' { P  => to-name($l{$_}.Str) }
+            when 'prefix' { P  => $l{$_}.Str }
             default { warn "ignoring PageLabel field: $_" }
         }
     }
@@ -128,43 +143,14 @@ class PDF::API6:ver<0.1.0>
         @page-labels;
     }
 
-    sub from-page-label(Hash $l --> Hash) {
-        my % = $l.keys.map: {
-            when 'S'  { style  => $l{$_} }
-            when 'St' { start  => $l{$_} }
-            when 'P'  { prefix => $l{$_} }
-            default   { $_ => $l{$_} }
-        }
-    }
-
-    sub from-page-labels(Hash $labels) {
-        my PageLabelEntry @page-labels;
-        my UInt $n = 0;
-        with $labels<Nums> {
-            my $elems = .elems;
-            while ($n < $elems) {
-                my UInt $idx  = .[$n++];
-                my $dict = .[$n++] // {};
-                @page-labels.push: $idx => from-page-label($dict);
-            }
-        }
-        else {
-            with $labels<Kids> {
-                @page-labels.append: from-page-labels($_)
-                    for .list
-            }
-        }
-        @page-labels;
-    }
-
-    method page-labels {
+    method page-labels is rw {
         Proxy.new(
             STORE => sub ($, List $_) {
-                my PageLabelEntry @labels = .list;
+                my Pair @labels = .list;
                 $.catalog.PageLabels = %( Nums => to-page-labels(@labels) );
             },
             FETCH => sub ($) {
-                from-page-labels($.catalog.PageLabels);
+                .nums.Hash with $.catalog.PageLabels;
             },
         )
     }
