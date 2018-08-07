@@ -11,6 +11,7 @@ class PDF::API6:ver<0.1.0>
     use PDF::Page;
     use PDF::Destination :Fit;
     use PDF::Class::Util :from-roman;
+    use PDF::API6::Preferences;
 
     sub nums($a, Int $n) {
         with $a {
@@ -24,65 +25,21 @@ class PDF::API6:ver<0.1.0>
     sub to-name(Str $name) { PDF::COS.coerce: :$name }
 
     subset PageRef where {!.defined || $_ ~~ UInt|PDF::Page};
-
-    method preferences(
-        Bool :$hide-toolbar,
-        Bool :$hide-menubar,
-        Bool :$hide-windowui,
-        Bool :$fit-window,
-        Bool :$center-window,
-        Bool :$display-title,
-        Str  :$direction where 'r2l'|'l2r'|!.defined,
-        Str  :$page-mode where 'fullscreen'|'thumbs'|'outlines'|'none' = 'none';
-        Str  :$page-layout where 'single-page'|'one-column'|'two-column-left'|'two-column-right' = 'single-page';
-        Str  :$after-fullscreen where 'thumbs'|'outlines'|'none'='none',
-        Str  :$print-scaling where 'none'|!.defined,
-        Str  :$duplex where 'simplex'|'flip-long-edge'|'flip-short-edge'|!.defined,
-        :%start (
-            PageRef :$page is copy = 1,
-            :$fit = FitWindow,
-        ),
-        ) {
-        my PDF::Catalog $catalog = $.catalog;
-
-        constant %PageModes = %(
-            :fullscreen<FullScreen>,
-            :thumbs<UseThumbs>,
-            :outline<UseOutlines>,
-            :none<UseNone>,
-            );
-
-        $catalog.PageMode = %PageModes{$page-mode};
-
-        $catalog.PageLayout = %(
-            :single-page<SinglePage>,
-            :one-column<OneColumn>,
-            :two-column-left<TwoColumnLeft>,
-            :two-column-right<TwoColumnRight>,
-            :single-page<SinglePage>,
-            ){$page-layout};
-
-        given $catalog.ViewerPreferences //= { } -> $p {
-            $p.HideToolbar = $_ with $hide-toolbar;
-            $p.HideMenubar = $_ with $hide-menubar;
-            $p.HideWindowUI = $_ with $hide-windowui;
-            $p.FitWindow = $_ with $fit-window;
-            $p.CenterWindow = $_ with $center-window;
-            $p.DisplayDocTitle = $_ with $display-title;
-            $p.Direction = $p.uc with $direction;
-            $p.NonFullScreenPageMode = %PageModes{$after-fullscreen};
-            $p.PrintScaling = 'None' if $print-scaling ~~ 'none';
-            with $duplex {
-                $p.Duplex = %(
-                      :simplex<Simplex>,
-                      :flip-long-edge<DuplexFlipLongEdge>,
-                      :flip-short-edge<DuplexFlipShortEdge>,
-                    ){$_};
-            }
+    has PDF::API6::Preferences $.preferences;
+    method preferences {
+        $!preferences //= do {
+            my $catalog = self.catalog;
+            PDF::API6::Preferences.new: :$catalog;
         }
-        $page = self.page($page) if $page ~~ Numeric;
-        $catalog.OpenAction = PDF::Destination.construct($fit, |%start, :$page);
     }
+
+    method destination( Fit $fit = FitWindow, PageRef:D :$page! is copy, |c ) {
+        # resolve a page number to a page object
+        $page = self.page($page)
+            if $page ~~ UInt;
+        PDF::Destination.construct($fit, :$page, |c);
+    }
+    method outlines is rw { self.catalog.Outlines //= {} };
 
     method is-encrypted { ? self.Encrypt }
     method info returns PDF::Info { self.Info //= {} }
@@ -111,34 +68,32 @@ class PDF::API6:ver<0.1.0>
         %( S => RomanUpper.value, St => from-roman($_) )
     }
     multi sub to-page-label(Str $ where /^(.*?)(\d+)$/) {
-        %( S => Decimal.value, P => $0.Str, St => $1.Int )
+        %( S => Decimal.value, P => ~$0, St => +$1 )
     }
     multi sub to-page-label(Hash $l) {
         my % = $l.keys.sort.map: {
-            when 'St'     { $_ => $l{$_}.Int }
-            when 'S'|'P'  { $_ => $l{$_}.Str }
-            when 'style'  { S  => $l{$_}.Str }
-            when 'start'  { St => $l{$_}.Int }
-            when 'prefix' { P  => $l{$_}.Str }
+            when 'style' |'S'  { S  => $l{$_}.Str }
+            when 'start' |'St' { St => $l{$_}.Int }
+            when 'prefix'|'P'  { P  => $l{$_}.Str }
             default { warn "ignoring PageLabel field: $_" }
         }
     }
-
-    subset PageLabelEntry of Pair where {.key ~~ UInt && .value ~~ Hash }
 
     sub to-page-labels(Pair @labels) {
         my @page-labels;
         my UInt $seq;
         my UInt $n = 0;
         for @labels {
-            my $idx  = .key;
-            my $dict = .value;
+            my UInt $idx  = .key;
+            my Any  $spec = .value;
             ++$n;
-            fail "out of sequence PageLabel index at offset $n: $idx"
-                if $seq.defined && $idx <= $seq;
+            with $seq {
+                fail "out of sequence PageLabel index at offset $n: $idx"
+                    if $idx <= $_;
+            }
             $seq = $idx;
             @page-labels.push: $seq;
-            @page-labels.push: to-page-label($dict);
+            @page-labels.push: to-page-label($spec);
         }
         @page-labels;
     }

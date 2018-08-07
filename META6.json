@@ -14,7 +14,8 @@
   "name" : "PDF::API6",
   "perl" : "6.*",
   "provides" : {
-    "PDF::API6" : "lib/PDF/API6.pm"
+      "PDF::API6" : "lib/PDF/API6.pm",
+      "PDF::API6::Preferences" : "lib/PDF/API6/Preferences.pm"
   },
   "resources" : [ ],
   "source-url" : "git://github.com/p6-pdf/PDF-API6.git",

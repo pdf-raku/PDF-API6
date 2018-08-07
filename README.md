@@ -136,7 +136,7 @@ values such as Integers, Reals and Strings.
 
 ## TODO
 
-Some PDF::API2 features that are not yet available in PDF::API6
+PDF::API2 features that are not yet available in PDF::API6 include:
 
 - Images. PDF::API6 supports PNG, JPEG and GIF images
 
@@ -146,9 +146,6 @@ Some PDF::API2 features that are not yet available in PDF::API6
 
 - Annotations
 
-- Outlines
-
-- Destinations
 
 # SYNOPSIS
 
@@ -857,43 +854,50 @@ Example:
 
 ## Settings Methods
 
-### preferences
+### my $prefs = $pdf.preferences
 
     use PDF::Destination :Fit;
-    $pdf.preferences: :hide-toolbar, :start{ :page(2), :fit(FitWindow) };
+    given $pdf.preferences {
+        .HideToolBar = True;
+        .OpenAction = $pdf.destination( :page(2), :fit(FitWindow) );
+    }
 
 Controls viewing preferences for the PDF. Options are:
 
-#### `:page-mode<fullscreen>`
+#### `$prefs.PageMode = 'FullScreen'`
 
 Full-screen mode, with no menu bar, window controls, or any other window visible.
 
-#### `:page-mode<thumbs>`
+#### `$prefs.PageMode = 'UseThumbs'`
 
 Thumbnail images visible.
 
-#### `:page-mode<outlines>`
+#### `$prefs.PageMode = 'UseOutlines'`
 
 Document outline visible.
 
 
-#### `:page-layout<singlepage>`
+#### `$prefs.PageLayout = 'SinglePage'`
 
 Display one page at a time.
 
-#### `:page-layout<one-column>`
+#### `$prefs.PageLayout = 'OneColumn'`
 
 Display the pages in one column.
 
-#### `:page-layout<two-column-left>`
+#### `$prefs.PageLayout = 'TwoColumnLeft'`
 
 Display the pages in two columns, with odd numbered pages on the left.
 
-#### `:page-layout<two-column-right>`
+#### `$prefs.PageLayout = 'TwoColumnRight'`
 
 Display the pages in two columns, with odd numbered pages on the right.
 
-#### `:direction<r2l>`, `:direction<l2r>`
+#### `$prefs.PageLayout = 'SinglePage'`
+
+Display a single page at a time.
+
+#### `$prefs.direction = 'r2l';`
 
 The predominant reading order for text:
 
@@ -902,67 +906,58 @@ The predominant reading order for text:
 - `r2l` Right to left (vertical writing systems, such as Chinese, Japanese, and Korean)
 
 
-#### `:page-scaling<none>`
-
-Disables application page-scaling.
-
-
-#### `:hide-toolbar`
+#### `$prefs.HideToolbar = True`
 
 Specifying whether to hide tool bars.
 
-#### `:hide-menubar`
+#### `$prefs.HideMenubar = True`
 
 Specifying whether to hide menu bars.
 
-#### `:hide-windowui`
+#### `$prefs.WindowUI = True`
 
 Specifying whether to hide user interface elements.
 
-#### `:fit-window`
-
-Specifying whether to resize the document's window to the size of the displayed page.
-
-#### `:center-window`
+#### `$prefs.CenterWindow = True`
 
 Specifying whether to position the document's window in the center of the screen.
 
-#### `:display-title`
+#### `$prefs.DisplayDocTitle = True`
 
 Specifying whether the window's title bar should display the
 document title taken from the Title entry of the document information
 dictionary.
 
-#### `:after-fullscreen<thumbs>`
+#### `$prefs.after-fullscreen = 'UseThumbs'`
 
 Thumbnail images visible after Full-screen mode.
 
-#### `:after-fullscreen<outlines>`
+#### `$prefs.after-fullscreen = 'UseOutlines'`
 
 Document outline visible after Full-screen mode.
 
-#### `:print-scaling<none>`
+#### `$prefs.PrintScaling = 'None'`
 
 Set the default print setting for page scaling to none.
 
-#### `:duplex<simplex>`
+#### `$prefs.Duplex = 'Simplex'`
 
 Print single-sided by default.
 
-#### `:duplex<flip-short-edge>`
+#### `$prefs.Duplex = 'DuplexFlipShortEdge'`
 
 Print duplex by default and flip on the short edge of the sheet.
 
-#### `:duplex<flip-long-edge>`
+#### `$prefs.Duplex = 'DuplexFlipLongEdge'`
 
 Print duplex by default and flip on the long edge of the sheet.
 
-#### `:start{ :$page, *%options }`
+#### `$prefs.OpenAction = $pdf.destination( :$page, :fit(FitWindow));
 
 Specifying the page (either a page number or a page object) to be
 displayed by a PDF viewer, plus one of the following options:
 
-#### `:start` Options:
+#### `destination()` Options:
 
 ##### `:fit(FitWindow)`
 
@@ -1033,18 +1028,50 @@ see also [examples/pdf-preferences.p6](examples/pdf-preferences.p6)
 
 Get or set the PDF Version
 
+### outlines
+
+Outlines (or bookmarks) are commonly used by viewers for navigation of PDF documents.
+
+For example, the following sets up a simple table-of-contents that will typically appear
+in the navigation pane of a PDF viewer.
+
+```
+use PDF::API6;
+my PDF::API6 $pdf .= new;
+$pdf.add-page for 1 .. 7;
+use PDF::Destination :Fit;
+
+sub dest(|c) { :Dest($pdf.destination(|c)) }
+
+$pdf.outlines.kids = [
+          %( :Title('1. Purpose of this Document'), dest(:page(1))),
+          %( :Title('2. Pre-requisites'),           dest(:page(2))),
+          %( :Title('3. Compiler Speed-up'),        dest(:page(3))),
+          %( :Title('4. Recompiling the Kernel for Modules'), dest(:page(4)),
+             :kids[
+                %( :Title('5.1. Configuring Debian or RedHat for Modules'),   dest(:page(5)) ),
+                %( :Title('5.2. Configuring Slackware for Modules'),          dest(:page(5)) ),
+                %( :Title('5.3. Configuring Other Distributions for Module'), dest(:page(6)) ),
+             ],
+           ),
+          %( :Title('Appendix'), dest(:page(7))),
+         ];
+
+```
+
+See also: `pdf-toc.p6`, installed with PDF::Class. This can be used to view the outlines for a PDF.
+
 ### page-labels
 
 Get or sets page numbers to identify each page number, for display or printing:
 
-page-labels is an array of ascending ascending integer indexes. Each is followed
-by a page numbering scheme. For example
+page-labels is an array of ascending ascending integer indexes. Each is followed by a page numbering scheme. For example
 
     constant PageLabel = PDF::API6::PageLabel;
-    $pdf.page-labels = 0  => 'i',   # Roman lowercase numbering, starting at i
-                       4  => '1',   # Plain Decimal Numbering
-                      32  => 'A-1', # Decimal with prefix
-                      36  => 'B-1', # Decimal with prefix
+    $pdf.page-labels = 0  => 'i',   # Roman lowercase: i, ii, iii, ...
+                       4  => '1',   # Plain Decimal Numbering: 1, 2, 3, ...
+                      32  => 'A-1', # Decimal: A-1, A-2, ...
+                      36  => 'B-1', # Decimal: B-1, B-2, ...
                       # equivalent to 'C-1'
                       40  => { :style(PageLabel::RomanUpper), :start(1), :prefix<C-> };
 
