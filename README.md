@@ -142,7 +142,7 @@ PDF::API2 features that are not yet available in PDF::API6 include:
 
     - currently not supported are: TIFF, PNM and GIF images.
 
-- Fonts. A variety of formats are handled by the PDF::Font::Loader module (available on CPAN).  Font subsetting (to reduce PDF file sizes) is not yet implemented. 
+- Fonts. A variety of formats are handled by the PDF::Font::Loader module (available on CPAN).  Font sub-setting (to reduce PDF file sizes) is not yet implemented. 
 
 - Annotations
 
@@ -466,7 +466,7 @@ Applies text transforms, such as translation, rotation, scaling, etc.
 
 - Text transforms are applied after any [Graphics Transform](#transform).
 
-- This replaces any existng text positioning or transforms.
+- This replaces any existing text positioning or transforms.
 
 ### print
 
@@ -854,7 +854,7 @@ Example:
 
 ## Settings Methods
 
-### my $prefs = $pdf.preferences
+### preferences
 
     use PDF::Destination :Fit;
     given $pdf.preferences {
