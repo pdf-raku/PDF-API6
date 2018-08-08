@@ -59,20 +59,20 @@ class PDF::API6:ver<0.1.1>
         »;
 
     multi sub to-page-label(UInt $_) {
-        %( S => Decimal.value, St => .Int )
+        %( S => to-name(Decimal.value), St => .Int )
     }
     multi sub to-page-label(Str $_ where /^<[ivxlc]>+$/) {
-        %( S => RomanLower.value, St => from-roman($_) )
+        %( S => to-name(RomanLower.value), St => from-roman($_) )
     }
     multi sub to-page-label(Str $_ where /^<[IVXLC]>+$/) {
-        %( S => RomanUpper.value, St => from-roman($_) )
+        %( S => to-name(RomanUpper.value), St => from-roman($_) )
     }
     multi sub to-page-label(Str $ where /^(.*?)(\d+)$/) {
-        %( S => Decimal.value, P => ~$0, St => +$1 )
+        %( S => to-name(Decimal.value), P => ~$0, St => +$1 )
     }
     multi sub to-page-label(Hash $l) {
         my % = $l.keys.sort.map: {
-            when 'style' |'S'  { S  => $l{$_}.Str }
+            when 'style' |'S'  { S  => to-name($l{$_}.Str) }
             when 'start' |'St' { St => $l{$_}.Int }
             when 'prefix'|'P'  { P  => $l{$_}.Str }
             default { warn "ignoring PageLabel field: $_" }

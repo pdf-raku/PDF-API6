@@ -1,14 +1,29 @@
 %PDF-1.3
 %¥±ë
 1 0 obj <<
-  /CreationDate (D:20170714084840+12'00')
-  /Producer (Perl 6 PDF::API6 0.0.1)
+  /CreationDate (D:20180808125054+12'00')
+  /Producer (Perl 6 PDF::Class 0.1.1)
+  /Title (Sample PDF with preferences)
 >>
 endobj
 
 2 0 obj <<
   /Type /Catalog
   /OpenAction [ 3 0 R /Fit ]
+  /Outlines 13 0 R
+  /PageLabels <<
+    /Nums [ 0 <<
+        /S /r
+        /St 1
+      >> 1 <<
+        /S /D
+        /St 1
+      >> 3 <<
+        /S /D
+        /P (A-)
+        /St 1
+      >> ]
+  >>
   /PageLayout /SinglePage
   /PageMode /UseNone
   /Pages 5 0 R
@@ -22,23 +37,18 @@ endobj
 3 0 obj <<
   /Type /Page
   /Contents 4 0 R
-  /MediaBox [ 0 0 450 400 ]
+  /MediaBox [ 0 0 550 400 ]
   /Parent 5 0 R
-  /Resources <<
-    /Font <<
-      /F1 9 0 R
-    >>
-  >>
 >>
 endobj
 
 4 0 obj <<
-  /Length 306
+  /Length 319
 >> stream
 BT
   /F1 16 Tf
   1 0 0 1 10 350 Tm
-  (Page 2/2) Tj
+  (Page 1/3) Tj
   17.6 TL
   T*
   [  ] TJ
@@ -49,7 +59,7 @@ BT
   T*
   ( :page\(2\) \(document should open on page 2\)) Tj
   T*
-  ( :fit \(contents should scale to fit window\)) Tj
+  ( :fit\(FitWindow\) \(contents should scale to fit window\)) Tj
   T*
 ET
 endstream
@@ -57,31 +67,32 @@ endobj
 
 5 0 obj <<
   /Type /Pages
-  /Count 2
-  /Kids [ 6 0 R 3 0 R ]
+  /Count 4
+  /Kids [ 3 0 R 6 0 R 8 0 R 10 0 R ]
+  /Resources <<
+    /Font <<
+      /F1 12 0 R
+    >>
+    /ProcSet [ /PDF /Text ]
+  >>
 >>
 endobj
 
 6 0 obj <<
   /Type /Page
   /Contents 7 0 R
-  /MediaBox [ 0 0 450 400 ]
+  /MediaBox [ 0 0 550 400 ]
   /Parent 5 0 R
-  /Resources <<
-    /Font <<
-      /F1 8 0 R
-    >>
-  >>
 >>
 endobj
 
 7 0 obj <<
-  /Length 306
+  /Length 319
 >> stream
 BT
   /F1 16 Tf
   1 0 0 1 10 350 Tm
-  (Page 1/2) Tj
+  (Page 2/3) Tj
   17.6 TL
   T*
   [  ] TJ
@@ -92,21 +103,75 @@ BT
   T*
   ( :page\(2\) \(document should open on page 2\)) Tj
   T*
-  ( :fit \(contents should scale to fit window\)) Tj
+  ( :fit\(FitWindow\) \(contents should scale to fit window\)) Tj
   T*
 ET
 endstream
 endobj
 
 8 0 obj <<
-  /Type /Font
-  /Subtype /Type1
-  /BaseFont /Courier-Bold
-  /Encoding /WinAnsiEncoding
+  /Type /Page
+  /Contents 9 0 R
+  /MediaBox [ 0 0 550 400 ]
+  /Parent 5 0 R
 >>
 endobj
 
 9 0 obj <<
+  /Length 319
+>> stream
+BT
+  /F1 16 Tf
+  1 0 0 1 10 350 Tm
+  (Page 3/3) Tj
+  17.6 TL
+  T*
+  [  ] TJ
+  T*
+  (This PDF have preferences:) Tj
+  T*
+  ( :hide-toolbar \(toolbar should not appear in reader\)) Tj
+  T*
+  ( :page\(2\) \(document should open on page 2\)) Tj
+  T*
+  ( :fit\(FitWindow\) \(contents should scale to fit window\)) Tj
+  T*
+ET
+endstream
+endobj
+
+10 0 obj <<
+  /Type /Page
+  /Contents 11 0 R
+  /MediaBox [ 0 0 550 400 ]
+  /Parent 5 0 R
+>>
+endobj
+
+11 0 obj <<
+  /Length 319
+>> stream
+BT
+  /F1 16 Tf
+  1 0 0 1 10 350 Tm
+  (Page 4/3) Tj
+  17.6 TL
+  T*
+  [  ] TJ
+  T*
+  (This PDF have preferences:) Tj
+  T*
+  ( :hide-toolbar \(toolbar should not appear in reader\)) Tj
+  T*
+  ( :page\(2\) \(document should open on page 2\)) Tj
+  T*
+  ( :fit\(FitWindow\) \(contents should scale to fit window\)) Tj
+  T*
+ET
+endstream
+endobj
+
+12 0 obj <<
   /Type /Font
   /Subtype /Type1
   /BaseFont /Courier-Bold
@@ -114,25 +179,94 @@ endobj
 >>
 endobj
 
+13 0 obj <<
+  /Count 6
+  /First 14 0 R
+  /Last 19 0 R
+>>
+endobj
+
+14 0 obj <<
+  /Count 1
+  /Dest [ 3 0 R /Fit ]
+  /Next 15 0 R
+  /Title (1. Sample Heading-1)
+>>
+endobj
+
+15 0 obj <<
+  /Count 1
+  /Dest [ 6 0 R /Fit ]
+  /Next 16 0 R
+  /Prev 14 0 R
+  /Title (2. Sample Heading-2)
+>>
+endobj
+
+16 0 obj <<
+  /Count 3
+  /Dest [ 8 0 R /Fit ]
+  /First 17 0 R
+  /Last 18 0 R
+  /Next 19 0 R
+  /Prev 15 0 R
+  /Title (3. Sample Heading-3)
+>>
+endobj
+
+17 0 obj <<
+  /Count 1
+  /Dest [ 8 0 R /Fit ]
+  /Next 18 0 R
+  /Title (3.1. Sub Heading)
+>>
+endobj
+
+18 0 obj <<
+  /Count 1
+  /Dest [ 8 0 R /Fit ]
+  /Prev 17 0 R
+  /Title (3.1. Sub Heading)
+>>
+endobj
+
+19 0 obj <<
+  /Count 1
+  /Dest [ 10 0 R /Fit ]
+  /Prev 16 0 R
+  /Title (Appendix)
+>>
+endobj
+
 xref
-0 10
+0 20
 0000000000 65535 f 
 0000000014 00000 n 
-0000000115 00000 n 
-0000000332 00000 n 
-0000000487 00000 n 
-0000000847 00000 n 
-0000000919 00000 n 
-0000001074 00000 n 
-0000001434 00000 n 
-0000001543 00000 n 
+0000000155 00000 n 
+0000000569 00000 n 
+0000000667 00000 n 
+0000001040 00000 n 
+0000001211 00000 n 
+0000001309 00000 n 
+0000001682 00000 n 
+0000001780 00000 n 
+0000002153 00000 n 
+0000002253 00000 n 
+0000002627 00000 n 
+0000002737 00000 n 
+0000002802 00000 n 
+0000002905 00000 n 
+0000003023 00000 n 
+0000003172 00000 n 
+0000003272 00000 n 
+0000003372 00000 n 
 trailer
 <<
-  /ID [ <f2daea969b686ab499362e44923c9d83> <f2daea969b686ab499362e44923c9d83> ]
+  /ID [ <a56b3c8c5467b427bb8af62effa15b8c> <a56b3c8c5467b427bb8af62effa15b8c> ]
   /Info 1 0 R
   /Root 2 0 R
-  /Size 10
+  /Size 20
 >>
 startxref
-1652
+3465
 %%EOF
