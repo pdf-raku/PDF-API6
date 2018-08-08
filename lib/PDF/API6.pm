@@ -1,7 +1,7 @@
 use v6;
-use PDF::Class:ver(v0.2.7+);
+use PDF::Class:ver(v0.2.8+);
 
-class PDF::API6:ver<0.1.0>
+class PDF::API6:ver<0.1.1>
     is PDF::Class {
 
     use PDF::COS;
