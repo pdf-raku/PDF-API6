@@ -72,10 +72,13 @@ lives-ok {
           %( :Title('3. Compiler Speed-up'),        dest(:page(3))),
           %( :Title('4. Recompiling the Kernel for Modules'), dest(:page(4)),
              :kids[
-                %( :Title('5.1. Configuring Debian or RedHat for Modules'),   dest(:page(5)) ),
-                %( :Title('5.2. Configuring Slackware for Modules'),          dest(:page(5)) ),
-                %( :Title('5.3. Configuring Other Distributions for Module'), dest(:page(6)) ),
-             ],
+                %( :Title('5.1. Configuring Debian or RedHat for Modules'),
+                   dest(:page(5), :fit(FitXYZoom), :top(798)) ),
+                %( :Title('5.2. Configuring Slackware for Modules'),
+                   dest(:page(5), :fit(FitXYZoom), :top(400)) ),
+                %( :Title('5.3. Configuring Other Distributions for Module'),
+                   dest(:page(5), :fit(FitXYZoom), :top(200)) ),
+              ],
            ),
           %( :Title('Appendix'), dest(:page(7))),
          ];

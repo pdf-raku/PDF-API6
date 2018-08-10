@@ -39,11 +39,11 @@ sub MAIN(Str $out-file, *@in-files, Str :$save-as, Bool :$force)  {
 
 =head1 NAME
 
-appendpdf.p6 - Append one PDF to another
+pdf-append.p6 - Append multiple PDF files
 
 =head1 SYNOPSIS
 
- appendpdf.p6 [options] --save-as=output.pdf file1.pdf file2.pdf
+ pdf-append.p6 [options] --save-as=output.pdf file1.pdf file2.pdf [file3.pdf...]
 
  Options:
    --save-as=file     save as a new PDF

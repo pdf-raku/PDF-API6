@@ -33,7 +33,7 @@ class PDF::API6:ver<0.1.1>
         }
     }
 
-    method destination( Fit $fit = FitWindow, PageRef:D :$page! is copy, |c ) {
+    method destination(PageRef:D :$page! is copy,  Fit :$fit = FitWindow, |c ) {
         # resolve a page number to a page object
         $page = self.page($page)
             if $page ~~ UInt;
