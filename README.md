@@ -132,8 +132,6 @@ $pdf.save-as: "tmp/hello-world.pdf";
 - Implements an Object Graph model for data access. A PDF file is modelled as an object tree of Dictionaries (Hashes) and Arrays that contain simpler
 values such as Integers, Reals and Strings.
 
-- Has fast incremental updates. Small changes to a large PDF can often be quite efficiently.
-
 ## TODO
 
 PDF::API2 features that are not yet available in PDF::API6 include:
@@ -142,9 +140,12 @@ PDF::API2 features that are not yet available in PDF::API6 include:
 
     - currently not supported are: TIFF, PNM and GIF images.
 
-- Fonts. A variety of formats are handled by the PDF::Font::Loader module (available on CPAN).  Font sub-setting (to reduce PDF file sizes) is not yet implemented. 
+- Fonts. A variety of formats are handled by the PDF::Font::Loader module (available on CPAN).
 
-- Annotations
+   - Font sub-setting (to reduce PDF file sizes) is not yet implemented (wanted: module PDF::Font::Subset)
+   - Synthetic fonts are nyi (wanted: module PDF::Font::Synthetic)
+
+- Annotations - nyi
 
 
 # SYNOPSIS
@@ -155,30 +156,35 @@ PDF::API2 features that are not yet available in PDF::API6 include:
     my PDF::API6 $pdf .= new();
 
     # Open an existing PDF file
-    $pdf = PDF::API6.open('some.pdf');
+    my PDF::API6 $pdf .= open('some.pdf');
 
     # Add a blank page
     my $page = $pdf.add-page();
 
     # Retrieve an existing page
-    $page = $pdf.page($page-number);
+    use PDF::Page;
+    my PDF::Page $page_2 = $pdf.page(2);
 
-    # Set the default page size
+    # Set the default page size for all pages
     use PDF::Content::Page :PageSizes;
     $pdf.media-box = A4;
 
-    # Set a specific page size
+    # Set the size of a specific page
     use PDF::Content::Page :PageSizes;
     $page.media-box = Letter;
 
-    # Add a built-in font to the PDF
-    $font = $pdf.core-font('Helvetica-Bold');
+    # Use a standard PDF core font
+    use PDF::Content::Font::CoreFont;
+    constant CoreFont = PDF::Content::Font::CoreFont;
+    my CoreFont $font = $pdf.core-font('Helvetica-Bold');
+    $font = $pdf.core-font: :family<Helvetica>, :weight<Bold>;
 
     # Add an external TrueType font to the PDF
-    # (requires PDF::Font::Loader module)
+    # (requires PDF::Font::Loader module to be installed)
+    use PDF::Font::Loader;
     $font = PDF::Font::Loader.load-font: :file</path/to/font.ttf>;
-    # (requires PDF::Font::Loader and fontconfig)
-    $font = PDF::Font::Loader.load-font: :name<Vera>, :weight<Bold>;
+    # (requires both PDF::Font::Loader module and fontconfig package)
+    $font = PDF::Font::Loader.load-font: :family<Vera>, :weight<Bold>;
 
     # Add some text to the page
     $page.text: {
@@ -231,7 +237,7 @@ Open a PDF, ignoring the cross reference index and stream lengths:
 
 ### update
 
-Performs a fast incremental save of a previously opened document.
+In-place update of a PDF file
 
     my PDF::API6 $pdf .= open('our/to/be/updated.pdf');
     #...
@@ -239,19 +245,29 @@ Performs a fast incremental save of a previously opened document.
 
 ### save-as
 
-Save the document to a file
+Save a new or updated PDF document to a file
 
     my PDF::API6 $pdf .= new;
     #...
     $pdf.save-as: 'our/new.pdf';
 
-The `:preserve` option keeps the original PDF structure. This is generally faster and also ensures that digital signatures are not invalidated.
+- The `:preserve` option (default True) keeps the original PDF structure,then applies incremental updates. This is generally faster and also ensures that digital signatures are not invalidated.
 
     PDF::API6 $pdf .= open("our/original.pdf");
     #...
-    $pdf.save-as: 'our/updated.pdf', :preserve;
+    $pdf.save-as: 'our/updated.pdf', :!preserve;
 
-A PDF file can also be saved as, and opened from an intermediate JSON representation
+- The `:rebuild` option (default False)) rewrites the PDF. This may be useful, if there have been a substantial number of updates.
+
+- The `:compress` option is used to ensure stream objects (which generally make up the bulk of a PDF) are compressed. This is useful when maximum compaction is needed.
+
+    PDF::API6 $pdf .= open("our/original.pdf");
+    # optimise for PDF compaction
+    $pdf.save-as: 'our/updated.pdf', :rebuild, :compress;
+
+- The reverse flag, `:!compress` is useful when you want to optimise for human-readability of the output PDF. It will unpack `Flate`, `LZW`, `ASCIIHex` and `ASCII85` encoded streams.
+
+A PDF file can also be saved as, and opened from an intermediate JSON representation, by saving to, or reading from, files with a `.json` extension
 
     PDF::API6 $pdf .= new;
     #...
@@ -277,13 +293,18 @@ Check if document is encrypted
 
 Return a binary representation of a PDF as a latin-1 string, or binary Blob
 
-    Str $latin-1 = $pdf.Str;  Blob $bytes = $pdf.Blob;
+    my Str $pdf-byte-string = $pdf.Str; # returns a latin1 encoded string
+    my Blob $bytes = $pdf.Blob;         # returns a Blob[uint8]
 
 ### ast
 
 Return an AST tree representation of a PDF.
 
-    my %ast = $pdf.ast
+    my %cos = $pdf.ast;   # returns a nested Hash representation of the PDF
+    # write it to a file
+    use PDF::Writer;
+    my $pdf-byte-string = PDF::Writer.new.write: :%cos;
+    "/tmp/out.pdf".IO.spurt(:bin, $pdf-byte-string);
 
 
 # SECTION II: Content Methods (inherited from PDF::Class)
@@ -445,7 +466,7 @@ Note: other fonts can be loaded via the PDF::Font::Loader module:
     use PDF::Font::Loader :load-font;
     $gfx.font = load-font( :file</usr/share/fonts/truetype/tlwg/Garuda-BoldOblique.ttf> );
     # this also requires the fontconfig package on your system
-    $gfx.font = load-font( 'Garuda', :weight<bold>, :slant<oblique> );
+    $gfx.font = load-font( :family<Garuda>, :weight<bold>, :slant<oblique> );
 
 ### text-position
 
