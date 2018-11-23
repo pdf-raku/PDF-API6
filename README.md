@@ -698,7 +698,7 @@ The `graphics` method simply adds `Save` and `Restore` operators
 
 ### Basic Colors
 
-The PDF Model maintains two separate colors; for filling and stroking:
+The PDF Model maintains two separate color states; for filling and stroking:
 
 #### FillColor, FillAlpha
 
@@ -1089,7 +1089,7 @@ See also: `pdf-toc.p6`, installed with PDF::Class. This can be used to view the 
 
 Get or sets page numbers to identify each page number, for display or printing:
 
-page-labels is an array of ascending ascending integer indexes. Each is followed by a page numbering scheme. For example
+page-labels is an array of ascending integer indexes. Each is followed by a page numbering scheme. For example
 
     constant PageLabel = PDF::API6::PageLabel;
     $pdf.page-labels = 0  => 'i',   # Roman lowercase: i, ii, iii, ...

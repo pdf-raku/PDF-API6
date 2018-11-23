@@ -13,15 +13,6 @@ class PDF::API6:ver<0.1.1>
     use PDF::Class::Util :from-roman;
     use PDF::API6::Preferences;
 
-    sub nums($a, Int $n) {
-        with $a {
-            fail "expected $n elements, found {.elems}"
-                unless $n == .elems;
-            fail "array contains non-numeric elements"
-                unless all(.list) ~~ Numeric;
-        }
-        True;
-    }
     sub to-name(Str $name) { PDF::COS.coerce: :$name }
 
     subset PageRef where {!.defined || $_ ~~ UInt|PDF::Page};
