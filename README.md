@@ -1097,7 +1097,7 @@ page-labels is an array of ascending integer indexes. Each is followed by a page
                       32  => 'A-1', # Decimal: A-1, A-2, ...
                       36  => 'B-1', # Decimal: B-1, B-2, ...
                       # equivalent to 'C-1'
-                      40  => { :style(PageLabel::RomanUpper), :start(1), :prefix<C-> };
+                      40  => { :numbering-style(PageLabel::RomanUpper), :start(1), :prefix<C-> };
 
 ## Color Management
 

@@ -24,12 +24,18 @@ class PDF::API6:ver<0.1.1>
         }
     }
 
-    method destination(PageRef:D :$page! is copy,  Fit :$fit = FitWindow, |c ) {
+    multi method destination(UInt :page($page-num)!, |c ) {
         # resolve a page number to a page object
-        $page = self.page($page)
-            if $page ~~ UInt;
+        my $page = self.page($page-num);
+        $.destination(:$page, |c);
+    }
+    multi method destination(
+        PDF::Page :$page!,
+        Fit :$fit = FitWindow,
+        |c ) is default {
         PDF::Destination.construct($fit, :$page, |c);
     }
+
     method outlines is rw { self.catalog.Outlines //= {} };
 
     method is-encrypted { ? self.Encrypt }
@@ -63,7 +69,9 @@ class PDF::API6:ver<0.1.1>
     }
     multi sub to-page-label(Hash $l) {
         my % = $l.keys.sort.map: {
-            when 'style' |'S'  { S  => to-name($l{$_}.Str) }
+            when 'numbering-style' |'S'  { S  => to-name($l{$_}.Str) }
+            when 'style' |'S'  {warn ":style is deprecated in page labels. Please use :numbering-style";
+                                S  => to-name($l{$_}.Str) }
             when 'start' |'St' { St => $l{$_}.Int }
             when 'prefix'|'P'  { P  => $l{$_}.Str }
             default { warn "ignoring PageLabel field: $_" }
