@@ -137,8 +137,11 @@ class PDF::API6:ver<0.1.1>
     }
 
     method color-devicen(@colors) {
+        my constant Sampled = 2;
         my $nc = +@colors;
+        my num64 @samples[Sampled ** $nc;4];
         my @functions;
+
         for @colors {
             die "color is not a seperation"
                 unless $_ ~~ PDF::ColorSpace::Separation;
@@ -157,20 +160,18 @@ class PDF::API6:ver<0.1.1>
         # create approximate compound function based on ranges only.
         # Adapted from Perl 5's PDF::API2::Resource::ColorSpace::DeviceN
         my @xclr = @functions.map: {.calc([.domain>>.max])};
-        my constant Sampled = 2;
-        my Numeric @spec[Sampled ** $nc;4];
 
         for 0 ..^ $nc -> $xc {
             for 0 ..^ (Sampled ** $nc) -> $n {
                 my \factor = ($n div (Sampled**$xc)) % Sampled;
                 my @thiscolor = @xclr[$xc].map: { ($_ * factor)/(Sampled-1) };
                 for 0..3 -> $s {
-                    @spec[$n;$s] += @thiscolor[$s];
+                    @samples[$n;$s] += @thiscolor[$s];
                 }
             }
         }
 
-        my buf8 $decoded .= new: @spec.flat.map: {(min($_,1.0) * 255).round};
+        my buf8 $decoded .= new: @samples.flat.map: {(min($_,1.0) * 255).round};
 
         my %dict = :@Domain, :@Range, :@Size, :BitsPerSample(8), :Filter( :name<ASCIIHexDecode> );
         my @names = @colors.map: *.Name;
