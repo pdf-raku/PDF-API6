@@ -15,7 +15,6 @@ class PDF::API6:ver<0.1.1>
 
     sub to-name(Str $name) { PDF::COS.coerce: :$name }
 
-    subset PageRef where {!.defined || $_ ~~ UInt|PDF::Page};
     has PDF::API6::Preferences $.preferences;
     method preferences {
         $!preferences //= do {
@@ -119,7 +118,7 @@ class PDF::API6:ver<0.1.1>
 
     use PDF::Function::Sampled;
     use PDF::ColorSpace::Separation;
-    subset DeviceColor of Pair where .key eq 'DeviceRGB'|'DeviceCMYK'|'DeviceGray';
+    subset DeviceColor of Pair where .key ~~ 'DeviceRGB'|'DeviceCMYK'|'DeviceGray';
     method color-separation(Str $name, DeviceColor $color --> PDF::ColorSpace::Separation) {
         my @Range;
         my List $v = $color.value;
