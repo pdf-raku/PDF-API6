@@ -1,5 +1,6 @@
 use v6;
-use PDF::Class:ver(v0.2.8+);
+use PDF::Class:ver(v0.3.1+);
+use PDF:ver(v0.3.4+);
 
 class PDF::API6:ver<0.1.1>
     is PDF::Class {
@@ -13,6 +14,7 @@ class PDF::API6:ver<0.1.1>
     use PDF::Class::Util :from-roman;
     use PDF::API6::Preferences;
 
+    subset PageRef where {($_//UInt) ~~ UInt|PDF::Page};
     sub to-name(Str $name) { PDF::COS.coerce: :$name }
 
     has PDF::API6::Preferences $.preferences;
@@ -23,7 +25,7 @@ class PDF::API6:ver<0.1.1>
         }
     }
 
-    multi method destination(UInt :page($page-num)!, |c ) {
+    multi method destination( UInt :page($page-num)!, |c ) {
         # resolve a page number to a page object
         my $page = self.page($page-num);
         $.destination(:$page, |c);
@@ -66,16 +68,7 @@ class PDF::API6:ver<0.1.1>
     multi sub to-page-label(Str $ where /^(.*?)(\d+)$/) {
         %( S => to-name(Decimal.value), P => ~$0, St => +$1 )
     }
-    multi sub to-page-label(Hash $l) {
-        my % = $l.keys.sort.map: {
-            when 'numbering-style' |'S'  { S  => to-name($l{$_}.Str) }
-            when 'style' |'S'  {warn ":style is deprecated in page labels. Please use :numbering-style";
-                                S  => to-name($l{$_}.Str) }
-            when 'start' |'St' { St => $l{$_}.Int }
-            when 'prefix'|'P'  { P  => $l{$_}.Str }
-            default { warn "ignoring PageLabel field: $_" }
-        }
-    }
+    multi sub to-page-label(Hash $_) { $_  }
 
     sub to-page-labels(Pair @labels) {
         my @page-labels;
