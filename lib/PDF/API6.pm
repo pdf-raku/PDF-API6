@@ -101,6 +101,25 @@ class PDF::API6:ver<0.1.1>
         )
     }
 
+    method !annot(PageRef :$page is copy, *%dict is copy) { 
+        %dict<Type> //= to-name('Annot');
+        use PDF::Annot;
+        my PDF::Annot $annot = PDF::COS.coerce: :%dict;
+
+        if $page {
+            # add a bidirectional link between the page and annotation
+            $page = $.page($page) if $page ~~ UInt;
+            $annot.page = $page;
+            ($page.Annots //= []).push: $annot; 
+        }
+        $annot;
+    }
+
+    multi method annotation(:%link!, *%props) {
+        my $Subtype = to-name 'Link';
+        self!annot( :$Subtype, |%link, |%props);
+    }
+
     method fields {
         .fields with $.catalog.AcroForm;
     }
