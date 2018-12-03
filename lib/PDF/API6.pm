@@ -25,6 +25,15 @@ class PDF::API6:ver<0.1.1>
         }
     }
 
+    multi method destination(
+        Bool :$remote! where .so,
+        UInt :$page!,
+        Fit :$fit = FitWindow,
+        |c ) is default {
+        # don't dereference page number for
+        # remote destinations
+        PDF::Destination.construct($fit, :$page, |c);
+    }
     multi method destination( UInt :page($page-num)!, |c ) {
         # resolve a page number to a page object
         my $page = self.page($page-num);
@@ -37,8 +46,21 @@ class PDF::API6:ver<0.1.1>
         PDF::Destination.construct($fit, :$page, |c);
     }
 
+    use PDF::Action::GoToR;
+    multi method action(
+        Str :$file!, UInt :$page!
+          --> PDF::Action::GoToR) {
+        my $destination = $.destination(:$page, :remote);
+        PDF::COS.coerce: {
+            :Type(to-name('Action')),
+            :S(to-name('GoToR')),
+            :$file,
+            :$destination;
+        };
+    }
+
     use PDF::Action::URI;
-    multi method action( Str :uri($URI)!) {
+    multi method action( Str :uri($URI)! --> PDF::Action::URI) {
         PDF::COS.coerce: {
             :Type(to-name('Action')),
             :S(to-name('URI')),
@@ -47,6 +69,18 @@ class PDF::API6:ver<0.1.1>
     }
     multi method action( PDF::Action::URI :$uri!) {
         $uri;
+    }
+
+    use PDF::Action::Launch;
+    multi method action( Str :$file! --> PDF::Action::Launch) {
+        PDF::COS.coerce: {
+            :Type(to-name('Action')),
+            :S(to-name('Launch')),
+            :$file
+        };
+    }
+    multi method action( PDF::Action::Launch :$file!) {
+        $file;
     }
 
     method outlines is rw { self.catalog.Outlines //= {} };
@@ -131,7 +165,8 @@ class PDF::API6:ver<0.1.1>
         self!annot( :$Subtype, :$page, :$Dest, |%props);
     }
 
-    multi method annotation(:$page!, PDF::Action::URI :$A!, *%props) {
+    use PDF::Action;
+    multi method annotation(:$page!, PDF::Action :$A!, *%props) {
         my $Subtype = to-name 'Link';
         self!annot( :$Subtype, :$page, :$A, |%props);
     }
