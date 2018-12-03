@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 13;
+plan 15;
 use PDF::API6;
 use PDF::Annot::Link;
 use PDF::Content::Color;
@@ -10,8 +10,8 @@ my PDF::API6 $pdf .= new;
 
 $pdf.add-page for 1 .. 5;
 
-sub dest(|c) { :Dest($pdf.destination(|c)) }
-sub action(|c) { :A($pdf.action(|c)) }
+sub dest(|c) { :destination($pdf.destination(|c)) }
+sub action(|c) { :action($pdf.action(|c)) }
 
 my PDF::Annot::Link $link;
 lives-ok { $link = $pdf.annotation(
@@ -63,6 +63,17 @@ my PDF::Action::GoToR $action = $link.action;
 is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annonation file';
 is $action.destination.page, 2, 'Goto annonation page number';
 
+use PDF::Annot::Text;
+my PDF::Annot::Text $note;
+my $text = "To be, or not to be: that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them?";
+lives-ok { $note = $pdf.annotation(
+                 :page(1),
+                 :$text,
+                 :rect[ 377, 415, 455, 427 ],
+                 :color[0, 0, 1],
+             ); }, 'construct text note annot';
+
+is $note.text, $text, "Text note annotation";
 $pdf.save-as: "tmp/annotations.pdf";
 
 done-testing;

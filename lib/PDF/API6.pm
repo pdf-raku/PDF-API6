@@ -2,7 +2,7 @@ use v6;
 use PDF::Class:ver(v0.3.1+);
 use PDF:ver(v0.3.4+);
 
-class PDF::API6:ver<0.1.1>
+class PDF::API6:ver<0.1.2>
     is PDF::Class {
 
     use PDF::COS;
@@ -160,15 +160,21 @@ class PDF::API6:ver<0.1.1>
         $annot;
     }
 
-    multi method annotation(:$page!, :$Dest!, *%props) {
+    use PDF::Destination;
+    multi method annotation(:$page!, PDF::Destination :$destination!, *%props) {
         my $Subtype = to-name 'Link';
-        self!annot( :$Subtype, :$page, :$Dest, |%props);
+        self!annot( :$Subtype, :$page, :$destination, |%props);
     }
 
     use PDF::Action;
-    multi method annotation(:$page!, PDF::Action :$A!, *%props) {
+    multi method annotation(:$page!, PDF::Action :$action!, *%props) {
         my $Subtype = to-name 'Link';
-        self!annot( :$Subtype, :$page, :$A, |%props);
+        self!annot( :$Subtype, :$page, :$action, |%props);
+    }
+
+    multi method annotation(:$page!, Str :$text!, *%props) {
+        my $Subtype = to-name 'Text';
+        self!annot( :$Subtype, :$page, :$text, |%props);
     }
 
     method fields {
