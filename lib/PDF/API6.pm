@@ -37,6 +37,18 @@ class PDF::API6:ver<0.1.1>
         PDF::Destination.construct($fit, :$page, |c);
     }
 
+    use PDF::Action::URI;
+    multi method action( Str :uri($URI)!) {
+        PDF::COS.coerce: {
+            :Type(to-name('Action')),
+            :S(to-name('URI')),
+            :$URI
+        };
+    }
+    multi method action( PDF::Action::URI :$uri!) {
+        $uri;
+    }
+
     method outlines is rw { self.catalog.Outlines //= {} };
 
     method is-encrypted { ? self.Encrypt }
@@ -101,23 +113,27 @@ class PDF::API6:ver<0.1.1>
         )
     }
 
-    method !annot(PageRef :$page is copy, *%dict is copy) { 
+    method !annot(PageRef :$page! is copy, *%dict is copy) { 
         %dict<Type> //= to-name('Annot');
         use PDF::Annot;
         my PDF::Annot $annot = PDF::COS.coerce: :%dict;
 
-        if $page {
-            # add a bidirectional link between the page and annotation
-            $page = $.page($page) if $page ~~ UInt;
-            $annot.page = $page;
-            ($page.Annots //= []).push: $annot; 
-        }
+        # add a bidirectional link between the page and annotation
+        $page = $.page($page) if $page ~~ UInt;
+        $annot.page = $page;
+        ($page.Annots //= []).push: $annot; 
+
         $annot;
     }
 
-    multi method annotation(:%link!, *%props) {
+    multi method annotation(:$page!, :$Dest!, *%props) {
         my $Subtype = to-name 'Link';
-        self!annot( :$Subtype, |%link, |%props);
+        self!annot( :$Subtype, :$page, :$Dest, |%props);
+    }
+
+    multi method annotation(:$page!, PDF::Action::URI :$A!, *%props) {
+        my $Subtype = to-name 'Link';
+        self!annot( :$Subtype, :$page, :$A, |%props);
     }
 
     method fields {
