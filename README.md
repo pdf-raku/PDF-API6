@@ -54,7 +54,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [tiling-pattern](#tiling-pattern)
        - [use-pattern](#use-pattern)
    - [Low Level Graphics](#low-level-graphics)
-       - [Colors](#colors)
+       - [Basic Colors](#basic-colors)
    - [Rendering Methods](#rendering-methods)
        - [render](#render)
    - [AcroForm Fields](#acroform-fields)
@@ -65,10 +65,13 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
    - [Settings Methods](#settings-methods)
        - [preferences](#preferences)
        - [version](#version)
-       - [page-labels](#page-labels)
    - [Color Management](#color-management)
        - [color-separation](#color-separation)
        - [color-devicen](#color-devicen)
+   - [Interactive Features](#interactive-features)
+       - [Outlines](#outlines)
+       - [Page Labels](#page-labels)
+       - [Annotations](#annotations)
 - [APPENDIX](#appendix)
    - [Appendix I: Graphics](#appendix-i-graphics)
        - [Graphics Variables](#graphics-variables)
@@ -79,6 +82,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
        - [Marked Content](#marked-content)
+
 
 # NAME
 
@@ -1049,7 +1053,34 @@ see also [examples/pdf-preferences.p6](examples/pdf-preferences.p6)
 
 Get or set the PDF Version
 
-### outlines
+## Color Management
+
+### color-separation
+
+    use PDF::Content::Color :color;
+
+    my $c = $pdf.color-separation('Cyan',    color '%f000');
+    my $m = $pdf.color-separation('Magenta', color '%0f00');
+    my $y = $pdf.color-separation('Yellow',  color '%00f0');
+    my $k = $pdf.color-separation('Black',   color '%000f');
+
+    # use a separation color directly
+    my $pms023 = $pdf.color-separation('PANTONE 032CV', color '%0ff0');
+    $gfx.FillColor = $pms023 => .75;
+
+### color-devicen
+
+    # create a DeviceN color-space for color mixing
+    my $color-mix = $pdf.color-devicen( [ $c, $m, $y, $k, $pms023 ] );
+    # apply it
+    $gfx.FillColor = $color-mix => [0, 0, 0, .25, .75];
+
+The current version of PDF::API6 only supports CMYK separations as DeviceN
+components.
+
+## Interactive Features
+
+### Outlines
 
 Outlines (or bookmarks) are commonly used by viewers for navigation of PDF documents.
 
@@ -1085,7 +1116,7 @@ $pdf.outlines.kids = [
 
 See also: `pdf-toc.p6`, installed with PDF::Class. This can be used to view the outlines for a PDF.
 
-### page-labels
+### Page Labels
 
 Get or sets page numbers to identify each page number, for display or printing:
 
@@ -1099,31 +1130,74 @@ page-labels is an array of ascending integer indexes. Each is followed by a page
                       # equivalent to 'C-1'
                       40  => { :numbering-style(PageLabel::RomanUpper), :start(1), :prefix<C-> };
 
-## Color Management
+### Annotations
 
-### color-separation
+An annotation associates an object such as a text note, destination page, or file with a clickable area on on a page. PDF::API2 supports a small number of commonly used, and widely supported annotations
 
-    use PDF::Content::Color :color;
+- Links
+  - pages within the PDF
+  - pages from another other PDF files
+  - an externak URI
+- Text Annotations
 
-    my $c = $pdf.color-separation('Cyan',    color '%f000');
-    my $m = $pdf.color-separation('Magenta', color '%0f00');
-    my $y = $pdf.color-separation('Yellow',  color '%00f0');
-    my $k = $pdf.color-separation('Black',   color '%000f');
+Examples:
 
-    # use a separation color directly
-    my $pms023 = $pdf.color-separation('PANTONE 032CV', color '%0ff0');
-    $gfx.FillColor = $pms023 => .75;
+```
+use v6;
+use PDF::API6;
+use PDF::Destination :Fit;
+use PDF::Annot::Link;
 
-### color-devicen
+my PDF::API6 $pdf .= new;
 
-    # create a DeviceN color-space for color mixing
-    my $color-mix = $pdf.color-devicen( [ $c, $m, $y, $k, $pms023 ] );
-    # apply it
-    $gfx.FillColor = $color-mix => [0, 0, 0, .25, .75];
+$pdf.add-page for 1 .. 2;
 
-The current version of PDF::API6 only supports CMYK separations as DeviceN
-components.
+sub dest(|c) { :destination($pdf.destination(|c)) }
+sub action(|c) { :action($pdf.action(|c)) }
 
+# create a link from a region on Page 1 to Page 2
+my PDF::Annot::Link $link = $pdf.annotation(
+                 :page(1),
+                 |dest(:page(2)),
+                 :rect[ 377, 545, 455, 557 ],
+                 :color[0, 0, 1],
+             );
+
+# Link to an URI
+$link = $pdf.annotation(
+                 :page(1),
+                 |action(:uri<https://test.org>),
+                 :rect[ 377, 515, 455, 527 ],
+                 :color[0, 0, 1],
+             );
+
+# Link to a Page in another PDF
+$link = $pdf.annotation(
+                 :page(1),
+                 |action(
+                     :file<../t/pdf/OoPdfFormExample.pdf>,
+                     :page(2), :fit(FitXYZoom), :top(400),
+                 ),
+                 :rect[ 377, 455, 455, 467 ],
+                 :color[0, 0, 1],
+             );
+
+# Create a Text annotation
+use PDF::Annot::Text;
+my $text = q:to<END-QUOTE>;
+    To be, or not to be: that is the question: Whether 'tis
+    nobler in the mind to suffer the slings and arrows of
+    outrageous fortune, or to take arms against a sea of
+    troubles, and by opposing end them?
+END-QUOTE
+
+my PDF::Annot::Text $note = $pdf.annotation(
+                 :page(1),
+                 :$text,
+                 :rect[ 377, 415, 455, 427 ],
+                 :color[0, 0, 1],
+             );
+```
 
 # APPENDIX
 

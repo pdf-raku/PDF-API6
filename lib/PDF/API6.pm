@@ -48,9 +48,9 @@ class PDF::API6:ver<0.1.2>
 
     use PDF::Action::GoToR;
     multi method action(
-        Str :$file!, UInt :$page!
+        Str :$file!, UInt :$page!, |c
           --> PDF::Action::GoToR) {
-        my $destination = $.destination(:$page, :remote);
+        my $destination = $.destination(:$page, :remote, |c);
         PDF::COS.coerce: {
             :Type(to-name('Action')),
             :S(to-name('GoToR')),
@@ -69,18 +69,6 @@ class PDF::API6:ver<0.1.2>
     }
     multi method action( PDF::Action::URI :$uri!) {
         $uri;
-    }
-
-    use PDF::Action::Launch;
-    multi method action( Str :$file! --> PDF::Action::Launch) {
-        PDF::COS.coerce: {
-            :Type(to-name('Action')),
-            :S(to-name('Launch')),
-            :$file
-        };
-    }
-    multi method action( PDF::Action::Launch :$file!) {
-        $file;
     }
 
     method outlines is rw { self.catalog.Outlines //= {} };

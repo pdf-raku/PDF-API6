@@ -1,5 +1,5 @@
 use Test;
-plan 5;
+plan 6;
 
 my $read-me = "README.md".IO.slurp;
 

@@ -1,14 +1,15 @@
 use v6;
 use Test;
-plan 15;
+plan 14;
 use PDF::API6;
+use PDF::Destination :Fit;
 use PDF::Annot::Link;
 use PDF::Content::Color;
 use PDF::Page;
 
 my PDF::API6 $pdf .= new;
 
-$pdf.add-page for 1 .. 5;
+$pdf.add-page for 1 .. 2;
 
 sub dest(|c) { :destination($pdf.destination(|c)) }
 sub action(|c) { :action($pdf.action(|c)) }
@@ -38,30 +39,20 @@ is $link.action.URI, 'https://test.org', "annot reference to URI";
 
 lives-ok { $link = $pdf.annotation(
                  :page(1),
-                 |action(:file</sbin/poweroff>),
-                 :rect[ 377, 485, 455, 497 ],
-                 :color[0, 0, 1],
-             ); }, 'construct file annot';
-
-is $link.action.file, '/sbin/poweroff', "annot reference to file";
-
-ok  $page1.Annots[2] === $link, "file added to source page";
-
-lives-ok { $link = $pdf.annotation(
-                 :page(1),
                  |action(
                      :file<../t/pdf/OoPdfFormExample.pdf>,
-                     :page(2),
+                     :page(2), :fit(FitXYZoom), :top(400)
                  ),
                  :rect[ 377, 455, 455, 467 ],
                  :color[0, 0, 1],
              ); }, 'construct file annot';
 
-ok  $page1.Annots[3] === $link, "remote link added";
+ok  $page1.Annots[2] === $link, "remote link added";
 use PDF::Action::GoToR;
 my PDF::Action::GoToR $action = $link.action;
 is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annonation file';
 is $action.destination.page, 2, 'Goto annonation page number';
+is $action.destination.fit, FitXYZoom, 'Goto annonation fit';
 
 use PDF::Annot::Text;
 my PDF::Annot::Text $note;
@@ -73,6 +64,7 @@ lives-ok { $note = $pdf.annotation(
                  :color[0, 0, 1],
              ); }, 'construct text note annot';
 
+ok  $page1.Annots[3] === $note, "text annot added";
 is $note.text, $text, "Text note annotation";
 $pdf.save-as: "tmp/annotations.pdf";
 
