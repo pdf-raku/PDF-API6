@@ -149,8 +149,6 @@ PDF::API2 features that are not yet available in PDF::API6 include:
    - Font sub-setting (to reduce PDF file sizes) is not yet implemented (wanted: module PDF::Font::Subset)
    - Synthetic fonts are nyi (wanted: module PDF::Font::Synthetic)
 
-- Annotations - nyi
-
 
 # SYNOPSIS
 
@@ -163,7 +161,8 @@ PDF::API2 features that are not yet available in PDF::API6 include:
     my PDF::API6 $pdf .= open('some.pdf');
 
     # Add a blank page
-    my $page = $pdf.add-page();
+    use PDF::Page;
+    my PDF::Page $page = $pdf.add-page();
 
     # Retrieve an existing page
     use PDF::Page;
@@ -1093,7 +1092,7 @@ my PDF::API6 $pdf .= new;
 $pdf.add-page for 1 .. 7;
 use PDF::Destination :Fit;
 
-sub dest(|c) { :Dest($pdf.destination(|c)) }
+sub dest(|c) { :destination($pdf.destination(|c)) }
 
 $pdf.outlines.kids = [
           %( :Title('1. Purpose of this Document'), dest(:page(1))),
@@ -1137,7 +1136,7 @@ An annotation associates an object such as a text note, destination page, or fil
 - Links
   - pages within the PDF
   - pages from another other PDF files
-  - an externak URI
+  - an external URI
 - Text Annotations
 
 Examples:
@@ -1147,6 +1146,7 @@ use v6;
 use PDF::API6;
 use PDF::Destination :Fit;
 use PDF::Annot::Link;
+use PDF::Content::Color :ColorName;
 
 my PDF::API6 $pdf .= new;
 
@@ -1160,7 +1160,7 @@ my PDF::Annot::Link $link = $pdf.annotation(
                  :page(1),
                  |dest(:page(2)),
                  :rect[ 377, 545, 455, 557 ],
-                 :color[0, 0, 1],
+                 :color(Blue),
              );
 
 # Link to an URI
@@ -1168,7 +1168,7 @@ $link = $pdf.annotation(
                  :page(1),
                  |action(:uri<https://test.org>),
                  :rect[ 377, 515, 455, 527 ],
-                 :color[0, 0, 1],
+                 :color(Orange),
              );
 
 # Link to a Page in another PDF
@@ -1179,7 +1179,7 @@ $link = $pdf.annotation(
                      :page(2), :fit(FitXYZoom), :top(400),
                  ),
                  :rect[ 377, 455, 455, 467 ],
-                 :color[0, 0, 1],
+                 :color(Green),
              );
 
 # Create a Text annotation
