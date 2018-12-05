@@ -11,7 +11,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
    - [PDF::API6](#pdfapi6)
    - [TODO](#todo)
 - [SYNOPSIS](#synopsis)
-- [SECTION I: Low Level Methods (inherited from PDF)](#section-i-low-level-methods-inherited-from-pdf)
+- [SECTION I: Input/Output Methods (inherited from PDF)](#section-i-inputoutput-methods-inherited-from-pdf)
    - [Input/Output](#inputoutput)
        - [new](#new)
        - [open](#open)
@@ -199,7 +199,7 @@ PDF::API2 features that are not yet available in PDF::API6 include:
     # Save the PDF
     $pdf.save-as('/path/to/new.pdf');
 
-# SECTION I: Low Level Methods (inherited from PDF)
+# SECTION I: Input/Output Methods (inherited from PDF)
 
 ## Input/Output
 
@@ -254,21 +254,19 @@ Save a new or updated PDF document to a file
     #...
     $pdf.save-as: 'our/new.pdf';
 
-- The `:preserve` option (default True) keeps the original PDF structure,then applies incremental updates. This is generally faster and also ensures that digital signatures are not invalidated.
+The `:preserve` option (default True) keeps the original PDF structure, then applies incremental updates. This is generally faster and also ensures that digital signatures are not invalidated.
 
     PDF::API6 $pdf .= open("our/original.pdf");
-    #...
     $pdf.save-as: 'our/updated.pdf', :!preserve;
 
-- The `:rebuild` option (default False)) rewrites the PDF. This may be useful, if there have been a substantial number of updates.
+The `:rebuild` option (default False)) rewrites the PDF. This may be useful, if there have been a substantial number of updates.
 
-- The `:compress` option is used to ensure stream objects (which generally make up the bulk of a PDF) are compressed. This is useful when maximum compaction is needed.
+The `:compress` option is used to ensure stream objects (which generally make up the bulk of a PDF) are compressed. This is useful when maximum compaction is needed.
 
     PDF::API6 $pdf .= open("our/original.pdf");
-    # optimise for PDF compaction
     $pdf.save-as: 'our/updated.pdf', :rebuild, :compress;
 
-- The reverse flag, `:!compress` is useful when you want to optimise for human-readability of the output PDF. It will unpack `Flate`, `LZW`, `ASCIIHex` and `ASCII85` encoded streams.
+The reverse flag, `:!compress` is useful when you want to optimise for human-readability of the output PDF. It will unpack `Flate`, `LZW`, `ASCIIHex` and `ASCII85` encoded streams.
 
 A PDF file can also be saved as, and opened from an intermediate JSON representation, by saving to, or reading from, files with a `.json` extension
 
@@ -1131,13 +1129,13 @@ page-labels is an array of ascending integer indexes. Each is followed by a page
 
 ### Annotations
 
-An annotation associates an object such as a text note, destination page, or file with a clickable area on on a page. PDF::API2 supports a small number of commonly used, and widely supported annotations
+An annotation associates a 'clickable' region on a page with an object such as a text note, destination page or URI. PDF::API6 supports a small number of commonly used annotations:
 
 - Links
   - pages within the PDF
   - pages from another other PDF files
   - an external URI
-- Text Annotations
+- Text Annotations (or "sticky notes")
 
 Examples:
 
@@ -1155,34 +1153,43 @@ $pdf.add-page for 1 .. 2;
 sub dest(|c) { :destination($pdf.destination(|c)) }
 sub action(|c) { :action($pdf.action(|c)) }
 
-# create a link from a region on Page 1 to Page 2
-my PDF::Annot::Link $link = $pdf.annotation(
-                 :page(1),
-                 |dest(:page(2)),
-                 :rect[ 377, 545, 455, 557 ],
-                 :color(Blue),
-             );
+my $gfx = $pdf.page(1).gfx;
+$gfx.text: {
+    .font = .core-font: 'Times-Roman';
 
-# Link to an URI
-$link = $pdf.annotation(
-                 :page(1),
-                 |action(:uri<https://test.org>),
-                 :rect[ 377, 515, 455, 527 ],
-                 :color(Orange),
-             );
+    #-- create a link from a region on Page 1 to Page 2 --
+    .text-position = 377, 545;
+    my PDF::Annot::Link $link = $pdf.annotation(
+                     :page(1),
+                     :text("see page 2"),
+                     |dest(:page(2)),
+                     :rect[ 377, 545, 455, 557 ],
+                     :color(Blue),
+                 );
 
-# Link to a Page in another PDF
-$link = $pdf.annotation(
-                 :page(1),
-                 |action(
-                     :file<../t/pdf/OoPdfFormExample.pdf>,
-                     :page(2), :fit(FitXYZoom), :top(400),
-                 ),
-                 :rect[ 377, 455, 455, 467 ],
-                 :color(Green),
-             );
+    #-- Link to an URI --
+    .text-position = 377, 515;
+    $link = $pdf.annotation(
+                     :page(1),
+                     :text("Perl 6"),
+                     |action(:uri<https://perl6.org>),
+                     :color(Orange),
+                 );
 
-# Create a Text annotation
+    #-- Link to a Page in another PDF --
+    .text-position = 377, 485;
+    $link = $pdf.annotation(
+                     :page(1),
+                     :text("Example PDF Form"),
+                     |action(
+                         :file<../t/pdf/OoPdfFormExample.pdf>,
+                         :page(1), :fit(FitXYZoom), :top(400),
+                     ),
+                     :color(Green),
+                 );
+}
+
+#-- Create a Text annotation --
 use PDF::Annot::Text;
 my $text = q:to<END-QUOTE>;
     To be, or not to be: that is the question: Whether 'tis
@@ -1194,8 +1201,20 @@ END-QUOTE
 my PDF::Annot::Text $note = $pdf.annotation(
                  :page(1),
                  :$text,
-                 :rect[ 377, 415, 455, 427 ],
+                 :rect[ 377, 455, 455, 467 ],
                  :color[0, 0, 1],
+             );
+
+#--  Annotate an image as a URI link --
+use PDF::XObject::Image;
+my $image = PDF::XObject::Image.open: "t/images/lightbulb.gif";
+my @image-region = $gfx.do($image, 377, 425, :valign<top>);
+my @rect = $gfx.user-default-coords: |@image-region;
+$pdf.annotation(
+             :page(1),
+             |action(:uri<https://perl6.org>),
+             :@rect,
+             :color(Blue),
              );
 ```
 

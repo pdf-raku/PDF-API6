@@ -1,16 +1,17 @@
 use v6;
 use PDF::Class:ver(v0.3.1+);
 use PDF:ver(v0.3.4+);
+use PDF::Content:ver(v0.2.6+);
 
 class PDF::API6:ver<0.1.2>
     is PDF::Class {
 
+    use PDF::Destination :Fit;
     use PDF::COS;
     use PDF::Catalog;
     use PDF::Info;
     use PDF::Metadata::XML;
     use PDF::Page;
-    use PDF::Destination :Fit;
     use PDF::Class::Util :from-roman;
     use PDF::API6::Preferences;
 
@@ -135,13 +136,25 @@ class PDF::API6:ver<0.1.2>
         )
     }
 
-    method !annot(PageRef :$page! is copy, *%dict is copy) { 
-        %dict<Type> //= to-name('Annot');
+    method !annot(PageRef :$page! is copy,
+                  Str :$text,
+                  *%dict is copy) { 
+
         use PDF::Annot;
+        $page = $.page($page) if $page ~~ UInt;
+        my $gfx = $page.gfx;
+        my List $rect;
+
+        %dict<Type> //= to-name('Annot');
+        with $text {
+            my $text-block = $gfx.text-block( :$text, :baseline<bottom>);
+            my @text-region[4] = $gfx.print($text-block);
+            %dict<rect> //= [ $gfx.user-default-coords: |@text-region ];
+        }
+
         my PDF::Annot $annot = PDF::COS.coerce: :%dict;
 
         # add a bidirectional link between the page and annotation
-        $page = $.page($page) if $page ~~ UInt;
         $annot.page = $page;
         ($page.Annots //= []).push: $annot; 
 
@@ -160,9 +173,9 @@ class PDF::API6:ver<0.1.2>
         self!annot( :$Subtype, :$page, :$action, |%props);
     }
 
-    multi method annotation(:$page!, Str :$text!, *%props) {
+    multi method annotation(:$page!, Str :text($Contents)!, *%props) {
         my $Subtype = to-name 'Text';
-        self!annot( :$Subtype, :$page, :$text, |%props);
+        self!annot( :$Subtype, :$page, :$Contents, |%props);
     }
 
     method fields {
