@@ -1,7 +1,7 @@
 use v6;
-use PDF::Class:ver(v0.3.1+);
+use PDF::Class:ver(v0.3.2+);
 use PDF:ver(v0.3.4+);
-use PDF::Content:ver(v0.2.6+);
+use PDF::Content:ver(v0.2.8+);
 
 class PDF::API6:ver<0.1.2>
     is PDF::Class {
@@ -21,11 +21,12 @@ class PDF::API6:ver<0.1.2>
     has PDF::API6::Preferences $.preferences;
     method preferences {
         $!preferences //= do {
-            my $catalog = self.catalog;
+            my PDF::Catalog $catalog = self.catalog;
             PDF::API6::Preferences.new: :$catalog;
         }
     }
 
+    #| A remote destination to a page (by number) in another PDF file
     multi method destination(
         Bool :$remote! where .so,
         UInt :$page!,
@@ -35,11 +36,13 @@ class PDF::API6:ver<0.1.2>
         # remote destinations
         PDF::Destination.construct($fit, :$page, |c);
     }
+    #| A destination page (by number) within this PDF
     multi method destination( UInt :page($page-num)!, |c ) {
         # resolve a page number to a page object
         my $page = self.page($page-num);
         $.destination(:$page, |c);
     }
+    #| A destination page (by object) within this PDF
     multi method destination(
         PDF::Page :$page!,
         Fit :$fit = FitWindow,
@@ -48,6 +51,7 @@ class PDF::API6:ver<0.1.2>
     }
 
     use PDF::Action::GoToR;
+    #| A remote action on a page in another PDF file
     multi method action(
         Str :$file!, UInt :$page!, |c
           --> PDF::Action::GoToR) {
@@ -61,6 +65,7 @@ class PDF::API6:ver<0.1.2>
     }
 
     use PDF::Action::URI;
+    #| A URI (link) action
     multi method action( Str :uri($URI)! --> PDF::Action::URI) {
         PDF::COS.coerce: {
             :Type(to-name('Action')),
@@ -91,18 +96,23 @@ class PDF::API6:ver<0.1.2>
          :AlphaUpper<A> :AlphaLower<a>
         »;
 
+    #| Simple page numbering. e.g.: to-page-label(1);
     multi sub to-page-label(UInt $_) {
         %( S => to-name(Decimal.value), St => .Int )
     }
+    #| Lowercase roman numerals, e.g. to-page-label('i');
     multi sub to-page-label(Str $_ where /^<[ivxlc]>+$/) {
         %( S => to-name(RomanLower.value), St => from-roman($_) )
     }
+    #| Uppercase roman numerals, e.g. to-page-label('I');
     multi sub to-page-label(Str $_ where /^<[IVXLC]>+$/) {
         %( S => to-name(RomanUpper.value), St => from-roman($_) )
     }
+    #| Numbering with a prefix, e.g. to-page-label('A-1');
     multi sub to-page-label(Str $ where /^(.*?)(\d+)$/) {
         %( S => to-name(Decimal.value), P => ~$0, St => +$1 )
     }
+    #| Explicit pre-built hash numbering schema
     multi sub to-page-label(Hash $_) { $_  }
 
     sub to-page-labels(Pair @labels) {
@@ -149,7 +159,7 @@ class PDF::API6:ver<0.1.2>
         with $text {
             my $text-block = $gfx.text-block( :$text, :baseline<bottom>);
             my @text-region[4] = $gfx.print($text-block);
-            %dict<rect> //= [ $gfx.user-default-coords: |@text-region ];
+            %dict<rect> //= [ $gfx.base-coords: |@text-region ];
         }
 
         my PDF::Annot $annot = PDF::COS.coerce: :%dict;
@@ -162,17 +172,20 @@ class PDF::API6:ver<0.1.2>
     }
 
     use PDF::Destination;
+    #| Page annotation with a destination; e.g. link to another page
     multi method annotation(:$page!, PDF::Destination :$destination!, *%props) {
         my $Subtype = to-name 'Link';
         self!annot( :$Subtype, :$page, :$destination, |%props);
     }
 
     use PDF::Action;
+    #| Page annotation with an action; e.g. URL link
     multi method annotation(:$page!, PDF::Action :$action!, *%props) {
         my $Subtype = to-name 'Link';
         self!annot( :$Subtype, :$page, :$action, |%props);
     }
 
+    #| Page text (sticky note) annotation
     multi method annotation(:$page!, Str :text($Contents)!, *%props) {
         my $Subtype = to-name 'Text';
         self!annot( :$Subtype, :$page, :$Contents, |%props);

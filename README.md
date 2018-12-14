@@ -31,7 +31,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
    - [Page Methods](#page-methods)
        - [to-xobject](#to-xobject)
        - [images](#images)
-       - [media-box, crop-box, trim-box, bleed-box, art-box](#media-box-crop-box-trim-box-bleed-box-art-box)
+       - [media-box, crop-box, trim-box, bleed-box, art-box, bleed](#media-box-crop-box-trim-box-bleed-box-art-box-bleed)
        - [Rotate](#rotate)
    - [Introduction to Graphics](#introduction-to-graphics)
    - [Text Methods](#text-methods)
@@ -39,6 +39,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [font, core-font](#font-core-font)
        - [text-position](#text-position)
        - [text-transform](#text-transform)
+       - [base-coords](#base-coords)
        - [print](#print)
        - [say](#say)
    - [Graphics Methods](#graphics-methods)
@@ -82,7 +83,6 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
        - [Marked Content](#marked-content)
-
 
 # NAME
 
@@ -259,7 +259,7 @@ The `:preserve` option (default True) keeps the original PDF structure, then app
     PDF::API6 $pdf .= open("our/original.pdf");
     $pdf.save-as: 'our/updated.pdf', :!preserve;
 
-The `:rebuild` option (default False)) rewrites the PDF. This may be useful, if there have been a substantial number of updates.
+The `:rebuild` option (default False) rewrites the PDF. This may be useful, if there have been a substantial number of updates.
 
 The `:compress` option is used to ensure stream objects (which generally make up the bulk of a PDF) are compressed. This is useful when maximum compaction is needed.
 
@@ -294,17 +294,17 @@ Check if document is encrypted
 
 Return a binary representation of a PDF as a latin-1 string, or binary Blob
 
-    my Str $pdf-byte-string = $pdf.Str; # returns a latin1 encoded string
+    my Str $pdf-byte-string = $pdf.Str; # returns a latin-1 encoded string
     my Blob $bytes = $pdf.Blob;         # returns a Blob[uint8]
 
 ### ast
 
 Return an AST tree representation of a PDF.
 
+    use PDF::Writer;
     my %cos = $pdf.ast;   # returns a nested Hash representation of the PDF
     # write it to a file
-    use PDF::Writer;
-    my $pdf-byte-string = PDF::Writer.new.write: :%cos;
+    my $pdf-byte-string = PDF::Writer.new.write: |%cos;
     "/tmp/out.pdf".IO.spurt(:bin, $pdf-byte-string);
 
 
@@ -379,24 +379,37 @@ This method extracts image objects for a given page, or other graphical element:
 
 The `:inline` flag will check for any image objects in the graphical content stream.
 
-### media-box, crop-box, trim-box, bleed-box, art-box
+### media-box, crop-box, trim-box, bleed-box, art-box, bleed
 
 A page has several different bounding boxes:
 
-- media-box -- width and height of the printed page
 - crop-box -- the region of the PDF that is displayed or printed
+- media-box -- width and height of the printed page
 - trim-box -- the intended dimensions of the finished page
 - bleed-box -- the region to which the page contents needs to be clipped when output in a production environment.
 - art-box -- for general use
 
-Example:
+`bleed` is a convenience method for setting up or showing a bleed gutter area surrounding the crop-box. It should usually be set up after the crop box.
 
+Example:
+```
+    use PDF::API6;
+    use PDF::Page;
     use PDF::Content::Page :PageSizes;
-    sub postfix:<mm>(Numeric $v)( $v * 2.83 );
-    $page.media-box = Letter;
-    # set-up symmetrical 3mm bleed
-    $page-bleed-box = .[0] - 3mm, .[1] - 3mm, .[2] + 3mm, [.3] + 3mm
-        given $page.media-box;
+    sub postfix:<mm>(Numeric $v){ ($v * 2.83).round(1) };
+
+    my PDF::API6 $pdf .= new;
+    my PDF::Page $page = $pdf.add-page;
+
+    # set-up Letter-size crop-box with symmetrical 3mm bleed
+
+    $page.crop-box = Letter;
+    $page.bleed = 3mm;
+##  $page.bleed = 3mm, 3mm, 3mm, 3mm; # same as above
+    say $page.bleed;     # (8 8 8 8)
+    say $page.crop-box;  # [0 0 612 792]
+    say $page.bleed-box; # [-8 -8 620 800]
+```
 
 ### Rotate
 
@@ -490,6 +503,19 @@ Applies text transforms, such as translation, rotation, scaling, etc.
 
 - This replaces any existing text positioning or transforms.
 
+### base-coords
+
+Synopsis, my ($x-o, $y-o, ...) = $gfx.base-coords(
+                                        $x-t, $y-t, ...,
+                                        :$user=True,    # map to user default coordinates
+                                        :$text=False);  # unmap text matrix
+
+This method maps transformed coordinates back to original coordinates.
+
+    $gfx.transform: :translate($x,$y), :scale(.8);
+    my @image-region = $gfx.do($my-image, :align<middle>, 20, 30);
+    my @position-on-page = $gfx.base-coords(|@image-region);
+
 ### print
 
     need PDF::Content::Text::Block;
@@ -499,17 +525,18 @@ Applies text transforms, such as translation, rotation, scaling, etc.
     my $font-size = 16;
     my $text = "Hello.  Ting, ting-ting. Attention! … ATTENTION! ";
     
-     my PDF::Content::Text::Block $text-block = $gfx.print: $text, :$font, :$font-size, :width(120);
+    my PDF::Content::Text::Block $text-block = $gfx.print: $text, :$font, :$font-size, :width(120);
     
     note "text block has size {.width} X {.height}"
         with $text-block;
 
-Synopsis: `my $text-block = print($text-str-or-chunks-or-block,
+Synopsis: `my PDF::Content::Text::Block $text-block = print(
+                 $text-str-or-chunks-or-block,
                  :align<left|center|right>, :valign<top|center|bottom>,
                  :$font, :$font-size,
                  :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
                  :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>
-                 :kern, :$leading, :$width, :$height)`
+                 :kern, :$leading, :$width, :$height, :nl)`
 
 Outputs a text string, or [Text Block](https://github.com/p6-pdf/PDF-Content-p6/blob/master/lib/PDF/Content/Text/Block.pm)
 
@@ -576,10 +603,11 @@ Loads an image in a supported format (currently PNG, GIF and JPEG).
 
      $gfx.do($img, 10, 20)
 
-Synopsis: `$gfx.do($image-or-form, $x = 0, $y = 0,
-                   :$width, :$height, :inline,
-                   :align<left center right> = 'left',
-                   :valign<top center bottom> = 'bottom')`
+Synopsis: `my Numeric @region[4] = $gfx.do(
+                       $xobject, $x = 0, $y = 0,
+                       :$width, :$height, :inline,
+                       :align<left center right> = 'left',
+                       :valign<top center bottom> = 'bottom')`
 
 Displays an image or form.
 
@@ -1145,6 +1173,7 @@ use PDF::API6;
 use PDF::Destination :Fit;
 use PDF::Annot::Link;
 use PDF::Content::Color :ColorName;
+use PDF::Border :BorderStyle;
 
 my PDF::API6 $pdf .= new;
 
@@ -1177,6 +1206,15 @@ $gfx.text: {
                  );
 
     #-- Link to a Page in another PDF --
+
+    # display the annotation with a 2pt dashed border
+    my $border-style = {
+        :width(2),  # 2 point width
+        # 3 point dashes, alternating with 2-point gaps
+        :style(BorderStyle::Dashed),
+        :dash-pattern[3, 2],
+    };
+
     .text-position = 377, 485;
     $link = $pdf.annotation(
                      :page(1),
@@ -1186,6 +1224,7 @@ $gfx.text: {
                          :page(1), :fit(FitXYZoom), :top(400),
                      ),
                      :color(Green),
+                     :$border-style,
                  );
 }
 
@@ -1205,11 +1244,11 @@ my PDF::Annot::Text $note = $pdf.annotation(
                  :color[0, 0, 1],
              );
 
-#--  Annotate an image as a URI link --
+#--  Add an image, annotated as a URI link --
 use PDF::XObject::Image;
 my $image = PDF::XObject::Image.open: "t/images/lightbulb.gif";
 my @image-region = $gfx.do($image, 377, 425, :valign<top>);
-my @rect = $gfx.user-default-coords: |@image-region;
+my @rect = $gfx.base-coords: |@image-region;
 $pdf.annotation(
              :page(1),
              |action(:uri<https://perl6.org>),

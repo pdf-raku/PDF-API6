@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 16;
+plan 18;
 use PDF::API6;
 use PDF::Destination :Fit;
 use PDF::Content::Color :ColorName;
@@ -35,8 +35,8 @@ ok  $page1.Annots[0] === $link, "annot added to source page";
 ok $link.destination.page == $pdf.page(2), "annot reference to destination page";
 
 my $image = PDF::XObject::Image.open: "t/images/lightbulb.gif";
-my @image-rect = $gfx.do($image, 350 - 5, 544 - 10);
-my @rect = $gfx.user-default-coords: |@image-rect;
+my @image-region = $gfx.do($image, 350 - 5, 544 - 10);
+my @rect = $gfx.base-coords: |@image-region;
 lives-ok { $link = $pdf.annotation(
                  :page(1),
                  |dest(:page(2)),
@@ -49,45 +49,69 @@ $gfx.Restore;
 ok  $page1.Annots[1] === $link, "annot added to source page";
 ok $link.destination.page == $pdf.page(2), "annot reference to destination page";
 
-lives-ok { $link = $pdf.annotation(
-                 :page(1),
-                 |action(:uri<https://test.org>),
-                 :rect[ 377, 515, 455, 527 ],
-                 :color(Orange),
-             ); }, 'construct uri annot';
+$gfx.text: {
+    .text-position = 377, 515;
+    lives-ok { $link = $pdf.annotation(
+                     :page(1),
+                     :text("Test link"),
+                     |action(:uri<https://test.org>),
+                     :color(Orange),
+                 ); }, 'construct uri annot';
 
-ok  $page1.Annots[2] === $link, "annot added to source page";
-is $link.action.URI, 'https://test.org', "annot reference to URI";
+    ok  $page1.Annots[2] === $link, "annot added to source page";
+    is $link.action.URI, 'https://test.org', "annot reference to URI";
 
-lives-ok { $link = $pdf.annotation(
-                 :page(1),
-                 |action(
-                     :file<../t/pdf/OoPdfFormExample.pdf>,
-                     :page(2), :fit(FitXYZoom), :top(400)
-                 ),
-                 :rect[ 377, 485, 455, 497 ],
-                 :color(Green),
-             ); }, 'construct file annot';
+    .text-position = 377, 485;
+    lives-ok { $link = $pdf.annotation(
+                     :page(1),
+                     :text("Example PDF Form"),
+                     |action(
+                         :file<../t/pdf/OoPdfFormExample.pdf>,
+                         :page(2), :fit(FitXYZoom), :top(400)
+                     ),
+                     :color(Green),
+                 ); }, 'construct file annot';
 
-ok  $page1.Annots[3] === $link, "remote link added";
-use PDF::Action::GoToR;
-my PDF::Action::GoToR $action = $link.action;
-is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annonation file';
-is $action.destination.page, 2, 'Goto annonation page number';
-is $action.destination.fit, FitXYZoom, 'Goto annonation fit';
+    ok  $page1.Annots[3] === $link, "remote link added";
+    use PDF::Action::GoToR;
+    my PDF::Action::GoToR $action = $link.action;
+    is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annonation file';
+    is $action.destination.page, 2, 'Goto annonation page number';
+    is $action.destination.fit, FitXYZoom, 'Goto annonation fit';
 
-use PDF::Annot::Text;
-my PDF::Annot::Text $note;
-my $text = "To be, or not to be: that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them?";
-lives-ok { $note = $pdf.annotation(
-                 :page(1),
-                 :$text,
-                 :rect[ 377, 455, 455, 467 ],
-                 :color[0, 0, 1],
-             ); }, 'construct text note annot';
+    use PDF::Annot::Text;
+    my PDF::Annot::Text $note;
+    my $text = "To be, or not to be: that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them?";
 
-ok  $page1.Annots[4] === $note, "text annot added";
-is $note.text, $text, "Text note annotation";
+    lives-ok { $note = $pdf.annotation(
+                     :page(1),
+                     :$text,
+                     :rect[ 377, 465, 455, 477 ],
+                     :color[0, 0, 1],
+                     :Open,
+                 ); }, 'construct text note annot';
+
+    ok  $page1.Annots[4] === $note, "text annot added";
+    is $note.text, $text, "Text note annotation";
+
+    use PDF::Border :BorderStyle;
+
+    my $border-style = {
+        :width(1),  # 1 point width
+        # 3 point dashes, alternating with 2-point gaps
+        :style(BorderStyle::Dashed),
+        :dash-pattern[3, 2],
+    };
+
+    .text-position = 377, 425;
+    lives-ok { $link = $pdf.annotation(
+                     :page(1),
+                     |action(:uri<https://test2.org>),
+                     :text("Styled Border"),
+                     :color[.7, .8, .9],
+                     :$border-style,
+    ); }, 'construct styled uri annot';
+    is $link.border-style.style, BorderStyle::Dashed, "setting of dashed border";
+    };
 $pdf.save-as: "tmp/annotations.pdf";
-
 done-testing;
