@@ -1176,11 +1176,13 @@ Synopsis:
     my PDF::Annot::FileAttachment $attachment = $pdf.annotation: :$page, :$attachment, :icon-name<Paperclip|GraphPushPin>, :$text-label, |%props);
     my PDF::Annot::Text $sticky-note = $pdf.annotation: :$page, :$content, :$Open, |%props);
 
-Where %props {        # common annotation optons
-    :@color,          # color for the annotation 3 values
-                      # (rgb), 1 value (gray) or 4 values (cmyk)
-    :@rect, :$text,   # rectangle or text to print and highlight
-    :$border-style,   # style the annotation border
+Where:
+
+    %props {              # common annotation options
+        :@color,          # color for the annotation 3 values
+                          # (rgb), 1 value (gray) or 4 values (cmyk)
+        :@rect, :$text,   # rectangle or text to print and highlight
+        :$border-style,   # style the annotation border
     }
 
 Examples:
