@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 18;
+plan 19;
 use PDF::API6;
 use PDF::Destination :Fit;
 use PDF::Content::Color :ColorName;
@@ -81,18 +81,18 @@ $gfx.text: {
 
     use PDF::Annot::Text;
     my PDF::Annot::Text $note;
-    my $text = "To be, or not to be: that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them?";
+    my $content = "To be, or not to be: that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them?";
 
     lives-ok { $note = $pdf.annotation(
                      :page(1),
-                     :$text,
+                     :$content,
                      :rect[ 377, 465, 455, 477 ],
                      :color[0, 0, 1],
                      :Open,
                  ); }, 'construct text note annot';
 
     ok  $page1.Annots[4] === $note, "text annot added";
-    is $note.text, $text, "Text note annotation";
+    is $note.content, $content, "Text note annotation";
 
     use PDF::Border :BorderStyle;
 
@@ -112,6 +112,17 @@ $gfx.text: {
                      :$border-style,
     ); }, 'construct styled uri annot';
     is $link.border-style.style, BorderStyle::Dashed, "setting of dashed border";
+
+    my $attachment = $pdf.file-spec("t/images/lightbulb.gif", :embed);
+    lives-ok { $link = $pdf.annotation(
+                     :page(1),
+                     :$attachment,
+                     :text-label("Light Bulb"),
+                     :content('An example attached image file'),
+                     :icon-name<Paperclip>,
+                     :rect[ 377, 395, 425, 412 ],
+                 ); }, 'construct file attachment annot';
+
     };
 $pdf.save-as: "tmp/annotations.pdf";
 done-testing;

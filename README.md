@@ -389,7 +389,7 @@ A page has several different bounding boxes:
 - bleed-box -- the region to which the page contents needs to be clipped when output in a production environment.
 - art-box -- for general use
 
-`bleed` is a convenience method for setting up or showing a bleed gutter area surrounding the crop-box. It should usually be set up after the crop box.
+`bleed` is a convenience method for setting up or showing a bleed gutter area surrounding the trim-box. It should usually be set up after the trim box.
 
 Example:
 ```
@@ -401,13 +401,13 @@ Example:
     my PDF::API6 $pdf .= new;
     my PDF::Page $page = $pdf.add-page;
 
-    # set-up Letter-size crop-box with symmetrical 3mm bleed
+    # set-up Letter-size trim-box with symmetrical 3mm bleed
 
-    $page.crop-box = Letter;
+    $page.trim-box = Letter;
     $page.bleed = 3mm;
 ##  $page.bleed = 3mm, 3mm, 3mm, 3mm; # same as above
     say $page.bleed;     # (8 8 8 8)
-    say $page.crop-box;  # [0 0 612 792]
+    say $page.trim-box;  # [0 0 612 792]
     say $page.bleed-box; # [-8 -8 620 800]
 ```
 
@@ -1162,8 +1162,26 @@ An annotation associates a 'clickable' region on a page with an object such as a
 - Links
   - pages within the PDF
   - pages from another other PDF files
-  - an external URI
+  - external URIs
+- File Attachments
 - Text Annotations (or "sticky notes")
+
+Synopsis:
+
+    use PDF::Annot::Link;
+    use PDF::Annot::FileAttachment;
+    use PDF::Annot::Text;
+    my PDF::Annot::Link $page-link = $pdf.annotation: :$page, :$link, |%props);
+    my PDF::Annot::Link $dest-link = $pdf.annotation: :$page, :$action, |%props);
+    my PDF::Annot::FileAttachment $attachment = $pdf.annotation: :$page, :$attachment, :icon-name<Paperclip|GraphPushPin>, :$text-label, |%props);
+    my PDF::Annot::Text $sticky-note = $pdf.annotation: :$page, :$content, :$Open, |%props);
+
+Where %props {        # common annotation optons
+    :@color,          # color for the annotation 3 values
+                      # (rgb), 1 value (gray) or 4 values (cmyk)
+    :@rect, :$text,   # rectangle or text to print and highlight
+    :$border-style,   # style the annotation border
+    }
 
 Examples:
 
@@ -1192,7 +1210,6 @@ $gfx.text: {
                      :page(1),
                      :text("see page 2"),
                      |dest(:page(2)),
-                     :rect[ 377, 545, 455, 557 ],
                      :color(Blue),
                  );
 
@@ -1230,7 +1247,7 @@ $gfx.text: {
 
 #-- Create a Text annotation --
 use PDF::Annot::Text;
-my $text = q:to<END-QUOTE>;
+my $content = q:to<END-QUOTE>;
     To be, or not to be: that is the question: Whether 'tis
     nobler in the mind to suffer the slings and arrows of
     outrageous fortune, or to take arms against a sea of
@@ -1238,23 +1255,25 @@ my $text = q:to<END-QUOTE>;
 END-QUOTE
 
 my PDF::Annot::Text $note = $pdf.annotation(
-                 :page(1),
-                 :$text,
-                 :rect[ 377, 455, 455, 467 ],
-                 :color[0, 0, 1],
-             );
+             :page(1),
+             :$content,
+             :rect[ 377, 455, 455, 467 ],
+             :color[0, 0, 1],
+         );
 
-#--  Add an image, annotated as a URI link --
-use PDF::XObject::Image;
-my $image = PDF::XObject::Image.open: "t/images/lightbulb.gif";
-my @image-region = $gfx.do($image, 377, 425, :valign<top>);
-my @rect = $gfx.base-coords: |@image-region;
+#--  Add a File Attachment annotation
+use PDF::Filespec;
+my PDF::Filespec $attachment = $pdf.file-spec("t/images/lightbulb.gif", :embed);
+$content = 'Click on the paperclip to see an image as an example image attachment';
 $pdf.annotation(
              :page(1),
-             |action(:uri<https://perl6.org>),
-             :@rect,
-             :color(Blue),
-             );
+             :$attachment,
+             :text-label("Light Bulb"),
+             :$content,
+             :icon-name<Paperclip>,
+             :rect[ 377, 395, 425, 412 ],
+         );
+
 ```
 
 # APPENDIX

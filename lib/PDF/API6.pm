@@ -1,6 +1,6 @@
 use v6;
-use PDF::Class:ver(v0.3.2+);
-use PDF:ver(v0.3.4+);
+use PDF::Class:ver(v0.3.3+);
+use PDF:ver(v0.3.5+);
 use PDF::Content:ver(v0.2.8+);
 
 class PDF::API6:ver<0.1.2>
@@ -146,7 +146,48 @@ class PDF::API6:ver<0.1.2>
         )
     }
 
-    method !annot(PageRef :$page! is copy,
+    use PDF::Filespec :to-filespec;
+    has PDF::Filespec %!attachments;
+    method file-spec(Str $file-name,
+                     :embed($)! where .so,
+                     IO::Path :$io = $file-name.IO,
+                     blob8 :$decoded = $io.open(:bin).read,
+                     :$compress = True
+                       --> PDF::Filespec) {
+        %!attachments{$file-name} = do {
+            my %dict = :Type(to-name('EmbeddedFile'));
+            %dict<Params> = %( :Size(.s), :ModDate(.modified.DateTime) )
+                with $io;
+            my $F = PDF::COS::Stream.new: :%dict, :$decoded;
+            $F.compress if $compress;
+            to-filespec({
+                :Type<Filespec>,
+                :$file-name,
+                :embedded-file{ :$F },
+            });
+        }
+    }
+
+    method cb-finish {
+        callsame;
+        # final finishing hook for document. Called just prior to serializing
+        if %!attachments {
+            # new attachments to be added
+            my $names = $.catalog.Names //= {};
+            with $names.EmbeddedFiles {
+                # construct a simple name tree /EmbeddedFiles entry in the Catalog. If
+                # there's an existing tree, just flatten it. Potentially expensive for
+                # a PDF that already has a large number of attachments.
+                %!attachments ,= .name-tree.Hash;
+            }
+            my @Names = flat %!attachments.pairs.sort.map: { .key, .value };
+            my @Limits = @Names[0], @Names.tail(2)[0];
+            $names.EmbeddedFiles = { :@Names, :@Limits };
+            %!attachments = ();
+        }
+    }
+
+    method !annot(PageRef :$page is copy,
                   Str :$text,
                   *%dict is copy) { 
 
@@ -185,10 +226,16 @@ class PDF::API6:ver<0.1.2>
         self!annot( :$Subtype, :$page, :$action, |%props);
     }
 
+    #| File attachment annotation
+    multi method annotation(:$page!, PDF::Filespec :$attachment!, *%props) {
+        my $Subtype = to-name 'FileAttachment';
+        my $annot = self!annot( :$Subtype, :$page, :file-spec($attachment), |%props);
+    }
+
     #| Page text (sticky note) annotation
-    multi method annotation(:$page!, Str :text($Contents)!, *%props) {
+    multi method annotation(:$page!, Str :$content!, *%props) {
         my $Subtype = to-name 'Text';
-        self!annot( :$Subtype, :$page, :$Contents, |%props);
+        self!annot( :$Subtype, :$page, :$content, |%props);
     }
 
     method fields {
