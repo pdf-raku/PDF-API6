@@ -1265,7 +1265,7 @@ my PDF::Annot::Text $note = $pdf.annotation(
 
 #--  Add a File Attachment annotation
 use PDF::Filespec;
-my PDF::Filespec $attachment = $pdf.file-spec("t/images/lightbulb.gif", :embed);
+my PDF::Filespec $attachment = $pdf.attachment("t/images/lightbulb.gif", :embed);
 $content = 'Click on the paperclip to see an image as an example image attachment';
 $pdf.annotation(
              :page(1),

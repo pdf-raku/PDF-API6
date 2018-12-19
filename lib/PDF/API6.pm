@@ -148,7 +148,7 @@ class PDF::API6:ver<0.1.2>
 
     use PDF::Filespec :to-filespec;
     has PDF::Filespec %!attachments;
-    method file-spec(Str $file-name,
+    method attachment(Str $file-name,
                      :embed($)! where .so,
                      IO::Path :$io = $file-name.IO,
                      blob8 :$decoded = $io.open(:bin).read,

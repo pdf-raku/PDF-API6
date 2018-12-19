@@ -113,7 +113,7 @@ $gfx.text: {
     ); }, 'construct styled uri annot';
     is $link.border-style.style, BorderStyle::Dashed, "setting of dashed border";
 
-    my $attachment = $pdf.file-spec("t/images/lightbulb.gif", :embed);
+    my $attachment = $pdf.attachment("t/images/lightbulb.gif", :embed);
     lives-ok { $link = $pdf.annotation(
                      :page(1),
                      :$attachment,
