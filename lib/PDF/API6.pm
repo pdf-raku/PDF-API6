@@ -16,7 +16,7 @@ class PDF::API6:ver<0.1.2>
     use PDF::API6::Preferences;
 
     subset PageRef where {($_//UInt) ~~ UInt|PDF::Page};
-    sub to-name(Str $name) { PDF::COS.coerce: :$name }
+    sub prefix:</>($name) { PDF::COS.coerce(:$name) };
 
     has PDF::API6::Preferences $.preferences;
     method preferences {
@@ -57,8 +57,8 @@ class PDF::API6:ver<0.1.2>
           --> PDF::Action::GoToR) {
         my $destination = $.destination(:$page, :remote, |c);
         PDF::COS.coerce: {
-            :Type(to-name('Action')),
-            :S(to-name('GoToR')),
+            :Type(/'Action'),
+            :S(/'GoToR'),
             :$file,
             :$destination;
         };
@@ -68,8 +68,8 @@ class PDF::API6:ver<0.1.2>
     #| A URI (link) action
     multi method action( Str :uri($URI)! --> PDF::Action::URI) {
         PDF::COS.coerce: {
-            :Type(to-name('Action')),
-            :S(to-name('URI')),
+            :Type(/'Action'),
+            :S(/'URI'),
             :$URI
         };
     }
@@ -83,8 +83,8 @@ class PDF::API6:ver<0.1.2>
     method info returns PDF::Info { self.Info //= {} }
     method xmp-metadata is rw {
         my PDF::Metadata::XML $metadata = $.catalog.Metadata //= {
-            :Type( to-name(<Metadata>) ),
-            :Subtype( to-name(<XML>) ),
+            :Type(/<Metadata>),
+            :Subtype(/<XML>),
         };
 
         $metadata.decoded; # rw target
@@ -98,19 +98,19 @@ class PDF::API6:ver<0.1.2>
 
     #| Simple page numbering. e.g.: to-page-label(1);
     multi sub to-page-label(UInt $_) {
-        %( S => to-name(Decimal.value), St => .Int )
+        %( S => /(Decimal.value), St => .Int )
     }
     #| Lowercase roman numerals, e.g. to-page-label('i');
-    multi sub to-page-label(Str $_ where /^<[ivxlc]>+$/) {
-        %( S => to-name(RomanLower.value), St => from-roman($_) )
+    multi sub to-page-label(Str $_ where m/^<[ivxlc]>+$/) {
+        %( S => /(RomanLower.value), St => from-roman($_) )
     }
     #| Uppercase roman numerals, e.g. to-page-label('I');
-    multi sub to-page-label(Str $_ where /^<[IVXLC]>+$/) {
-        %( S => to-name(RomanUpper.value), St => from-roman($_) )
+    multi sub to-page-label(Str $_ where m/^<[IVXLC]>+$/) {
+        %( S => /(RomanUpper.value), St => from-roman($_) )
     }
     #| Numbering with a prefix, e.g. to-page-label('A-1');
-    multi sub to-page-label(Str $ where /^(.*?)(\d+)$/) {
-        %( S => to-name(Decimal.value), P => ~$0, St => +$1 )
+    multi sub to-page-label(Str $ where m/^(.*?)(\d+)$/) {
+        %( S => /(Decimal.value), P => ~$0, St => +$1 )
     }
     #| Explicit pre-built hash numbering schema
     multi sub to-page-label(Hash $_) { $_  }
@@ -149,13 +149,12 @@ class PDF::API6:ver<0.1.2>
     use PDF::Filespec :to-filespec;
     has PDF::Filespec %!attachments;
     method attachment(Str $file-name,
-                     :embed($)! where .so,
                      IO::Path :$io = $file-name.IO,
                      blob8 :$decoded = $io.open(:bin).read,
                      :$compress = True
                        --> PDF::Filespec) {
         %!attachments{$file-name} = do {
-            my %dict = :Type(to-name('EmbeddedFile'));
+            my %dict = :Type(/'EmbeddedFile');
             %dict<Params> = %( :Size(.s), :ModDate(.modified.DateTime) )
                 with $io;
             my $F = PDF::COS::Stream.new: :%dict, :$decoded;
@@ -196,7 +195,7 @@ class PDF::API6:ver<0.1.2>
         my $gfx = $page.gfx;
         my List $rect;
 
-        %dict<Type> //= to-name('Annot');
+        %dict<Type> //= /'Annot';
         with $text {
             my $text-block = $gfx.text-block( :$text, :baseline<bottom>);
             my @text-region[4] = $gfx.print($text-block);
@@ -215,26 +214,26 @@ class PDF::API6:ver<0.1.2>
     use PDF::Destination;
     #| Page annotation with a destination; e.g. link to another page
     multi method annotation(:$page!, PDF::Destination :$destination!, *%props) {
-        my $Subtype = to-name 'Link';
+        my $Subtype = /'Link';
         self!annot( :$Subtype, :$page, :$destination, |%props);
     }
 
     use PDF::Action;
     #| Page annotation with an action; e.g. URL link
     multi method annotation(:$page!, PDF::Action :$action!, *%props) {
-        my $Subtype = to-name 'Link';
+        my $Subtype = /'Link';
         self!annot( :$Subtype, :$page, :$action, |%props);
     }
 
     #| File attachment annotation
     multi method annotation(:$page!, PDF::Filespec :$attachment!, *%props) {
-        my $Subtype = to-name 'FileAttachment';
+        my $Subtype = /'FileAttachment';
         my $annot = self!annot( :$Subtype, :$page, :file-spec($attachment), |%props);
     }
 
     #| Page text (sticky note) annotation
     multi method annotation(:$page!, Str :$content!, *%props) {
-        my $Subtype = to-name 'Text';
+        my $Subtype = /'Text';
         self!annot( :$Subtype, :$page, :$content, |%props);
     }
 
@@ -268,9 +267,9 @@ class PDF::API6:ver<0.1.2>
             }
         }
 
-        my %dict = :Domain[0,1], :@Range, :Size[2,], :BitsPerSample(8), :Filter( :name<ASCIIHexDecode> );
+        my %dict = :Domain[0,1], :@Range, :Size[2,], :BitsPerSample(8), :Filter( /<ASCIIHexDecode> );
         my PDF::Function::Sampled $function .= new: :%dict, :$encoded;
-        PDF::COS.coerce: [ :name<Separation>, :$name, :name($color.key), $function ];
+        PDF::COS.coerce: [ /<Separation>, /$name, /($color.key), $function ];
     }
 
     method color-devicen(@colors) {
@@ -310,11 +309,11 @@ class PDF::API6:ver<0.1.2>
 
         my buf8 $decoded .= new: @samples.flat.map: {(min($_,1.0) * 255).round};
 
-        my %dict = :@Domain, :@Range, :@Size, :BitsPerSample(8), :Filter( :name<ASCIIHexDecode> );
+        my %dict = :@Domain, :@Range, :@Size, :BitsPerSample(8), :Filter( /<ASCIIHexDecode> );
         my @names = @colors.map: *.Name;
         my %Colorants = @names Z=> @colors;
 
         my PDF::Function::Sampled $function .= new: :%dict, :$decoded;
-        PDF::COS.coerce: [ :name<DeviceN>, @names, :name<DeviceCMYK>, $function, { :%Colorants } ];
+        PDF::COS.coerce: [ /<DeviceN>, @names, /<DeviceCMYK>, $function, { :%Colorants } ];
     }
 }
