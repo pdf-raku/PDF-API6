@@ -864,7 +864,8 @@ More work needs to be done in PDF::Class to fully support all possible field typ
 
 ### info
 
-    $info := $pdf.info;
+    use PDF::INFO;
+    my PDF::INFO $info := $pdf.info;
 
 Gets/sets the info for the document
 
@@ -1083,20 +1084,23 @@ Get or set the PDF Version
 ### color-separation
 
     use PDF::Content::Color :color;
+    use PDF::ColorSpace::Separation;
+    constant CS = PDF::ColorSpace::Separation;
 
-    my $c = $pdf.color-separation('Cyan',    color '%f000');
-    my $m = $pdf.color-separation('Magenta', color '%0f00');
-    my $y = $pdf.color-separation('Yellow',  color '%00f0');
-    my $k = $pdf.color-separation('Black',   color '%000f');
+    my CS $c = $pdf.color-separation('Cyan',    color '%f000');
+    my CS $m = $pdf.color-separation('Magenta', color '%0f00');
+    my CS $y = $pdf.color-separation('Yellow',  color '%00f0');
+    my CS $k = $pdf.color-separation('Black',   color '%000f');
 
     # use a separation color directly
-    my $pms023 = $pdf.color-separation('PANTONE 032CV', color '%0ff0');
+    my CS $pms023 = $pdf.color-separation('PANTONE 032CV', color '%0ff0');
     $gfx.FillColor = $pms023 => .75;
 
 ### color-devicen
 
     # create a DeviceN color-space for color mixing
-    my $color-mix = $pdf.color-devicen( [ $c, $m, $y, $k, $pms023 ] );
+    use PDF::ColorSpace::DeviceN;
+    my PDF::ColorSpace::DeviceN $color-mix = $pdf.color-devicen( [ $c, $m, $y, $k, $pms023 ] );
     # apply it
     $gfx.FillColor = $color-mix => [0, 0, 0, .25, .75];
 
@@ -1194,6 +1198,8 @@ use PDF::Destination :Fit;
 use PDF::Annot::Link;
 use PDF::Content::Color :ColorName;
 use PDF::Border :BorderStyle;
+use PDF::Annot::Text;
+use PDF::Filespec;
 
 my PDF::API6 $pdf .= new;
 
@@ -1248,8 +1254,7 @@ $gfx.text: {
 }
 
 #-- Create a Text annotation --
-use PDF::Annot::Text;
-my $content = q:to<END-QUOTE>;
+my Str $content = q:to<END-QUOTE>;
     To be, or not to be: that is the question: Whether 'tis
     nobler in the mind to suffer the slings and arrows of
     outrageous fortune, or to take arms against a sea of
@@ -1264,7 +1269,6 @@ my PDF::Annot::Text $note = $pdf.annotation(
          );
 
 #--  Add a File Attachment annotation
-use PDF::Filespec;
 my PDF::Filespec $attachment = $pdf.attachment("t/images/lightbulb.gif");
 $content = 'Click on the paperclip to see an image as an example image attachment';
 $pdf.annotation(

@@ -6,6 +6,9 @@ use PDF::Destination :Fit;
 use PDF::Content::Color :ColorName;
 use PDF::Page;
 use PDF::XObject::Image;
+use PDF::Action::GoToR;
+use PDF::Annot::Text;
+use PDF::Border :BorderStyle;
 
 my PDF::API6 $pdf .= new;
 
@@ -73,13 +76,11 @@ $gfx.text: {
                  ); }, 'construct file annot';
 
     ok  $page1.Annots[3] === $link, "remote link added";
-    use PDF::Action::GoToR;
     my PDF::Action::GoToR $action = $link.action;
     is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annonation file';
     is $action.destination.page, 2, 'Goto annonation page number';
     is $action.destination.fit, FitXYZoom, 'Goto annonation fit';
 
-    use PDF::Annot::Text;
     my PDF::Annot::Text $note;
     my $content = "To be, or not to be: that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them?";
 
@@ -93,8 +94,6 @@ $gfx.text: {
 
     ok  $page1.Annots[4] === $note, "text annot added";
     is $note.content, $content, "Text note annotation";
-
-    use PDF::Border :BorderStyle;
 
     my $border-style = {
         :width(1),  # 1 point width

@@ -81,13 +81,15 @@ class PDF::API6:ver<0.1.2>
 
     method is-encrypted { ? self.Encrypt }
     method info returns PDF::Info { self.Info //= {} }
+
+    has PDF::Metadata::XML $.xmp-metadata is rw;
     method xmp-metadata is rw {
-        my PDF::Metadata::XML $metadata = $.catalog.Metadata //= {
+        $!xmp-metadata //= ($.catalog.Metadata //= {
             :Type(/<Metadata>),
             :Subtype(/<XML>),
-        };
+        });
 
-        $metadata.decoded; # rw target
+        $!xmp-metadata.decoded; # rw target
     }
 
     our Str enum PageLabel «
@@ -146,7 +148,7 @@ class PDF::API6:ver<0.1.2>
         )
     }
 
-    use PDF::Filespec :to-filespec;
+    use PDF::Filespec;
     has PDF::Filespec %!attachments;
     method attachment(Str $file-name,
                      IO::Path :$io = $file-name.IO,
@@ -159,11 +161,11 @@ class PDF::API6:ver<0.1.2>
                 with $io;
             my $F = PDF::COS::Stream.new: :%dict, :$decoded;
             $F.compress if $compress;
-            to-filespec({
-                :Type<Filespec>,
+            PDF::COS.coerce({
+                :Type(/<Filespec>),
                 :$file-name,
                 :embedded-file{ :$F },
-            });
+            }, PDF::Filespec);
         }
     }
 
@@ -249,7 +251,7 @@ class PDF::API6:ver<0.1.2>
     use PDF::ColorSpace::Separation;
     subset DeviceColor of Pair where .key ~~ 'DeviceRGB'|'DeviceCMYK'|'DeviceGray';
     method color-separation(Str $name, DeviceColor $color --> PDF::ColorSpace::Separation) {
-        my @Range;
+        my Numeric @Range;
         my List $v = $color.value;
         my Str $encoded;
         given $color.key {
@@ -272,7 +274,8 @@ class PDF::API6:ver<0.1.2>
         PDF::COS.coerce: [ /<Separation>, /$name, /($color.key), $function ];
     }
 
-    method color-devicen(@colors) {
+    use PDF::ColorSpace::DeviceN;
+    method color-devicen(@colors --> PDF::ColorSpace::DeviceN) {
         my constant Sampled = 2;
         my $nc = +@colors;
         my num64 @samples[Sampled ** $nc;4];
@@ -293,7 +296,7 @@ class PDF::API6:ver<0.1.2>
         my @Range = flat (0, 1) xx 4;
         my @Size = 2 xx $nc;
 
-        # create approximate compound function based on ranges only.
+        # create approximate compound function based on range maximum only.
         # Adapted from Perl 5's PDF::API2::Resource::ColorSpace::DeviceN
         my @xclr = @functions.map: {.calc([.domain>>.max])};
 
