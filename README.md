@@ -1122,7 +1122,7 @@ my PDF::API6 $pdf .= new;
 $pdf.add-page for 1 .. 7;
 use PDF::Destination :Fit;
 
-sub dest(|c) { :destination($pdf.destination(|c)) }
+sub dest(|c) { :Dest($pdf.destination(|c)) }
 
 $pdf.outlines.kids = [
           %( :Title('1. Purpose of this Document'), dest(:page(1))),
