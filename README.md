@@ -292,10 +292,10 @@ Check if document is encrypted
 
 ### Str, Blob
 
-Return a binary representation of a PDF as a latin-1 string, or binary Blob
+Return a binary representation of a PDF as a string, or binary Blob
 
-    my Str $pdf-byte-string = $pdf.Str; # returns a latin-1 encoded string
-    my Blob $bytes = $pdf.Blob;         # returns a Blob[uint8]
+    my Str $pdf-byte-string = $pdf.Str; # returns a string of latin-1 characters
+    my blob8 $bytes = $pdf.Blob;         # returns a Blob[uint8]
 
 ### ast
 
@@ -1161,7 +1161,7 @@ page-labels is an array of ascending integer indexes. Each is followed by a page
 
 ### Annotations
 
-An annotation associates a 'clickable' region on a page with an object such as a text note, destination page or URI. PDF::API6 supports a small number of commonly used annotations:
+An annotation associates a 'clickable' region on a page with an object such as a text note, destination page or URI. PDF::API6 currently supports a small number of commonly used annotations:
 
 - Links
   - pages within the PDF
