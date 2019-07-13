@@ -223,6 +223,10 @@ class PDF::API6:ver<0.1.2>
         my $Subtype = /'Link';
         self!annot( :$Subtype, :$page, :$destination, |%props);
     }
+    #| Alias :Dest to :destination
+    multi method annotation(:Dest($destination)!, |c) {
+        $.annotation(:$destination, |c);
+    }
 
     #| Page annotation with an action; e.g. URL link
     multi method annotation(:$page!, PDF::Action :$action!, *%props) {
