@@ -6,13 +6,22 @@ use PDF::Content:ver(v0.2.8+);
 class PDF::API6:ver<0.1.2>
     is PDF::Class {
 
-    use PDF::Destination :Fit;
-    use PDF::COS;
+    use PDF::Action;
+    use PDF::Action::GoToR;
+    use PDF::Action::URI;
+    use PDF::Annot;
     use PDF::Catalog;
+    use PDF::ColorSpace::DeviceN;
+    use PDF::ColorSpace::Separation;
+    use PDF::Destination :Fit;
     use PDF::Info;
+    use PDF::Filespec;
+    use PDF::Function::Sampled;
     use PDF::Metadata::XML;
     use PDF::Page;
+
     use PDF::Class::Util :from-roman;
+    use PDF::COS;
     use PDF::API6::Preferences;
 
     subset PageRef where {($_//UInt) ~~ UInt|PDF::Page};
@@ -50,7 +59,6 @@ class PDF::API6:ver<0.1.2>
         PDF::Destination.construct($fit, :$page, |c);
     }
 
-    use PDF::Action::GoToR;
     #| A remote action on a page in another PDF file
     multi method action(
         Str :$file!, UInt :$page!, |c
@@ -64,7 +72,6 @@ class PDF::API6:ver<0.1.2>
         };
     }
 
-    use PDF::Action::URI;
     #| A URI (link) action
     multi method action( Str :uri($URI)! --> PDF::Action::URI) {
         PDF::COS.coerce: {
@@ -138,17 +145,16 @@ class PDF::API6:ver<0.1.2>
 
     method page-labels is rw {
         Proxy.new(
-            STORE => sub ($, List $_) {
+            STORE => -> $, List $_ {
                 my Pair @labels = .list;
                 $.catalog.PageLabels = %( Nums => to-page-labels(@labels) );
             },
-            FETCH => sub ($) {
+            FETCH => {
                 .nums.Hash with $.catalog.PageLabels;
             },
         )
     }
 
-    use PDF::Filespec;
     has PDF::Filespec %!attachments;
     method attachment(Str $file-name,
                      IO::Path :$io = $file-name.IO,
@@ -192,7 +198,6 @@ class PDF::API6:ver<0.1.2>
                   Str :$text,
                   *%dict is copy) { 
 
-        use PDF::Annot;
         $page = $.page($page) if $page ~~ UInt;
         my $gfx = $page.gfx;
         my List $rect;
@@ -213,14 +218,12 @@ class PDF::API6:ver<0.1.2>
         $annot;
     }
 
-    use PDF::Destination;
     #| Page annotation with a destination; e.g. link to another page
     multi method annotation(:$page!, PDF::Destination :$destination!, *%props) {
         my $Subtype = /'Link';
         self!annot( :$Subtype, :$page, :$destination, |%props);
     }
 
-    use PDF::Action;
     #| Page annotation with an action; e.g. URL link
     multi method annotation(:$page!, PDF::Action :$action!, *%props) {
         my $Subtype = /'Link';
@@ -247,8 +250,6 @@ class PDF::API6:ver<0.1.2>
         .fields-hash with $.catalog.AcroForm;
     }
 
-    use PDF::Function::Sampled;
-    use PDF::ColorSpace::Separation;
     subset DeviceColor of Pair where .key ~~ 'DeviceRGB'|'DeviceCMYK'|'DeviceGray';
     method color-separation(Str $name, DeviceColor $color --> PDF::ColorSpace::Separation) {
         my Numeric @Range;
@@ -274,7 +275,6 @@ class PDF::API6:ver<0.1.2>
         PDF::COS.coerce: [ /<Separation>, /$name, /($color.key), $function ];
     }
 
-    use PDF::ColorSpace::DeviceN;
     method color-devicen(@colors --> PDF::ColorSpace::DeviceN) {
         my constant Sampled = 2;
         my $nc = +@colors;

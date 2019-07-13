@@ -1205,7 +1205,7 @@ my PDF::API6 $pdf .= new;
 
 $pdf.add-page for 1 .. 2;
 
-sub dest(|c) { :destination($pdf.destination(|c)) }
+sub dest(|c) { :Dest($pdf.destination(|c)) }
 sub action(|c) { :action($pdf.action(|c)) }
 
 my $gfx = $pdf.page(1).gfx;
