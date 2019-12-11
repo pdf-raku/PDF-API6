@@ -33,7 +33,8 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [images](#images)
        - [media-box, crop-box, trim-box, bleed-box, art-box, bleed](#media-box-crop-box-trim-box-bleed-box-art-box-bleed)
        - [Rotate](#rotate)
-   - [Introduction to Graphics](#introduction-to-graphics)
+   - [Graphics](#graphics)
+       - [gfx](#gfx)
    - [Text Methods](#text-methods)
        - [text](#text)
        - [font, core-font](#font-core-font)
@@ -57,7 +58,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
    - [Low Level Graphics](#low-level-graphics)
        - [Basic Colors](#basic-colors)
    - [Rendering Methods](#rendering-methods)
-       - [render](#render)
+       - [render: :&callback](#render-callback)
    - [AcroForm Fields](#acroform-fields)
 - [SECTION III: PDF::API6 Specific Methods](#section-iii-pdfapi6-specific-methods)
    - [Metadata Methods](#metadata-methods)
@@ -83,6 +84,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
        - [Marked Content](#marked-content)
+       - [Graphics Introspection](#graphics-introspection)
 
 # NAME
 
@@ -142,7 +144,7 @@ PDF::API2 features that are not yet available in PDF::API6 include:
 
 - Images. PDF::API6 supports PNG, JPEG and GIF images
 
-    - currently not supported are: TIFF, PNM and GIF images.
+    - currently not supported are: TIFF and PNM images.
 
 - Fonts. A variety of formats are handled by the PDF::Font::Loader module (available on CPAN).
 
@@ -417,7 +419,17 @@ Example:
 
 Read/write accessor to rotate the page, clockwise. Angles must be multiples of 90 degrees.
 
-## Introduction to Graphics
+## Graphics
+
+### gfx
+
+Synposis: ### $page.gfx: :&render, :debug, :!strict, :comment-ops
+
+Options:
+    - `:&render` install a rendering call-back (see Rendering below)
+    - `:debug` print debugging information
+    - `:!strict` turn off some warnings, regarding out-of-sequence operations,
+       incorrect nesting or unclosed Save, Text or Marked content blocks.
 
 Graphics form the basis of PDF rendering and display. This includes text, images, graphics, colors and painting.
 
@@ -789,7 +801,7 @@ A wider selection of named colors is available via the `Color::Named` module.
     
 ## Rendering Methods
 
-### render
+### render: :&callback 
 
 This method is used to process graphics; normally after installing
 callbacks. Callback invocations have access to the graphics state via
@@ -925,8 +937,7 @@ Thumbnail images visible.
 
 #### `$prefs.PageMode = 'UseOutlines'`
 
-Document outline visible.
-
+Make document outlines visible.
 
 #### `$prefs.PageLayout = 'SinglePage'`
 
@@ -1175,10 +1186,10 @@ Synopsis:
     use PDF::Annot::Link;
     use PDF::Annot::FileAttachment;
     use PDF::Annot::Text;
-    my PDF::Annot::Link $page-link = $pdf.annotation: :$page, :$link, |%props);
-    my PDF::Annot::Link $dest-link = $pdf.annotation: :$page, :$action, |%props);
-    my PDF::Annot::FileAttachment $attachment = $pdf.annotation: :$page, :$attachment, :icon-name<Paperclip|GraphPushPin>, :$text-label, |%props);
-    my PDF::Annot::Text $sticky-note = $pdf.annotation: :$page, :$content, :$Open, |%props);
+    my PDF::Annot::Link $page-link = $pdf.annotation: :$page, :$link, |%props;
+    my PDF::Annot::Link $dest-link = $pdf.annotation: :$page, :$action, |%props;
+    my PDF::Annot::FileAttachment $attachment = $pdf.annotation: :$page, :$attachment, :icon-name<Paperclip|GraphPushPin>, :$text-label, |%props;
+    my PDF::Annot::Text $sticky-note = $pdf.annotation: :$page, :$content, :$Open, |%props;
 
 Where:
 
@@ -1300,6 +1311,7 @@ TextLeading | Tl | Text line height | 0.0 | `.TextLeading = 12;`
 Font | [Tf, Tfs] | Text font and size | | `.font = [ .core-font( :family<Helvetica> ), 12 ]`
 TextRender | Tmode | Text rendering mode | 0 | `.TextRender = TextMode::OutlineText`
 TextRise | Trise | Text rise | 0.0 | `.TextRise = 3`
+
 
 #### General Graphics - Common
 
@@ -1425,3 +1437,50 @@ MarkPointDict(tag,props) | DP | Designate a marked-content point with an associa
 BeginMarkContent(tag) | BMC |  Begin a marked-content sequence terminated by a balancing `EMC` (EndMarkedContent) operator.
 BeginMarkedContentDict(tag,props) |  BDC |  Begin a marked-content sequence with an associated property dictionary
 EndMarkContent | EMC | End a marked-content sequence begun by a BMC (BeginMarkedContent) or BDC (BeginMarkedContentDict) operator.
+
+### Graphics Introspection
+
+The follow methods give an overview of the current state of the graphics engine:
+
+#### graphics-state
+
+Synopsis: `my %gstate = $gfx.graphics-state: :delta`
+
+Returns a complete graphics state. Summarising the values of all of the graphics variables described above. The `:delta` option returns only those values that have been updated since the last `.Save()` ('q' operator).
+
+#### gsaves
+
+Synopsis: `my Hash @gstates = $gfx.gsaves: :delta`
+
+A summary of all currently saved graphics states. This corresponds to the the number of open Save ('q') operations that have not been closed with a Restore ('Q') operation.
+
+The `:delta` option returns the differences from the current graphics state to the last gsave, and the difference between each previously saved graphics state.
+
+#### context
+
+Synopsis: `my $ctxt  = $gfx.context()`
+
+Returns the current graphics state context. As defined in the PDF::Content::Ops::GraphicsContext enumeration. One of: Path, Text, Clipping, Page, Shading or Image.
+
+#### ops
+
+Synopsis: `my Pair @ops = $gfx.ops(); PDF::Writer.write-content(@ops);`
+
+Returns a raw list of operations to date.
+
+#### content-dump
+
+Synopsis: `my Str @lines = .content-dump()`
+
+Returns a serialized content stream to-date as a list of lines
+
+#### open-tags
+
+Synopsis: `my PDF::Content::Tag @tags = .open-tags();`
+
+#### tags
+
+Synopsis: `my PDF::Content::Tag @closed-tags = .tags()`
+
+Returns previously closed content tags
+
