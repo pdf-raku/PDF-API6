@@ -268,7 +268,7 @@ The `:compress` option is used to ensure stream objects (which generally make up
     PDF::API6 $pdf .= open("our/original.pdf");
     $pdf.save-as: 'our/updated.pdf', :rebuild, :compress;
 
-The reverse flag, `:!compress` is useful when you want to optimise for human-readability of the output PDF. It will unpack `Flate`, `LZW`, `ASCIIHex` and `ASCII85` encoded streams.
+The reverse flag, `:!compress` is useful when you want to optimise for human-readability of the output PDF. It will uncompress `Flate`, `LZW`, `ASCIIHex` and `ASCII85` encoded streams.
 
 A PDF file can also be saved as, and opened from an intermediate JSON representation, by saving to, or reading from, files with a `.json` extension
 
@@ -423,17 +423,24 @@ Read/write accessor to rotate the page, clockwise. Angles must be multiples of 9
 
 ### gfx
 
-Synposis: ### $page.gfx: :&render, :debug, :!strict, :comment-ops
+Synposis: ### $page.gfx: :&render, :!strict, :trace, :comment
 
 Options:
     - `:&render` install a rendering call-back (see Rendering below)
-    - `:debug` print debugging information
     - `:!strict` turn off some warnings, regarding out-of-sequence operations,
        incorrect nesting or unclosed Save, Text or Marked content blocks.
 
+Debugging options:
+    - `:trace` print debugging information to $*ERR
+    - `:comment` write explanatory comments into the content stream, including
+       operator mnemonics and original unencoded text. These may make it a bit
+       easier for developers to interpret the content stream within the PDF. Note
+       that setting both :comment` and `:trace` options will direct the trace output
+       output to the content stream as comments.
+
 Graphics form the basis of PDF rendering and display. This includes text, images, graphics, colors and painting.
 
-Each page has associated graphics these can be access by the`.gfx` method.
+Each page has associated graphics these can be accessed by the`.gfx` method.
 
 ```
 use v6;
@@ -1446,7 +1453,7 @@ The follow methods give an overview of the current state of the graphics engine:
 
 Synopsis: `my %gstate = $gfx.graphics-state: :delta`
 
-Returns a complete graphics state. Summarising the values of all of the graphics variables described above. The `:delta` option returns only those values that have been updated since the last `.Save()` ('q' operator).
+Returns a snapshot of the current graphics state. Summarising the values of all of the graphics variables described above. The `:delta` option returns only those values that have been updated since the last `.Save()` ('q' operator).
 
 #### gsaves
 
@@ -1478,9 +1485,11 @@ Returns a serialized content stream to-date as a list of lines
 
 Synopsis: `my PDF::Content::Tag @tags = .open-tags();`
 
+Returns any currently open marked-content tags.
+
 #### tags
 
 Synopsis: `my PDF::Content::Tag @closed-tags = .tags()`
 
-Returns previously closed content tags
+Returns previously closed marked content tags
 
