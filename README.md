@@ -85,6 +85,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [Path Clipping](#path-clipping)
        - [Marked Content](#marked-content)
        - [Graphics Introspection](#graphics-introspection)
+   - [Appendix II: Module Overview](#appendix-ii-module-overview)
 
 # NAME
 
@@ -1492,4 +1493,55 @@ Returns any currently open marked-content tags.
 Synopsis: `my PDF::Content::Tag @closed-tags = .tags()`
 
 Returns previously closed marked content tags
+
+## Appendix II: Module Overview
+
+
+               PDF::API6
+                  |
+                  ^
+                  |
+    3.         PDF::Class                PDF::Lite
+                  |                         |
+                  +-------------------------+
+                          ^
+    2.                    | --<--- PDF::Content
+                          |
+                          | ..<.... PDF::Font::Loader
+                          |
+                          ^                FDF (unreleased)
+                          |                 |
+                          +-----------------+
+                          |
+    1.                   PDF
+                          |
+                          | --<--- PDF::Grammar
+
+There are three levels underlying PDF::API6. From bottom to top, these are:
+
+1. *PDF* handles the
+physical structure of a PDF, including object indexes, encryption, data
+dictionaries and arrays and the packing and unpacking of stream content.
+PDF files can be created read and updated.
+
+As well as loading PDF files, the *PDF* module can load FDF files, which are
+a closely related, but simpler format with the same syntax, commonly used to maintain
+form data associated with a PDF. There is an unreleased *FDF* module than is analogous to, but
+much simpler than *PDF::Class*.
+
+2. *PDF::Content* is a set of roles that both *PDF::Class* and
+*PDF::Lite* use to implement basic PDF content and graphics.
+This includes methods for page manipulation, images, xobject forms, graphics,
+simple colors (RGB, CMYK and Gray-scale) and core-fonts.
+
+The optional *PDF::Font::Loader* can be used to load Type-1 and Free-Type fonts
+for use by either *PDF::Class*, or *PDF::Lite*.
+
+3. *PDF::Class* is a comprehensive set of classes that understand most of
+the commonly used objects in a PDF, including fonts, interative features, tagged
+PDF, AcroForm fields and annotations.
+
+*PDF::API6* is a lightweight class that inherits from *PDF::Class*. It provides
+sugar and extra functionality for common use cases such as colors, outlines
+(table of contents) and preferences.
 
