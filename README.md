@@ -32,7 +32,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [to-xobject](#to-xobject)
        - [images](#images)
        - [media-box, crop-box, trim-box, bleed-box, art-box, bleed](#media-box-crop-box-trim-box-bleed-box-art-box-bleed)
-       - [Rotate](#rotate)
+       - [rotate](#rotate)
    - [Graphics](#graphics)
        - [gfx](#gfx)
    - [Text Methods](#text-methods)
@@ -56,7 +56,11 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [tiling-pattern](#tiling-pattern)
        - [use-pattern](#use-pattern)
    - [Low Level Graphics](#low-level-graphics)
-       - [Basic Colors](#basic-colors)
+   - [Basic Colors](#basic-colors)
+       - [FillColor, FillAlpha](#fillcolor-fillalpha)
+       - [StrokeColor, StrokeAlpha](#strokecolor-strokealpha)
+       - [Text Colors](#text-colors)
+       - [Named Colors](#named-colors)
    - [Rendering Methods](#rendering-methods)
        - [render: :&callback](#render-callback)
    - [AcroForm Fields](#acroform-fields)
@@ -86,6 +90,7 @@ PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
        - [Marked Content](#marked-content)
        - [Graphics Introspection](#graphics-introspection)
    - [Appendix II: Module Overview](#appendix-ii-module-overview)
+
 
 # NAME
 
@@ -414,9 +419,9 @@ Example:
     say $page.bleed-box; # [-8 -8 620 800]
 ```
 
-### Rotate
+### rotate
 
-    $page.Rotate = 90;
+    $page.rotate = 90;
 
 Read/write accessor to rotate the page, clockwise. Angles must be multiples of 90 degrees.
 
@@ -427,7 +432,7 @@ Read/write accessor to rotate the page, clockwise. Angles must be multiples of 9
 Synposis: ### $page.gfx: :&render, :!strict, :trace, :comment
 
 Options:
-    - `:&render` install a rendering call-back (see Rendering below)
+    - `:&render` install a rendering call-back (see [Rendering below](#rendering-methods))
     - `:!strict` turn off some warnings, regarding out-of-sequence operations,
        incorrect nesting or unclosed Save, Text or Marked content blocks.
 
@@ -525,12 +530,19 @@ Applies text transforms, such as translation, rotation, scaling, etc.
 
 ### base-coords
 
-Synopsis, my ($x-o, $y-o, ...) = $gfx.base-coords(
-                                        $x-t, $y-t, ...,
-                                        :$user=True,    # map to user default coordinates
-                                        :$text=False);  # unmap text matrix
+Synopsis:
 
-This method maps transformed coordinates back to original coordinates.
+    my ($x-o, $y-o, ...) = $gfx.base-coords(
+                               $x-t, $y-t, ...,
+                               :$user=True,    # map to user default coordinates
+                               :$text=False);  # unmap text matrix
+
+Options:
+    - `:text` -  Treat as a text position on the page, i.e. un-transform against the current
+      `TextMatrix` before un-transforming against the graphics matrix (`CTM`).
+   - `:!user` - Treat at a text position relative to current graphics, i.e. untransform only against the current `TextMatrix`
+
+This method maps transformed pairs of x-y coordinates back to original coordinates.
 
     $gfx.transform: :translate($x,$y), :scale(.8);
     my @image-region = $gfx.do($my-image, :align<middle>, 20, 30);
@@ -558,7 +570,7 @@ Synopsis: `my PDF::Content::Text::Block $text-block = print(
                  :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>
                  :kern, :$leading, :$width, :$height, :nl)`
 
-Outputs a text string, or [Text Block](https://github.com/p6-pdf/PDF-Content-p6/blob/master/lib/PDF/Content/Text/Block.pm)
+Outputs a text string, or [Text Block](https://github.com/p6-pdf/PDF-Content-p6/blob/master/lib/PDF/Content/Text/Block.pm).
 
 ### say
 
@@ -634,6 +646,10 @@ Displays an image or form.
 ## XObject Forms
 
 A Form is a graphical sub-element. Its usage is the same as an image.
+
+XObject form construction is similar to pages; both perform the
+PDF::Context::Graphics role, which provides methods such as
+`gfx`, `pre-gfx`, `graphics`, `text` and `render`.
 
 ### xobject-form
 
@@ -745,11 +761,13 @@ The `graphics` method simply adds `Save` and `Restore` operators
     }
     say $gfx.LineWidth; # 1.5
 
-### Basic Colors
+## Basic Colors
 
-The PDF Model maintains two separate color states; for filling and stroking:
+The PDF Model maintains two separate color states; for filling and stroking.
 
-#### FillColor, FillAlpha
+They applicable to general graphics as well as displayed text (see [below](#text-colors)).
+
+### FillColor, FillAlpha
 
 To set an RGB color for filling, or for displaying text:
 
@@ -782,7 +800,7 @@ Note that `FillAlpha` can also be used to draw semi-transparent images:
     $gfx.Fill; # fill, semi-transparently
     $gfx.do($image, 20,20);  # overlay image, semi-transparently
 
-#### StrokeColor, StrokeAlpha
+### StrokeColor, StrokeAlpha
 
 These are identical to `FillColor`, and `FillAlpha`, except that they are applied to stroking colors:
 
@@ -793,7 +811,45 @@ These are identical to `FillColor`, and `FillAlpha`, except that they are applie
     $gfx.Rectangle(10,10,50,75);
     $gfx.Stroke;
 
-#### Named Colors
+### Text Colors
+
+By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLine text rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor:
+
+```
+use v6;
+use PDF::API6;
+use PDF::Content::Color :ColorName, :color;
+use PDF::Content::Ops :TextMode;
+
+my PDF::API6 $pdf .= new;
+$pdf.media-box = [0, 0, 200, 100];
+my PDF::Page $page = $pdf.add-page;
+my $font = $page.core-font( :family<Helvetica>, :weight<bold> );
+
+$page.graphics: {
+    .text: {
+        .font = $font, 20;
+        .FillColor = color Blue;
+        .StrokeColor = color Red;
+        .LineWidth = .6;
+
+        .text-position = 10, 70;
+        .say: "Filled/Solid";
+
+        .TextRender = TextMode::OutlineText;
+        .say: "Outlined";
+
+        .TextRender = TextMode::FillOutlineText;
+        .say: "Filled/Stroked";
+    }
+}
+
+$pdf.save-as: "tmp/text-render-modes.pdf";
+```
+
+![example.pdf](tmp/.previews/text-render-modes-001.png)
+
+### Named Colors
 
 The PDF::Content::Color `:ColorName` and `color` exports provide a selection of built in named colors.
 
@@ -802,9 +858,9 @@ The PDF::Content::Color `:ColorName` and `color` exports provide a selection of 
 
 A wider selection of named colors is available via the `Color::Named` module.
 
-    use PDF::Content::Content :ColorName, :color;
+    use PDF::Content::Color :ColorName, :color;
     use Color::Named;
-    $gfx.FillAlpha = color Blue;
+    $gfx.FillAlpha = color Blue; # a PDF::Content named color
     $gfx.StrokeAlpha = color Color::Named.new( :name<azure> );
     
 ## Rendering Methods
@@ -1498,7 +1554,6 @@ Returns previously closed marked content tags
 
 
                PDF::API6
-                  |
                   ^
                   |
     3.         PDF::Class                PDF::Lite
