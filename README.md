@@ -538,9 +538,11 @@ Synopsis:
                                :$text=False);  # unmap text matrix
 
 Options:
+
     - `:text` -  Treat as a text position on the page, i.e. un-transform against the current
       `TextMatrix` before un-transforming against the graphics matrix (`CTM`).
-   - `:!user` - Treat at a text position relative to current graphics, i.e. untransform only against the current `TextMatrix`
+
+   - `:!user` - Treat at a text position relative to current graphics, i.e. un-transform only the current `TextMatrix`
 
 This method maps transformed pairs of x-y coordinates back to original coordinates.
 
@@ -641,7 +643,7 @@ Synopsis: `my Numeric @region[4] = $gfx.do(
                        :align<left center right> = 'left',
                        :valign<top center bottom> = 'bottom')`
 
-Displays an image or form.
+Displays an XObject Image or Form.
 
 ## XObject Forms
 
@@ -860,8 +862,8 @@ A wider selection of named colors is available via the `Color::Named` module.
 
     use PDF::Content::Color :ColorName, :color;
     use Color::Named;
-    $gfx.FillAlpha = color Blue; # a PDF::Content named color
-    $gfx.StrokeAlpha = color Color::Named.new( :name<azure> );
+    $gfx.FillColor = color Blue; # a PDF::Content named color
+    $gfx.StrokeColor = color Color::Named.new( :name<azure> );
     
 ## Rendering Methods
 
