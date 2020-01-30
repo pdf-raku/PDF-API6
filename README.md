@@ -1,4 +1,4 @@
-PDF::API6 - A Perl 6 PDF Tool-chain (experimental)
+PDF::API6 - A Raku PDF API
 ===
 
 <a href="https://travis-ci.org/p6-pdf/PDF-API6"><img src="https://travis-ci.org/p6-pdf/PDF-API6.svg?branch=master"></a>
@@ -98,7 +98,7 @@ PDF::API6 - Facilitates the creation and modification of PDF files
 
 # DESCRIPTION
 
-A Perl 6 PDF module; reminiscent of Perl 5's PDF::API2.
+A Raku PDF module; reminiscent of Perl 5's PDF::API2.
 
 This module is a work in progress in replicating, or mapping the functionality of Perl 5's PDF::API2 tool-chain.
 
@@ -242,9 +242,9 @@ Open an encrypted document:
     PDF::API6.open( "enc.pdf", :password<sshh!> );
 
 
-Open a PDF, ignoring the cross reference index and stream lengths:
+Open a PDF, ignoring indices and stream lengths:
 
-    PDF::API6.open( "damaged.pdf", :repair );
+    PDF::API6.open( "damaged-or-edited.pdf", :repair );
 
 ### update
 
@@ -539,10 +539,9 @@ Synopsis:
 
 Options:
 
-    - `:text` -  Treat as a text position on the page, i.e. un-transform against the current
-      `TextMatrix` before un-transforming against the graphics matrix (`CTM`).
+- `:text` -  Treat as a text position on the page, i.e. un-transform against the current `TextMatrix` before un-transforming against the graphics matrix (`CTM`).
 
-   - `:!user` - Treat at a text position relative to current graphics, i.e. un-transform only the current `TextMatrix`
+- `:!user` - Treat at a text position relative to current graphics, i.e. un-transform only the current `TextMatrix`
 
 This method maps transformed pairs of x-y coordinates back to original coordinates.
 
@@ -705,7 +704,7 @@ A Pattern is another graphical sub-element. Its construction is similar to a for
 
 Patterns are typically used to achieve advanced tiling or shading effects.
 
-Please see [examples/pdf-pattern.p6](examples/pdf-pattern.p6), which produced:
+Please see [examples/pdf-pattern.raku](examples/pdf-pattern.raku), which produced:
 
 ![pattern.pdf](tmp/.previews/pattern-001.png)
 
@@ -813,9 +812,23 @@ These are identical to `FillColor`, and `FillAlpha`, except that they are applie
     $gfx.Rectangle(10,10,50,75);
     $gfx.Stroke;
 
+### Named Colors
+
+The PDF::Content::Color `:ColorName` and `color` exports provide a selection of built in named colors.
+
+-  Aqua, Black, Blue, Fuchsia, Gray, Green, Lime, Maroon Navy, Olive Orange, Purple,
+   Red, Silver, Teal, Yellow, Cyan, Magenta
+
+A wider selection of named colors is available via the `Color::Named` module.
+
+    use PDF::Content::Color :ColorName, :color;
+    use Color::Named;
+    $gfx.FillColor = color Blue; # a PDF::Content named color
+    $gfx.StrokeColor = color Color::Named.new( :name<azure> );
+    
 ### Text Colors
 
-By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLine text rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor:
+By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLineText rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor:
 
 ```
 use v6;
@@ -851,20 +864,6 @@ $pdf.save-as: "tmp/text-render-modes.pdf";
 
 ![example.pdf](tmp/.previews/text-render-modes-001.png)
 
-### Named Colors
-
-The PDF::Content::Color `:ColorName` and `color` exports provide a selection of built in named colors.
-
--  Aqua, Black, Blue, Fuchsia, Gray, Green, Lime, Maroon Navy, Olive Orange, Purple,
-   Red, Silver, Teal, Yellow, Cyan, Magenta
-
-A wider selection of named colors is available via the `Color::Named` module.
-
-    use PDF::Content::Color :ColorName, :color;
-    use Color::Named;
-    $gfx.FillColor = color Blue; # a PDF::Content named color
-    $gfx.StrokeColor = color Color::Named.new( :name<azure> );
-    
 ## Rendering Methods
 
 ### render: :&callback 
@@ -971,7 +970,7 @@ Example:
                 <rdf:Description
                   rdf:about='uuid:b8659d3a-369e-11d9-b951-000393c97fd8'
                   xmlns:pdf='http://ns.adobe.com/pdf/1.3/'
-                  pdf:Producer='Perl 6 PDF::API6 version 0.0.1'></rdf:Description>
+                  pdf:Producer='Raku PDF::API6 version 0.0.1'></rdf:Description>
                 </rdf:Description>
             </rdf:RDF>
         </x:xmpmeta>
@@ -1148,7 +1147,7 @@ the page magnified by the factor zoom. A zero (0) value for any of the
 parameters left, top, or zoom specifies that the current value of that
 parameter is to be retained unchanged.
 
-see also [examples/pdf-preferences.p6](examples/pdf-preferences.p6)
+see also [examples/pdf-preferences.raku](examples/pdf-preferences.raku)
 
 ### version
 
@@ -1220,7 +1219,7 @@ $pdf.outlines.kids = [
 
 ```
 
-See also: `pdf-toc.p6`, installed with PDF::Class. This can be used to view the outlines for a PDF.
+See also: `pdf-toc.raku`, installed with PDF::Class. This can be used to view the outlines for a PDF.
 
 ### Page Labels
 
@@ -1302,8 +1301,8 @@ $gfx.text: {
     .text-position = 377, 515;
     $link = $pdf.annotation(
                      :page(1),
-                     :text("Perl 6"),
-                     |action(:uri<https://perl6.org>),
+                     :text("Raku"),
+                     |action(:uri<https://raku.org>),
                      :color(Orange),
                  );
 
@@ -1401,7 +1400,7 @@ AlphaSource | AIS | A flag specifying whether the current soft mask and alpha co
 BlackGenerationFunction | BG2 | A function that calculates the level of the black colour component to use when converting RGB colours to CMYK
 BlendMode | BM | The current blend mode to be used in the transparent imaging model |
 Flatness | FT | The precision with which curves are rendered on the output device. The value of this parameter gives the maximum error tolerance, measured in output device pixels; smaller numbers give smoother curves at the expense of more computation | 1.0 
-Halftone dictionary | HT |  A halftone screen for gray and colour rendering
+Halftone | HT |  A halftone screen for gray and colour rendering
 MiterLimit | ML | number The maximum length of mitered line joins for stroked paths |
 OverPrintMode | OPM | A flag specifying whether painting in one set of colorants should cause the corresponding areas of other colorants to be erased or left unchanged | false
 OverPrintPaint | OP | A code specifying whether a colour component value of 0 in a DeviceCMYK colour space should erase that component (0) or leave it unchanged (1) when overprinting | 0

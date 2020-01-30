@@ -78,7 +78,7 @@ $gfx.text: {
     ok  $page1.Annots[3] === $link, "remote link added";
     my PDF::Action::GoToR $action = $link.action;
     is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annonation file';
-    is $action.destination.page, 2, 'Goto annonation page number';
+    is $action.destination.page, 1, 'Goto annonation page index';
     is $action.destination.fit, FitXYZoom, 'Goto annonation fit';
 
     my PDF::Annot::Text $note;

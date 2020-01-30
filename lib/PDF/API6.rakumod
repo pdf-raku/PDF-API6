@@ -1,9 +1,9 @@
 use v6;
 use PDF::Class:ver(v0.3.3+);
 use PDF:ver(v0.3.5+);
-use PDF::Content:ver(v0.2.8+);
+use PDF::Content:ver(v0.3.1+);
 
-class PDF::API6:ver<0.1.2>
+class PDF::API6:ver<0.2.0>
     is PDF::Class {
 
     use PDF::Action;
@@ -20,11 +20,13 @@ class PDF::API6:ver<0.1.2>
     use PDF::Metadata::XML;
     use PDF::Page;
 
+    use PDF::Content::Tag;
+
     use PDF::Class::Util :from-roman;
     use PDF::COS;
     use PDF::API6::Preferences;
 
-    subset PageRef where {($_//UInt) ~~ UInt|PDF::Page};
+    subset PageRef where {$_ ~~ UInt|PDF::Page|Any:U};
     sub prefix:</>($name) { PDF::COS.coerce(:$name) };
 
     has PDF::API6::Preferences $.preferences;
@@ -35,14 +37,17 @@ class PDF::API6:ver<0.1.2>
         }
     }
 
+    has PDF::Content::Tag $!root-tag;
+    method tag { $!root-tag //= PDF::Content::Tag.new }
+
     #| A remote destination to a page (by number) in another PDF file
     multi method destination(
         Bool :$remote! where .so,
-        UInt :$page!,
+        UInt :$page! is copy,
         Fit :$fit = FitWindow,
         |c ) is default {
-        # don't dereference page number for
-        # remote destinations
+        # Remote destinations start at Page 0
+        $page--;
         PDF::Destination.construct($fit, :$page, |c);
     }
     #| A destination page (by number) within this PDF
@@ -80,9 +85,7 @@ class PDF::API6:ver<0.1.2>
             :$URI
         };
     }
-    multi method action( PDF::Action::URI :$uri!) {
-        $uri;
-    }
+    multi method action( PDF::Action::URI :$uri!) { $uri; }
 
     method outlines is rw { self.catalog.Outlines //= {} };
 
@@ -191,6 +194,11 @@ class PDF::API6:ver<0.1.2>
             my @Limits = @Names[0], @Names.tail(2)[0];
             $names.EmbeddedFiles = { :@Names, :@Limits };
             %!attachments = ();
+        }
+
+        if $!root-tag && $!root-tag.children {
+            # some tagged PDF happening.
+            # blow away an
         }
     }
 
