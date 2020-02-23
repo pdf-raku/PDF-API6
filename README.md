@@ -119,7 +119,7 @@ constant Padding = 10;
 
 $page.graphics: {
     my $font = .core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
-    my PDF::Content::Text::Block $text-block = .textblock: :text('Hello, world'), :$font;
+    my PDF::Content::Text::Block $text-block = .text-block: :text('Hello, world'), :$font;
     .say: $text-block, :position[X-Margin, 10];
 
     my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.gif";
