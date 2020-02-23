@@ -118,11 +118,9 @@ constant X-Margin = 10;
 constant Padding = 10;
 
 $page.graphics: {
-    my PDF::Content::Text::Block $text-block = .text: {
-        .font = .core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
-        .text-position = [X-Margin, 10];
-        .say: 'Hello, world';
-    }
+    my $font = .core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
+    my PDF::Content::Text::Block $text-block = .textblock: :text('Hello, world'), :$font;
+    .say: $text-block, :position[X-Margin, 10];
 
     my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.gif";
     .do($img, X-Margin + Padding + $text-block.width, 10);
@@ -1554,24 +1552,28 @@ Returns previously closed marked content tags
 ## Appendix II: Module Overview
 
 
-               PDF::API6
-                  ^
-                  |
-    3.         PDF::Class                PDF::Lite
-                  |                         |
-                  +-------------------------+
-                          ^
-    2.                    | --<--- PDF::Content
-                          |
-                          | ..<.... PDF::Font::Loader
-                          |
-                          ^                FDF (unreleased)
-                          |                 |
-                          +-----------------+
-                          |
-    1.                   PDF
-                          |
-                          | --<--- PDF::Grammar
+                               PDF::API6
+                                  ^
+                                  |
+                                  |
+    3.       PDF::Lite         PDF::Class
+                |                 |
+                |                 | ..<... PDF::Tags
+                |                 |
+                +-----------------+
+                        ^
+    2.                  | --<--- PDF::Content
+                        |
+                        | ..<... PDF::Font::Loader
+                        |
+                        ^                FDF (unreleased)
+                        |                 |
+                        +-----------------+
+                        |
+    1.                 PDF
+                        |
+                        | --<--- PDF::Grammar
+
 
 There are three levels underlying PDF::API6. From bottom to top, these are:
 
@@ -1596,6 +1598,9 @@ for use by either *PDF::Class*, or *PDF::Lite*.
 3. *PDF::Class* is a comprehensive set of classes that understand most of
 the commonly used objects in a PDF, including fonts, interative features, tagged
 PDF, AcroForm fields and annotations.
+
+The optional *PDF::Tags* module is applicable to PDF files that are 'Tagged'. It
+presents DOM like interface for reading document structure elements.
 
 *PDF::API6* is a lightweight class that inherits from *PDF::Class*. It provides
 sugar and extra functionality for common use cases such as colors, outlines
