@@ -108,22 +108,20 @@ This module is a work in progress in replicating, or mapping the functionality o
 use v6;
 use PDF::API6;
 use PDF::Page;
-use PDF::Content::Text::Block;
 use PDF::XObject::Image;
 
 my PDF::API6 $pdf .= new;
 $pdf.media-box = [0, 0, 200, 100];
 my PDF::Page $page = $pdf.add-page;
-constant X-Margin = 10;
 constant Padding = 10;
 
 $page.graphics: {
+    enum <x0 y0 x1 y1>;
     my $font = .core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
-    my PDF::Content::Text::Block $text-block = .text-block: :text('Hello, world'), :$font;
-    .say: $text-block, :position[X-Margin, 10];
+    my @rect = .say: 'Hello, world', :$font, :position[10, 10];
 
     my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.gif";
-    .do($img, X-Margin + Padding + $text-block.width, 10);
+    .do($img, :position[@rect[x1] + Padding, 10]);
 }
 
 $pdf.save-as: "tmp/hello-world.pdf";
@@ -427,7 +425,7 @@ Read/write accessor to rotate the page, clockwise. Angles must be multiples of 9
 
 ### gfx
 
-Synposis: ### $page.gfx: :&render, :!strict, :trace, :comment
+Synposis: `$page.gfx: :&render, :!strict, :trace, :comment`
 
 Options:
     - `:&render` install a rendering call-back (see [Rendering below](#rendering-methods))
@@ -549,19 +547,16 @@ This method maps transformed pairs of x-y coordinates back to original coordinat
 
 ### print
 
-    need PDF::Content::Text::Block;
-    
     $gfx.WordSpacing = 2; # add extra spacing between words
     my $font = $gfx.core-font( :family<Helvetica>, :weight<bold> );
     my $font-size = 16;
     my $text = "Hello.  Ting, ting-ting. Attention! … ATTENTION! ";
     
-    my PDF::Content::Text::Block $text-block = $gfx.print: $text, :$font, :$font-size, :width(120);
+    my ($x0, $x1, $y1, $y1) = $gfx.print: $text, :$font, :$font-size, :width(120);
     
-    note "text block has size {.width} X {.height}"
-        with $text-block;
+    note "text block has size {$x1 - $x0} X {$y1 - $y0};
 
-Synopsis: `my PDF::Content::Text::Block $text-block = print(
+Synopsis: `my @rect = print(
                  $text-str-or-chunks-or-block,
                  :align<left|center|right>, :valign<top|center|bottom>,
                  :$font, :$font-size,
@@ -569,7 +564,7 @@ Synopsis: `my PDF::Content::Text::Block $text-block = print(
                  :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>
                  :kern, :$leading, :$width, :$height, :nl)`
 
-Outputs a text string, or [Text Block](https://github.com/p6-pdf/PDF-Content-p6/blob/master/lib/PDF/Content/Text/Block.pm).
+Renders a text string, or [Text Block](https://github.com/p6-pdf/PDF-Content-p6/blob/master/lib/PDF/Content/Text/Block.pm).
 
 ### say
 
