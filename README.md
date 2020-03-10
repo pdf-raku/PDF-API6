@@ -117,11 +117,11 @@ constant Padding = 10;
 
 $page.graphics: {
     enum <x0 y0 x1 y1>;
-    my $font = .core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
-    my @rect = .say: 'Hello, world', :$font, :position[10, 10];
+    my $font = .core-font: :family<Helvetica>, :weight<bold>, :style<italic>;
+    my @box  = .say: 'Hello, world', :$font, :position[10, 10];
 
     my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.gif";
-    .do($img, :position[@rect[x1] + Padding, 10]);
+    .do: $img, :position[@box[x1] + Padding, 10];
 }
 
 $pdf.save-as: "tmp/hello-world.pdf";

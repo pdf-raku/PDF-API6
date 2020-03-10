@@ -20,7 +20,7 @@ class PDF::API6:ver<0.2.0>
     use PDF::Metadata::XML;
     use PDF::Page;
 
-    use PDF::Content::Tag;
+    use PDF::Content::Tag::Root;
 
     use PDF::Class::Util :from-roman;
     use PDF::COS;
@@ -37,8 +37,7 @@ class PDF::API6:ver<0.2.0>
         }
     }
 
-    has PDF::Content::Tag $!root-tag;
-    method tag { $!root-tag //= PDF::Content::Tag.new }
+    has PDF::Content::Tag::Root $.tags;
 
     #| A remote destination to a page (by number) in another PDF file
     multi method destination(
@@ -196,10 +195,13 @@ class PDF::API6:ver<0.2.0>
             %!attachments = ();
         }
 
-        if $!root-tag && $!root-tag.children {
-            # some tagged PDF happening.
-            # blow away an
+        with $!tags {
+            # construct PDF tags
+            self.Root.StructTreeRoot = .build-struct-tree();
+            .Marked = True
+                given self.Root.MarkInfo //= {};
         }
+
     }
 
     method !annot(PageRef :$page is copy,
