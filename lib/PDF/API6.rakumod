@@ -20,8 +20,6 @@ class PDF::API6:ver<0.2.0>
     use PDF::Metadata::XML;
     use PDF::Page;
 
-    use PDF::Content::Tag::Root;
-
     use PDF::Class::Util :from-roman;
     use PDF::COS;
     use PDF::API6::Preferences;
@@ -36,8 +34,6 @@ class PDF::API6:ver<0.2.0>
             PDF::API6::Preferences.new: :$catalog;
         }
     }
-
-    has PDF::Content::Tag::Root $.tags;
 
     #| A remote destination to a page (by number) in another PDF file
     multi method destination(
@@ -193,13 +189,6 @@ class PDF::API6:ver<0.2.0>
             my @Limits = @Names[0], @Names.tail(2)[0];
             $names.EmbeddedFiles = { :@Names, :@Limits };
             %!attachments = ();
-        }
-
-        with $!tags {
-            # construct PDF tags
-            self.Root.StructTreeRoot = .build-struct-tree();
-            .Marked = True
-                given self.Root.MarkInfo //= {};
         }
 
     }
