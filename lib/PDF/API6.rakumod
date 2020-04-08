@@ -249,8 +249,8 @@ class PDF::API6:ver<0.2.0>
         .fields with $.catalog.AcroForm;
     }
 
-    method fields-hash {
-        .fields-hash with $.catalog.AcroForm;
+    method fields-hash(|c) {
+        .fields-hash(|c) with $.catalog.AcroForm;
     }
 
     subset DeviceColor of Pair where .key ~~ 'DeviceRGB'|'DeviceCMYK'|'DeviceGray';
