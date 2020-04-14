@@ -1,3 +1,5 @@
+Release 0.2.1
+   - Upgrade to PDF::Class 0.4.4; use top level .fields() and .fields-hash() methods.
 Release 0.2.0
    - Rename modules *.pm -> *.rakumod
 Release 0.1.2

@@ -1,9 +1,9 @@
 use v6;
-use PDF::Class:ver(v0.3.3+);
+use PDF::Class:ver(v0.4.3+);
 use PDF:ver(v0.3.5+);
 use PDF::Content:ver(v0.3.1+);
 
-class PDF::API6:ver<0.2.0>
+class PDF::API6:ver<0.2.1>
     is PDF::Class {
 
     use PDF::Action;
@@ -243,14 +243,6 @@ class PDF::API6:ver<0.2.0>
     multi method annotation(:$page!, Str :$content!, *%props) {
         my $Subtype = /'Text';
         self!annot( :$Subtype, :$page, :$content, |%props);
-    }
-
-    method fields {
-        .fields with $.catalog.AcroForm;
-    }
-
-    method fields-hash(|c) {
-        .fields-hash(|c) with $.catalog.AcroForm;
     }
 
     subset DeviceColor of Pair where .key ~~ 'DeviceRGB'|'DeviceCMYK'|'DeviceGray';

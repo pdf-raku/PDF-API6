@@ -906,7 +906,7 @@ Displayed fields are also a subclass of PDF::Annot, most commonly PDF::Annot::Wi
            when PDF::Field::Button { 'button' }
            when PDF::Field::Choice { 'button' }
            when PDF::Field::Text   { 'text' }
-           when PDF::Field::Signature   { 'text' }
+           when PDF::Field::Signature   { 'signature' }
            default { 'unknown' }
         }
         my $annot-type = do given $field {
