@@ -1,9 +1,12 @@
 use Test;
-plan 8;
+plan 10;
+
+# Note: Icky way of identifying code to be highlighed but not
+# checked: ```Raku vs ```Raku -/test
 
 my $read-me = "README.md".IO.slurp;
 
-$read-me ~~ /^ $<waffle>=.*? +%% ["```" \n? $<code>=.*? "```" \n?] $/
+$read-me ~~ /^ $<waffle>=.*? +%% ["```Raku -test" \n? $<code>=.*? "```" \n?] $/
     or die "README.md parse failed";
 
 for @<code> {
@@ -19,7 +22,6 @@ for @<code> {
 	    sub say(|c) { }
 	    sub dd(|c) { }
 	    sub note(|c) { }
-
 	    lives-ok {EVAL $snippet}, 'code sample'
 		or warn "eval error: $snippet";
 	}

@@ -1,5 +1,5 @@
 {
-  "auth": "github:p6-pdf",
+  "auth": "github:pdf-raku",
   "authors": [
     "David Warring"
   ],
@@ -20,7 +20,7 @@
   },
   "resources": [
   ],
-  "source-url": "git://github.com/p6-pdf/PDF-API6.git",
+  "source-url": "git://github.com/pdf-raku/PDF-API6.git",
   "tags": [
     "pdf"
   ],
