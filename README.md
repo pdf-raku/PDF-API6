@@ -129,7 +129,7 @@ $page.graphics: {
 $pdf.save-as: "tmp/hello-world.pdf";
 ```
 
-![example.pdf](https://github.com/pdf-raku/PDF-API6/blob/master/tmp/.previews/hello-world-001.png)
+![example.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/hello-world-001.png)
 
 # DIFFERENCES BETWEEN PDF::API2 AND PDF::API6
 
@@ -695,7 +695,7 @@ $page.graphics: {
 $pdf.save-as: "tmp/sample-form.pdf";
 ```
 
-![example.pdf](https://github.com/pdf-raku/PDF-API6/blob/master/tmp/.previews/sample-form-001.png)
+![example.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/sample-form-001.png)
 
 
 ## Patterns
@@ -706,7 +706,7 @@ Patterns are typically used to achieve advanced tiling or shading effects.
 
 Please see [examples/pdf-pattern.raku](examples/pdf-pattern.raku), which produced:
 
-![pattern.pdf](https://github.com/pdf-raku/PDF-API6/blob/master/tmp/.previews/pattern-001.png)
+![pattern.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/pattern-001.png)
 
 
 ### tiling-pattern
@@ -862,7 +862,7 @@ $page.graphics: {
 $pdf.save-as: "tmp/text-render-modes.pdf";
 ```
 
-![example.pdf](https://github.com/pdf-raku/PDF-API6/blob/master/tmp/.previews/text-render-modes-001.png)
+![example.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/text-render-modes-001.png)
 
 ## Rendering Methods
 
