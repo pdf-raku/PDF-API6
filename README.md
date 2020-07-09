@@ -1,8 +1,10 @@
-PDF::API6 - A Raku PDF API
-===
-
+[[home]](https://pdf-raku.github.io)
 <a href="https://travis-ci.org/pdf-raku/PDF-API6"><img src="https://travis-ci.org/pdf-raku/PDF-API6.svg?branch=master"></a>
  <a href="https://ci.appveyor.com/project/dwarring/PDF-API6/branch/master"><img src="https://ci.appveyor.com/api/projects/status/github/pdf-raku/PDF-API6?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true"></a>
+
+
+PDF::API6 - A Raku PDF API
+===
 
 - [NAME](#name)
 - [DESCRIPTION](#description)
@@ -104,7 +106,7 @@ This module is a work in progress in replicating, or mapping the functionality o
 
 # EXAMPLE
 
-```Raku -test
+```Raku
 use v6;
 use PDF::API6;
 use PDF::Page;
@@ -127,7 +129,7 @@ $page.graphics: {
 $pdf.save-as: "tmp/hello-world.pdf";
 ```
 
-![example.pdf](tmp/.previews/hello-world-001.png)
+![example.pdf](https://github.com/pdf-raku/PDF-API6/blob/master/tmp/.previews/hello-world-001.png)
 
 # DIFFERENCES BETWEEN PDF::API2 AND PDF::API6
 
@@ -156,7 +158,7 @@ PDF::API2 features that are not yet available in PDF::API6 include:
 
 # SYNOPSIS
 
-```Raku
+```raku
 use PDF::API6;
 # Create a blank PDF file
 my PDF::API6 $pdf .= new();
@@ -212,7 +214,7 @@ $pdf.save-as('/path/to/new.pdf');
 
 Creates a new PDF object.
 
-```Raku
+```raku
 my PDF::API6 $pdf .= new();
 #...
 dd $pdf.Str;
@@ -227,7 +229,7 @@ $pdf.save-as('our/new.pdf');
 
 Opens an existing PDF or JSON file.
 
-```Raku
+```raku
 my PDF::API6 $pdf .= open('our/old.pdf');
 #...
 $pdf.save-as('our/new.pdf');
@@ -237,18 +239,18 @@ my PDF::API6 $pdf2 .= open($pdf.Blob);
 ```
 
 Open an encrypted document:
-```Raku
+```raku
 PDF::API6.open( "enc.pdf", :password<sshh!> );
 ```
 
 Open a PDF, ignoring indices and stream lengths:
-```Raku
+```raku
 PDF::API6.open( "damaged-or-edited.pdf", :repair );
 ```
 ### update
 
 In-place update of a PDF file
-```Raku
+```raku
 my PDF::API6 $pdf .= open('our/to/be/updated.pdf');
 #...
 $pdf.update();
@@ -256,27 +258,27 @@ $pdf.update();
 ### save-as
 
 Save a new or updated PDF document to a file
-```Raku
+```raku
 my PDF::API6 $pdf .= new;
 #...
 $pdf.save-as: 'our/new.pdf';
 ```
 The `:preserve` option (default True) keeps the original PDF structure, then applies incremental updates. This is generally faster and also ensures that digital signatures are not invalidated.
-```Raku
+```raku
 PDF::API6 $pdf .= open("our/original.pdf");
 $pdf.save-as: 'our/updated.pdf', :!preserve;
 ```
 The `:rebuild` option (default False) rewrites the PDF. This may be useful, if there have been a substantial number of updates.
 
 The `:compress` option is used to ensure stream objects (which generally make up the bulk of a PDF) are compressed. This is useful when maximum compaction is needed.
-```Raku
+```raku
 PDF::API6 $pdf .= open("our/original.pdf");
 $pdf.save-as: 'our/updated.pdf', :rebuild, :compress;
 ```
 The reverse flag, `:!compress` is useful when you want to optimise for human-readability of the output PDF. It will uncompress `Flate`, `LZW`, `ASCIIHex` and `ASCII85` encoded streams.
 
 A PDF file can also be saved as, and opened from an intermediate JSON representation, by saving to, or reading from, files with a `.json` extension
-```Raku
+```raku
 PDF::API6 $pdf .= new;
 #...
 $pdf.save-as: 'our/ast.json';
@@ -286,13 +288,13 @@ $pdf.open: 'our/ast.json';
 ### encrypt
 
 Encrypt a PDF:
-```Raku
+```raku
 $pdf.encrypt( :owner-pass<ssh1>, :user-pass<abc>, :aes );
 ```
 ### is-encrypted
 
 Check if document is encrypted
-```Raku
+```raku
 if $pdf.is-encrypted { ... }
 ```
 ## Serialization Methods
@@ -300,7 +302,7 @@ if $pdf.is-encrypted { ... }
 ### Str, Blob
 
 Return a binary representation of a PDF as a string, or binary Blob
-```Raku
+```raku
 my Str $pdf-byte-string = $pdf.Str; # returns a string of latin-1 characters
 my blob8 $bytes = $pdf.Blob;         # returns a Blob[uint8]
 ```
@@ -308,7 +310,7 @@ my blob8 $bytes = $pdf.Blob;         # returns a Blob[uint8]
 
 Return an AST tree representation of a PDF.
 
-```Raku
+```raku
 use PDF::Writer;
 my %cos = $pdf.ast;   # returns a nested Hash representation of the PDF
 # write it to a file
@@ -321,13 +323,13 @@ my $pdf-byte-string = PDF::Writer.new.write: |%cos;
 ## Pages
 
 ### page-count
-```Raku
+```raku
 my UInt $pages = $pdf.page-count;
 ```
 Returns the number of pages in a PDF.
 
 ### page
-```Raku
+```raku
 use PDF::Page;
 my PDF::Page $second-page = $pdf.page(2);
 ```
@@ -336,7 +338,7 @@ Returns the nth page from the PDF
 ### add-page
 
 Synopsis: `$pdf.add-page($page-object?)`
-```Raku
+```raku
 my PDF::Page page = $pdf.add-page;
 ```
 Adds a page to the end of a PDF. Creates a new blank page by default.
@@ -344,7 +346,7 @@ Adds a page to the end of a PDF. Creates a new blank page by default.
 ### delete-page
 
 Deletes a page, by page-number
-```Raku
+```raku
 my PDF::Page $moved-page = $pdf.delete-page(2);
 # re-add the to the end of the PDF
 $pdf.add-page($moved-page);
@@ -359,7 +361,7 @@ Converts a page to an [XObject Form](#xobject-forms).
 This is useful if you want to transpose the imported page somewhat differently onto a page (e.g. two-up, four-up, etc.).
 
 Example:
-```Raku
+```raku
 use PDF::API6;
 use PDF::Page;
 use PDF::XObject;
@@ -400,7 +402,7 @@ A page has several different bounding boxes:
 `bleed` is a convenience method for setting up or showing a bleed gutter area surrounding the trim-box. It should usually be set up after the trim box.
 
 Example:
-```Raku -test
+```Raku
 use PDF::API6;
 use PDF::Page;
 use PDF::Content::Page :PageSizes;
@@ -448,7 +450,7 @@ Graphics form the basis of PDF rendering and display. This includes text, images
 
 Each page has associated graphics these can be accessed by the`.gfx` method.
 
-```Raku -test
+```Raku
 use v6;
 use PDF::API6;
 
@@ -477,14 +479,14 @@ Synopsis: `$gfx.text: &block`
 
 This is a convenience method, that executes code in a text block. Text blocks
 cannot be nested. Nor can they contain a graphics block.
-```Raku
+```raku
 $page.text: {
     .text-position = 30, 50;
     .say "hi";
 }
 ```
 is equivalent to:
-```Raku
+```raku
 given $page.gfx {
     .BeginText;
     .text-position = 30, 50;
@@ -494,7 +496,7 @@ given $page.gfx {
 ```
 ### font, core-font
 
-```Raku
+```raku
 $gfx.font = $gfx.core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
 $gfx.font = $gfx.core-font('Times-Bold');
 $gfx.font = $gfx.core-font('ZapfDingbats');
@@ -502,14 +504,14 @@ $gfx.font = $gfx.core-font('ZapfDingbats');
 Read/write accessor to set, or get the current font.
 
 Note: other fonts can be loaded via the PDF::Font::Loader module:
-```Raku
+```raku
 use PDF::Font::Loader :load-font;
 $gfx.font = load-font( :file</usr/share/fonts/truetype/tlwg/Garuda-BoldOblique.ttf> );
 # this also requires the fontconfig package on your system
 $gfx.font = load-font( :family<Garuda>, :weight<bold>, :slant<oblique> );
 ```
 ### text-position
-```Raku
+```raku
 $page.text: {
     .text-position = 10,20;
     .say('text @10,20');
@@ -522,7 +524,7 @@ Gets or sets the current text output position. Origin `(0, 0)` is at the bottom 
 Synopsis: `$gfx.text-transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s, $sy?], :skew[$x,y];`
 
 Applies text transforms, such as translation, rotation, scaling, etc.
-```Raku
+```raku
 $gfx.text-transform: :translate[110, 10], :rotate(.1);
 ```
 - Text transforms are applied after any [Graphics Transform](#transform).
@@ -532,7 +534,7 @@ $gfx.text-transform: :translate[110, 10], :rotate(.1);
 ### base-coords
 
 Synopsis:
-```Raku
+```raku
 my ($x-o, $y-o, ...) = $gfx.base-coords(
                            $x-t, $y-t, ...,
                            :$user=True,    # map to user default coordinates
@@ -545,13 +547,13 @@ Options:
 - `:!user` - Treat at a text position relative to current graphics, i.e. un-transform only the current `TextMatrix`
 
 This method maps transformed pairs of x-y coordinates back to original coordinates.
-```Raku
+```raku
 $gfx.transform: :translate($x,$y), :scale(.8);
 my @image-region = $gfx.do($my-image, :align<middle>, :position[20, 30]);
 my @position-on-page = $gfx.base-coords(|@image-region);
 ```
 ### print
-```Raku
+```raku
 $gfx.WordSpacing = 2; # add extra spacing between words
 my $font = $gfx.core-font( :family<Helvetica>, :weight<bold> );
 my $font-size = 16;
@@ -567,9 +569,9 @@ Synopsis: `my @rect = print(
                  :$font, :$font-size,
                  :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
                  :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>
-                 :kern, :$leading, :$width, :$height, :nl)`
+                 :kern, :squish, :$leading, :$width, :$height, :nl)`
 
-Renders a text string, or [Text Block](https://github.com/pdf-raku/PDF-Content-p6/blob/master/lib/PDF/Content/Text/Block.pm).
+Renders a text string, or [Text Block](https://pdf-raku.github.io/PDF-Content-raku/#pdfcontenttextblock).
 
 ### say
 
@@ -582,14 +584,14 @@ Takes the same parameters as `print`. Sets the final text position (`$.text-posi
 Synopsis: `$gfx.graphics: &block`
 
 This is a convenience method, that executes code in a nested Save/Restore block.
-```Raku
+```raku
 $page.graphics: {
     .Rectangle(10,20,100,50);
     .Fill;
 }
 ```
 is equivalent to:
-```Raku
+```raku
 given $page.gfx {
     .Save;
     .Rectangle(10,20,100,50);
@@ -602,7 +604,7 @@ given $page.gfx {
 Synopsis: `$gfx.transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s, $sy?], :skew[$x,y];`
 
 Applies a graphics transform, such as translation, rotation, scaling, etc.
-```Raku
+```raku
 $gfx.transform: :rotate(pi/4), :scale(2);
 ```
 Unlike [Text Transforms](#text-transform), Graphics Transforms accumulate; and are applied in addition to any existing transforms.
@@ -612,7 +614,7 @@ Unlike [Text Transforms](#text-transform), Graphics Transforms accumulate; and a
 Synopsis: `$gfx.paint( :close, :stroke, :fill, :even-odd)`
 
 `paint` is a general purpose method for closing, stroking and filling shapes.
-```Raku
+```raku
 # fill and stroke a rectangle
 use PDF::Content::Color :rgb;
 $gfx.FillColor = rgb(.7, .7, .9);
@@ -626,12 +628,12 @@ $gfx.paint: :fill, :stroke;
 ### load-image
 
 Loads an image in a supported format (currently PNG, GIF and JPEG).
-```Raku
+```raku
  my PDF::XObject::Image $img = $gfx.load-image("t/images/lightbulb.gif");
  note "image has size {$img.width} X {$image.height}";
 ```
 ### do
-```Raku
+```raku
 $gfx.do($img, :position[10, 20])
 ```
 Synopsis: `my Numeric @region[4] = $gfx.do(
@@ -653,7 +655,7 @@ PDF::Context::Graphics role, which provides methods such as
 ### xobject-form
 
 This graphical method is used to create a new, empty form object:
-```Raku -test
+```Raku
 use v6;
 use PDF::API6;
 use PDF::Page;
@@ -693,7 +695,7 @@ $page.graphics: {
 $pdf.save-as: "tmp/sample-form.pdf";
 ```
 
-![example.pdf](tmp/.previews/sample-form-001.png)
+![example.pdf](https://github.com/pdf-raku/PDF-API6/blob/master/tmp/.previews/sample-form-001.png)
 
 
 ## Patterns
@@ -704,7 +706,7 @@ Patterns are typically used to achieve advanced tiling or shading effects.
 
 Please see [examples/pdf-pattern.raku](examples/pdf-pattern.raku), which produced:
 
-![pattern.pdf](tmp/.previews/pattern-001.png)
+![pattern.pdf](https://github.com/pdf-raku/PDF-API6/blob/master/tmp/.previews/pattern-001.png)
 
 
 ### tiling-pattern
@@ -723,27 +725,27 @@ Use a pattern; registering it as graphics resource.
 
 PDF::API6 fully supports the PDF graphics instruction set, both for reading and
 writing PDF files. Direct calls to instructions are camel-cased, such as:
-```Raku
+```raku
 $gfx.TextMove(10,20);
 ```
 It is also possible to directly call the TextMove operator 'Td':
-```Raku
+```raku
 use PDF::Content::Ops :OpCode
 $gfx.op(OpCode::TextMove, 10,20);
 $gfx.op('Td', 10,20);  # TextMove
 ```
 A number of graphics variables are tracked as the instructions are executed. For example,
 to set the line-width for stroking operations:
-```Raku
+```raku
 $gfx.LineWidth = 2.5;
 ```
 This is equivalent to:
-```Raku
+```raku
 $gfx.SetLineWidth(2.5)
      unless $gfx.LineWidth == 2.5;
 ```
 The `Save` and `Restore` operators may be used to save and restore graphics variables.
-```Raku
+```raku
 $gfx.LineWidth = 1.5;
 $gfx.Save;
 $gfx.LineWidth = 2.5;
@@ -752,7 +754,7 @@ $gfx.Restore;
 say $gfx.LineWidth; # 1.5
 ```
 The `graphics` method simply adds `Save` and `Restore` operators
-```Raku
+```raku
 $gfx.LineWidth = 1.5;
 $gfx.graphics: {
     .LineWidth = 2.5;
@@ -769,19 +771,19 @@ They applicable to general graphics as well as displayed text (see [below](#text
 ### FillColor, FillAlpha
 
 To set an RGB color for filling, or for displaying text:
-```Raku
+```raku
 $gfx.FillColorSpace = 'DeviceRGB';
 $gfx.FillColorN = [1.0, .5, .5];
 ```
 Alternatives:
-```Raku
+```raku
 $gfx.FillColor = :DeviceRGB[1.0, .5, .5];
 
 use PDF::Content::Color :rgb;
 $gfx.FillColor = rgb(1.0, .5, .5);
 ```
 There are also Gray and CMYK color-spaces
-```Raku
+```raku
 $gfx.FillColor = :DeviceGray[.7];
 $gfx.FillColor = :DeviceCMYK[.3, .2, .2, .15];
 
@@ -793,7 +795,7 @@ Also settable is the `FillAlpha`. This is a value between 0.0 (fully transparent
 1.0 (fully opaque).
 
 Note that `FillAlpha` can also be used to draw semi-transparent images:
-```Raku
+```raku
 $gfx.FillAlpha = .3;  # make the fill color semi-transparent
 $gfx.Rectangle(10,10,50,75);
 $gfx.Fill; # fill, semi-transparently
@@ -802,7 +804,7 @@ $gfx.do($image, 20,20);  # overlay image, semi-transparently
 ### StrokeColor, StrokeAlpha
 
 These are identical to `FillColor`, and `FillAlpha`, except that they are applied to stroking colors:
-```Raku
+```raku
 # draw a semi-transparent rectangle with red border
 use PDF::Content::Color :rgb;
 $gfx.StrokeAlpha = .5;  # make the stroke color semi-transparent
@@ -818,7 +820,7 @@ The PDF::Content::Color `:ColorName` and `color` exports provide a selection of 
    Red, Silver, Teal, Yellow, Cyan, Magenta
 
 A wider selection of named colors is available via the `Color::Named` module.
-```Raku
+```raku
 use PDF::Content::Color :ColorName, :color;
 use Color::Named;
 $gfx.FillColor = color Blue; # a PDF::Content named color
@@ -828,7 +830,7 @@ $gfx.StrokeColor = color Color::Named.new( :name<azure> );
 
 By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLineText rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor:
 
-```Raku -test
+```Raku
 use v6;
 use PDF::API6;
 use PDF::Content::Color :ColorName, :color;
@@ -860,7 +862,7 @@ $page.graphics: {
 $pdf.save-as: "tmp/text-render-modes.pdf";
 ```
 
-![example.pdf](tmp/.previews/text-render-modes-001.png)
+![example.pdf](https://github.com/pdf-raku/PDF-API6/blob/master/tmp/.previews/text-render-modes-001.png)
 
 ## Rendering Methods
 
@@ -870,7 +872,7 @@ This method is used to process graphics; normally after installing
 callbacks. Callback invocations have access to the graphics state via
 the `$*gfx` dynamic variable.
 
-```Raku -test
+```Raku
 use PDF::API6;
 use PDF::Content::Ops :OpCode;
 my PDF::API6 $pdf .= open: "tmp/basic.pdf";
@@ -894,7 +896,7 @@ PDF::API6 has some experimental abilities to read and manipulate AcroFields.
 The individual fields are returned as PDF::Field sub-roles (see PDF::Class).
 
 Displayed fields are also a subclass of PDF::Annot, most commonly PDF::Annot::Widget.
-```Raku -test
+```Raku
 use PDF::API6;
 use PDF::Field;
 use PDF::Field::Button;
@@ -927,7 +929,7 @@ for @fields -> $field {
 - The `fields-hash` method returns fields hashed on each fields `.key()` value
 
 There are also PDF::Page `fields`, and `fields-hash` methods that return all fields on a given page.
-```Raku
+```raku
 my PDF::API6 $pdf .= open: "my-form.pdf";
 my PDF::Field @page-1-fields = $pdf.page(1).fields;
 ```
@@ -938,12 +940,12 @@ More work needs to be done in PDF::Class to fully support all possible field typ
 ## Metadata Methods
 
 ### info
-```Raku
+```raku
 use PDF::Info;
 my PDF::Info $info := $pdf.info;
 ```
 Gets/sets the info for the document
-```Raku
+```raku
 $pdf.info.Title = 'Some Publication';
 ```
 Standard `Info` fields include: `Title`, `Author`, `Subject`, `Keywords`, `Creator`, `Producer`, `CreationDate` and `ModDate`.
@@ -955,7 +957,7 @@ Standard `Info` fields include: `Title`, `Author`, `Subject`, `Keywords`, `Creat
 Gets/sets the XMP XML data stream.
 
 Example:
-```Raku
+```raku
 my $xml = q:to<EOT>;
     <?xpacket begin='' id='W5M0MpCehiHzreSzNTczkc9d'?>
     <?adobe-xap-filters esc="CRLF"?>
@@ -981,7 +983,7 @@ $pdf.xmp-metadata = $xml
 ## Settings Methods
 
 ### preferences
-```Raku
+```raku
 use PDF::Destination :Fit;
 given $pdf.preferences {
     .HideToolBar = True;
@@ -1156,7 +1158,7 @@ Get or set the PDF Version
 ## Color Management
 
 ### color-separation
-```Raku -test
+```Raku
 use PDF::API6;
 use PDF::Content::Color :color;
 use PDF::ColorSpace::Separation;
@@ -1174,7 +1176,7 @@ $pdf.add-page.graphics: -> $gfx {
 }
 ```
 ### color-devicen
-```Raku
+```raku
 # create a DeviceN color-space for color mixing
 use PDF::ColorSpace::DeviceN;
 my PDF::ColorSpace::DeviceN $color-mix = $pdf.color-devicen( [ $c, $m, $y, $k, $pms023 ] );
@@ -1193,7 +1195,7 @@ Outlines (or bookmarks) are commonly used by viewers for navigation of PDF docum
 For example, the following sets up a simple table-of-contents that will typically appear
 in the navigation pane of a PDF viewer.
 
-```Raku -test
+```Raku
 use PDF::API6;
 my PDF::API6 $pdf .= new;
 $pdf.add-page for 1 .. 7;
@@ -1227,7 +1229,7 @@ See also: `pdf-toc.raku`, installed with PDF::Class. This can be used to view th
 Get or sets page numbers to identify each page number, for display or printing:
 
 page-labels is an array of ascending integer indexes. Each is followed by a page numbering scheme. For example
-```Raku
+```raku
 constant PageLabel = PDF::API6::PageLabel;
 $pdf.page-labels = 0  => 'i',   # Roman lowercase: i, ii, iii, ...
                    4  => '1',   # Plain Decimal Numbering: 1, 2, 3, ...
@@ -1248,7 +1250,7 @@ An annotation associates a 'clickable' region on a page with an object such as a
 - Text Annotations (or "sticky notes")
 
 Synopsis:
-```Raku
+```raku
 use PDF::Annot::Link;
 use PDF::Annot::FileAttachment;
 use PDF::Annot::Text;
@@ -1269,7 +1271,7 @@ Where:
 
 Examples:
 
-```Raku -test
+```Raku
 use v6;
 use PDF::API6;
 use PDF::Destination :Fit;

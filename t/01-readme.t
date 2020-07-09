@@ -2,11 +2,12 @@ use Test;
 plan 10;
 
 # Note: Icky way of identifying code to be highlighed but not
-# checked: ```Raku vs ```Raku -/test
+# checked: ```Raku vs ```raku
 
 my $read-me = "README.md".IO.slurp;
 
-$read-me ~~ /^ $<waffle>=.*? +%% ["```Raku -test" \n? $<code>=.*? "```" \n?] $/
+# Test only ```Raku ... ``` (avoid ```raku ... ```)
+$read-me ~~ /^ $<waffle>=.*? +%% ["```Raku" \n? $<code>=.*? "```" \n?] $/
     or die "README.md parse failed";
 
 for @<code> {
@@ -16,7 +17,6 @@ for @<code> {
             # ensure consistant document ID generation
             srand(123456);
 
-	    # assume anything else is code.
 	    $snippet = $snippet.subst('DateTime.now;', 'DateTime.new( :year(2015), :month(12), :day(25) );' );
 	    # disable say, etc
 	    sub say(|c) { }
