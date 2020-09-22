@@ -123,7 +123,7 @@ $page.graphics: {
     my $font = .core-font: :family<Helvetica>, :weight<bold>, :style<italic>;
     my @box  = .say: 'Hello, world', :$font, :position[10, 10];
 
-    my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.gif";
+    my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.png";
     .do: $img, :position[@box[x1] + Padding, 10];
 }
 
@@ -630,7 +630,7 @@ $gfx.paint: :fill, :stroke;
 
 Loads an image in a supported format (currently PNG, GIF and JPEG).
 ```raku
- my PDF::XObject::Image $img = $gfx.load-image("t/images/lightbulb.gif");
+ my PDF::XObject::Image $img = $gfx.load-image("t/images/lightbulb.png");
  note "image has size {$img.width} X {$image.height}";
 ```
 ### do
@@ -701,26 +701,55 @@ $pdf.save-as: "tmp/sample-form.pdf";
 
 ## Patterns
 
-A Pattern is another graphical sub-element. Its construction is similar to a form; its usage is the same as a color.
+A Pattern is a graphical object. Its construction is similar to a form; its usage is the same as a color.
 
-Patterns are typically used to achieve advanced tiling or shading effects.
+```Raku
+use PDF::API6;
+use PDF::Pattern::Tiling;
+my PDF::API6 $pdf .= new;
+$pdf.media-box = [0, 0, 250, 200];
+my $page = $pdf.add-page;
 
-Please see [examples/pdf-pattern.raku](examples/pdf-pattern.raku), which produced:
+$page.graphics: -> $gfx {
+    # create a new tiling pattern
+    my PDF::Pattern::Tiling $pattern = $page.tiling-pattern(:BBox[0, 0, 25, 25], );
+    $pattern.graphics: {
+        .FillColor = :DeviceRGB[.7, .7, .9];
+        .Rectangle(|$pattern<BBox>);
+        .Fill;
+        my $img = .load-image("t/images/lightbulb.png");
+        .do($img, :position[5, 5] );
+    }
+    # set our pattern as the fill color
+    $gfx.FillColor = $gfx.use-pattern($pattern);
 
-![pattern.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/pattern-001.png)
+    # create a couple of filled rectangles
+    $gfx.Rectangle(10, 20, 100, 150);
+    $gfx.Fill;
+
+    $gfx.transform: :translate[120, -10], :rotate(.1);
+    $gfx.Rectangle(10, 20, 100, 150);
+    $gfx.Fill;
+}
+$pdf.save-as: "tmp/patterns.pdf";
+```
+
+![patterns.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/patterns-001.png)
+
+Patterns are typically used to achieve textured colors or tiling effects.
 
 
 ### tiling-pattern
 
 Synopsis: `my PDF::Pattern::Tiling $pattern = $gfx.tiling-pattern( :@BBox, :@Matrix, :$XStep, :$YStep, :$group = True)`
 
-Creates a new tiling pattern.
+Creates a new empty tiling pattern.
 
 ### use-pattern
 
 Synopsis: `$gfx.FillColor = $gfx.use-pattern($pattern)`
 
-Use a pattern; registering it as graphics resource.
+Use a pattern; registering it as graphics resource. This method should be used when placing the patternl after it has been fully constructed.
 
 ## Low Level Graphics
 
@@ -1350,7 +1379,7 @@ my PDF::Annot::Text $note = $pdf.annotation(
          );
 
 #--  Add a File Attachment annotation
-my PDF::Filespec $attachment = $pdf.attachment("t/images/lightbulb.gif");
+my PDF::Filespec $attachment = $pdf.attachment("t/images/lightbulb.png");
 $content = 'Click on the paperclip to see an image as an example image attachment';
 $pdf.annotation(
              :page(1),
@@ -1573,7 +1602,7 @@ Returns previously closed marked content tags
                         |
                         | ..<... PDF::Font::Loader
                         |
-                        ^                FDF (unreleased)
+                        ^                FDF
                         |                 |
                         +-----------------+
                         |

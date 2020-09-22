@@ -24,7 +24,7 @@ class PDF::API6:ver<0.2.1>
     use PDF::COS;
     use PDF::API6::Preferences;
 
-    subset PageRef where {$_ ~~ UInt|PDF::Page|Any:U};
+    subset PageRef where {$_ ~~ UInt|PDF::Page};
     sub prefix:</>($name) { PDF::COS.coerce(:$name) };
 
     has PDF::API6::Preferences $.preferences;
@@ -120,7 +120,7 @@ class PDF::API6:ver<0.2.1>
         %( S => /(Decimal.value), P => ~$0, St => +$1 )
     }
     #| Explicit pre-built hash numbering schema
-    multi sub to-page-label(Hash $_) { $_  }
+    multi sub to-page-label(Hash $_) { $_ }
 
     sub to-page-labels(Pair @labels) {
         my @page-labels;

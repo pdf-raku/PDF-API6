@@ -1,5 +1,5 @@
 use Test;
-plan 10;
+plan 11;
 
 # Note: Icky way of identifying code to be highlighed but not
 # checked: ```Raku vs ```raku
