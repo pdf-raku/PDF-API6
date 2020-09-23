@@ -707,7 +707,7 @@ A Pattern is a graphical object. Its construction is similar to a form; its usag
 use PDF::API6;
 use PDF::Pattern::Tiling;
 my PDF::API6 $pdf .= new;
-$pdf.media-box = [0, 0, 250, 200];
+$pdf.media-box = [0, 0, 250, 100];
 my $page = $pdf.add-page;
 
 $page.graphics: -> $gfx {
@@ -723,12 +723,13 @@ $page.graphics: -> $gfx {
     # set our pattern as the fill color
     $gfx.FillColor = $gfx.use-pattern($pattern);
 
-    # create a couple of filled rectangles
-    $gfx.Rectangle(10, 20, 100, 150);
+    $gfx.FillAlpha = .6; # semitransparent
+    # create a couple of overlapping semi-transparent filled rectangles
+    $gfx.Rectangle(30, 30, 110, 50);
     $gfx.Fill;
 
-    $gfx.transform: :translate[120, -10], :rotate(.1);
-    $gfx.Rectangle(10, 20, 100, 150);
+    $gfx.transform: :translate[50, 0], :rotate(.25);
+    $gfx.Rectangle(30, 2, 110, 50);
     $gfx.Fill;
 }
 $pdf.save-as: "tmp/patterns.pdf";
@@ -749,7 +750,7 @@ Creates a new empty tiling pattern.
 
 Synopsis: `$gfx.FillColor = $gfx.use-pattern($pattern)`
 
-Use a pattern; registering it as graphics resource. This method should be used when placing the patternl after it has been fully constructed.
+Use a pattern; registering it as graphics resource. This method should be used to place the pattern after it has been fully constructed.
 
 ## Low Level Graphics
 
