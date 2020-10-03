@@ -62,7 +62,7 @@ PDF::API6 - A Raku PDF API
    - [Basic Colors](#basic-colors)
        - [FillColor, FillAlpha](#fillcolor-fillalpha)
        - [StrokeColor, StrokeAlpha](#strokecolor-strokealpha)
-       - [Text Colors](#text-colors)
+       - [Text Modes](#text-modes)
        - [Named Colors](#named-colors)
    - [Rendering Methods](#rendering-methods)
        - [render: :&callback](#render-callback)
@@ -92,7 +92,8 @@ PDF::API6 - A Raku PDF API
        - [Path Clipping](#path-clipping)
        - [Marked Content](#marked-content)
        - [Graphics Introspection](#graphics-introspection)
-   - [Appendix II: Module Overview](#appendix-ii-module-overview)
+   - [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
+   - [Appendix III: Module Overview](#appendix-iii-module-overview)
 
 
 # NAME
@@ -857,7 +858,7 @@ use Color::Named;
 $gfx.FillColor = color Blue; # a PDF::Content named color
 $gfx.StrokeColor = color Color::Named.new( :name<azure> );
 ```    
-### Text Colors
+### Text Modes
 
 By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLineText rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor:
 
@@ -894,6 +895,8 @@ $pdf.save-as: "tmp/text-render-modes.pdf";
 ```
 
 ![example.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/text-render-modes-001.png)
+
+See [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
 
 ## Rendering Methods
 
@@ -1409,9 +1412,10 @@ WordSpacing | Tw | Word spacing adjustment | 0.0 | `.WordSpacing = 2.5`
 HorizScaling | Th | Horizontal scaling (percent) | 100 | `.HorizScaling = 150`
 TextLeading | Tl | Text line height | 0.0 | `.TextLeading = 12;`
 Font | [Tf, Tfs] | Text font and size | | `.font = [ .core-font( :family<Helvetica> ), 12 ]`
-TextRender | Tmode | Text rendering mode | 0 | `.TextRender = TextMode::OutlineText`
+TextRender | Tmode | Text rendering mode(*) | 0 | `.TextRender = TextMode::OutlineText`
 TextRise | Trise | Text rise | 0.0 | `.TextRise = 3`
 
+(*) See [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
 
 #### General Graphics - Common
 
@@ -1586,7 +1590,26 @@ Synopsis: `my PDF::Content::Tag @closed-tags = .tags()`
 
 Returns previously closed marked content tags
 
-## Appendix II: Module Overview
+## Appendix II: Text Rendering Modes
+
+Text is filled using the current `FillColor` and/or stroked using the
+current `StrokeColor`, depending on the current `TextRender` mode
+as listed below.
+
+Enumerations can be imported via `use PDF::Content::Ops :TextMode`
+
+Mode | Enumeration | Description
+---- | ----------- | -----------
+0 | FillText | Fill text (default).
+1 | OutlineText | Stroke text.
+2 | FillOutlineText | Fill, then stroke text.
+3 | InvisableText | Neither fill nor stroke text (invisible).
+4 | FillClipText | Fill text and add to path for clipping
+5 | OutlineClipText | Stroke text and add to path for clipping.
+6 | FillOutlineClipText | Fill, then stroke text and add to path for clipping.
+7 |ClipText | Add text to path for clipping.
+
+## Appendix III: Module Overview
 
 
                                PDF::API6
