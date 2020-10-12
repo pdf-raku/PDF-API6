@@ -707,6 +707,8 @@ A Pattern is a graphical object. Its construction is similar to a form; its usag
 ```Raku
 use PDF::API6;
 use PDF::Pattern::Tiling;
+use PDF::Content::Color :rgb;
+
 my PDF::API6 $pdf .= new;
 $pdf.media-box = [0, 0, 250, 100];
 my $page = $pdf.add-page;
@@ -715,23 +717,25 @@ $page.graphics: -> $gfx {
     # create a new tiling pattern
     my PDF::Pattern::Tiling $pattern = $page.tiling-pattern(:BBox[0, 0, 25, 25], );
     $pattern.graphics: {
-        .FillColor = :DeviceRGB[.7, .7, .9];
+        .FillColor = rgb(.7, .7, .9);
         .Rectangle(|$pattern<BBox>);
         .Fill;
         my $img = .load-image("t/images/lightbulb.png");
         .do($img, :position[5, 5] );
     }
     # set our pattern as the fill color
+    $gfx.StrokeColor = rgb(.3, .3, .9);
+    $gfx.StrokeAlpha = .5;
     $gfx.FillColor = $gfx.use-pattern($pattern);
 
     $gfx.FillAlpha = .6; # semitransparent
     # create a couple of overlapping semi-transparent filled rectangles
     $gfx.Rectangle(30, 30, 110, 50);
-    $gfx.Fill;
+    $gfx.paint: :fill, :stroke;
 
     $gfx.transform: :translate[50, 0], :rotate(.25);
     $gfx.Rectangle(30, 2, 110, 50);
-    $gfx.Fill;
+    $gfx.paint: :fill, :stroke;
 }
 $pdf.save-as: "tmp/patterns.pdf";
 ```
