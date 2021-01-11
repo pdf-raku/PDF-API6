@@ -1,5 +1,8 @@
-Release 0.2.1
+{{$NEXT}}
+
+0.2.1  2021-01-12T06:57:48+13:00
    - Upgrade to PDF::Class 0.4.4; use top level .fields() and .fields-hash() methods.
+
 Release 0.2.0
    - Rename modules *.pm -> *.rakumod
 Release 0.1.2
