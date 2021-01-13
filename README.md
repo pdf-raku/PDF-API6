@@ -1472,7 +1472,7 @@ SetFillGray(level) | g | Same as G but used for non-stroking operations.
 SetStrokeRGB(r, g, b) | RG | Set the stroking colour space to DeviceRGB and set the colour to use for stroking operations. Each operand is a number between 0.0 (minimum intensity) and 1.0 (maximum intensity).
 SetFillRGB(r, g, b) | rg | Same as RG but used for non-stroking operations.
 SetFillCMYK(c, m, y, k) | K | Set the stroking colour space to DeviceCMYK and set the colour to use for stroking operations. Each operand is a number between 0.0 (zero concentration) and 1.0 (maximum concentration). The behaviour of this operator is affected by the OverprintMode graphics state.
-SetStrokeRGB(c, m, y, k) | k | Same as K but used for non-stroking operations.
+SetStrokeCMYK(c, m, y, k) | k | Same as K but used for non-stroking operations.
 
 ### Graphics State
 
