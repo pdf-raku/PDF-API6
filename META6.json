@@ -16,7 +16,6 @@
   "perl": "6.*",
   "provides": {
     "PDF::API6": "lib/PDF/API6.rakumod",
-    "PDF::API6::Font::Synthetic": "lib/PDF/API6/Font/Synthetic.pm",
     "PDF::API6::Preferences": "lib/PDF/API6/Preferences.rakumod"
   },
   "resources": [
