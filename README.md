@@ -1422,7 +1422,7 @@ $pdf.annotation(
 ## Tagged Content
 
 PDF::API6 has some basic ability to tag graphical content. See also
-the [PDF::Tags]() module
+the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module
 
 ### tag
 
@@ -1454,7 +1454,7 @@ The variables and methods described in this section implement the PDF graphics m
 Some of these may need to be used directly. In particular,
 
 - [Text State Variables](#text-state-variables) - for advanced text affects
-- General Graphics - for lines and colors
+- [General Graphics](#general-graphics---common-state-variables) - for lines and colors
 - [Path Construction Operands](#path-construction-operators) - for drawing curves and lines
 
 There are some nesting and sequencing rules for operators, including:
@@ -1579,22 +1579,24 @@ Method | Code | Description | Notes
 --- | --- | --- | ---
 BeginText() | BT | Begin a text object, initializing $.TextMatrix, to the identity matrix. Text objects cannot be nested. | [1]
 EndText() | ET | End a text object, discarding the text matrix. | [1]
-TextMove(tx, ty) | Td | Move to the start of the next line, offset from the start of the current line by (tx, ty ); where tx and ty are expressed in unscaled text space units. |
+TextMove(tx, ty) | Td | Move to the start of the next line, offset from the start of the current line by (tx, ty ); where tx and ty are expressed in unscaled text space units. | [2]
 TextMoveSet(tx, ty) | TD | Move to the start of the next line, offset from the start of the current line by (tx, ty ). Set $.TextLeading to ty.
-SetTextMatrix(a, b, c, d, e, f) | Tm | Set $.TextMatrix | [2]
+SetTextMatrix(a, b, c, d, e, f) | Tm | Set $.TextMatrix | [3]
 TextNextLine| T* | Move to the start of the next line
-ShowText(string) | Tj | Show a text string | [3][4]
-MoveShowText(string) | ' | Move to the next line and show a text string. | [3][4]
-MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting $.WordSpacing to  aw and $.CharSpacing to ac | [3][4]
-ShowSpacetext(array) |  TJ | Show one or more text strings, allowing individual glyph positioning. Each element of array is either a string or a number. If the element is a string, show it. If it is a number, adjust the text position by that amount | [3][4]
+ShowText(string) | Tj | Show a text string | [4][5]
+MoveShowText(string) | ' | Move to the next line and show a text string. | [4][5]
+MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting $.WordSpacing to  aw and $.CharSpacing to ac | [4][5]
+ShowSpacetext(array) |  TJ | Show one or more text strings, allowing individual glyph positioning. Each element of array is either a string or a number. If the element is a string, show it. If it is a number, adjust the text position by that amount | [4][5]
 
 [1] See also the [text](#text) method
 
-[2] See also the [text-transform](#text-transform) method
+[2] See also the [text-position](#text-position) method
 
-[3] See also the [print](#print) and [say](#say) methods
+[3] See also the [text-transform](#text-transform) method
 
-[4] `string` arguments should be encoded using the current font. For example:
+[4] See also the [print](#print) and [say](#say) methods
+
+[5] `string` arguments should be encoded using the current font. For example:
 
     $gfx.ShowText: $gfx.font.encode("Sample Text", :str)
 
@@ -1719,10 +1721,10 @@ To break this down:
 - The `text()` method is adding a BeginText (BT) graphics operation
   on block entry and a EndText (ET) method on exit.
 - The `font()` method sets the current font object and size. Behind the scenes it has also set up a font dictionary, registered as /F1 for the font
-- The `print()` command is displaying WinsAnsi encoded text
+- The `print()` command is displaying text using thew ShowText (Tj) operator
 
 
-The follow methods give an overview of the current state of the graphics engine:
+The following methods give an overview of the current state of the graphics engine:
 
 ## Appendix II: Text Rendering Modes
 
