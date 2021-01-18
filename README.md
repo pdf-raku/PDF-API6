@@ -36,7 +36,7 @@ PDF::API6 - A Raku PDF API
        - [images](#images)
        - [media-box, crop-box, trim-box, bleed-box, art-box, bleed](#media-box-crop-box-trim-box-bleed-box-art-box-bleed)
        - [rotate](#rotate)
-   - [Graphics](#graphics)
+   - [Graphics Constructor](#graphics-constructor)
        - [gfx](#gfx)
    - [Text Methods](#text-methods)
        - [text](#text)
@@ -62,8 +62,8 @@ PDF::API6 - A Raku PDF API
    - [Basic Colors](#basic-colors)
        - [FillColor, FillAlpha](#fillcolor-fillalpha)
        - [StrokeColor, StrokeAlpha](#strokecolor-strokealpha)
-       - [Text Modes](#text-modes)
        - [Named Colors](#named-colors)
+       - [Text Modes](#text-modes)
    - [Rendering Methods](#rendering-methods)
        - [render: :&callback](#render-callback)
    - [AcroForm Fields](#acroform-fields)
@@ -81,17 +81,21 @@ PDF::API6 - A Raku PDF API
        - [Outlines](#outlines)
        - [Page Labels](#page-labels)
        - [Annotations](#annotations)
+   - [Tagged Content](#tagged-content)
+       - [tag](#tag)
+       - [mark](#mark)
 - [APPENDIX](#appendix)
    - [Appendix I: Graphics](#appendix-i-graphics)
        - [Graphics Variables](#graphics-variables)
        - [Graphic Operators](#graphic-operators)
        - [Graphics State](#graphics-state)
        - [Text Operators](#text-operators)
-       - [Path Construction](#path-construction)
+       - [Path Construction Operators](#path-construction-operators)
        - [Path Painting Operators](#path-painting-operators)
        - [Path Clipping](#path-clipping)
        - [Marked Content](#marked-content)
-       - [Graphics Introspection](#graphics-introspection)
+       - [Graphics Introspection Methods](#graphics-introspection-methods)
+       - [Graphics Tracing](#graphics-tracing)
    - [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
    - [Appendix III: Module Overview](#appendix-iii-module-overview)
 
@@ -152,10 +156,10 @@ PDF::API2 features that are not yet available in PDF::API6 include:
 
     - currently not supported are: TIFF and PNM images.
 
-- Fonts. A variety of formats are handled by the PDF::Font::Loader module (available on CPAN).
+- Fonts. A variety of formats are handled by the [PDF::Font::Loader](https://pdf-raku.github.io/PDF-Font-Loader-raku/) module (available on CPAN).
 
-   - Font sub-setting (to reduce PDF file sizes) is not yet implemented (wanted: module PDF::Font::Subset)
-   - Synthetic fonts are nyi (wanted: module PDF::Font::Synthetic)
+   - Font sub-setting (to reduces file sizes) is experimental. See [HarfBuzz::Subset](https://pdf-raku.github.io/HarfBuzz-Subset-raku/)
+   - Synthetic fonts are NYI (wanted: module PDF::Font::Synthetic)
 
 
 # SYNOPSIS
@@ -313,10 +317,10 @@ my blob8 $bytes = $pdf.Blob;         # returns a Blob[uint8]
 Return an AST tree representation of a PDF.
 
 ```raku
-use PDF::Writer;
+use PDF::IO::Writer;
 my %cos = $pdf.ast;   # returns a nested Hash representation of the PDF
 # write it to a file
-my $pdf-byte-string = PDF::Writer.new.write: |%cos;
+my $pdf-byte-string = PDF::IO::Writer.new.write: |%cos;
 "/tmp/out.pdf".IO.spurt(:bin, $pdf-byte-string);
 ```
 
@@ -367,10 +371,11 @@ Example:
 use PDF::API6;
 use PDF::Page;
 use PDF::XObject;
+use PDF::Content;
 my PDF::API6 $old .= open('our/old.pdf');
 my PDF::API6 $pdf .= new;
 my PDF::Page $page = $pdf.add-page;
-my $gfx = $page.gfx;
+my PDF::Content $gfx = $page.gfx;
 
 # Import Page 2 from the old PDF
 my PDF::XObject $xo = $pdf.page(2).to-xobject;
@@ -429,37 +434,38 @@ say $page.bleed-box; # [-8 -8 620 800]
 
 Read/write accessor to rotate the page, clockwise. Angles must be multiples of 90 degrees.
 
-## Graphics
+## Graphics Constructor
 
 ### gfx
 
-Synposis: `$page.gfx: :&render, :!strict, :trace, :comment`
+Synopsis: `$page.gfx: :&render, :!strict, :trace, :comment`
 
 Options:
     - `:&render` install a rendering call-back (see [Rendering below](#rendering-methods))
     - `:!strict` turn off some warnings, regarding out-of-sequence operations,
-       incorrect nesting or unclosed Save, Text or Marked content blocks.
+       incorrect nesting or un-closed Save, Text or Marked content blocks.
 
 Debugging options:
     - `:trace` print debugging information to $*ERR
     - `:comment` write explanatory comments into the content stream, including
-       operator mnemonics and original unencoded text. These may make it a bit
+       operator mnemonics and original un-encoded text. These may make it a bit
        easier for developers to interpret the content stream within the PDF. Note
        that setting both :comment` and `:trace` options will direct the trace output
        output to the content stream as comments.
 
 Graphics form the basis of PDF rendering and display. This includes text, images, graphics, colors and painting.
 
-Each page has associated graphics these can be accessed by the`.gfx` method.
+Pages, XObject Forms and Tiling Patterns all have associated graphics. These can be accessed by the`.gfx` method.
 
 ```Raku
 use v6;
 use PDF::API6;
+use PDF::Content;
 
 my PDF::API6 $pdf .= open("tmp/hello-world.pdf");
 # dump existing graphics on page 1
 my $page = $pdf.page(1);
-my $gfx = $page.gfx;
+my PDF::Content $gfx = $page.gfx;
 dd $gfx.content-dump; # dump existing graphics operations
 
 # add some more text to the page
@@ -484,6 +490,7 @@ cannot be nested. Nor can they contain a graphics block.
 ```raku
 $page.text: {
     .text-position = 30, 50;
+    .WordSpacing = 5;
     .say "hi";
 }
 ```
@@ -492,10 +499,23 @@ is equivalent to:
 given $page.gfx {
     .BeginText;
     .text-position = 30, 50;
+    .WordSpacing = 5;
     .say "hi";
     .EndText;
 }
 ```
+Where `BeginText` and `EndText` are text graphics operators [1].
+
+The following should only be used within a text block:
+
+- text methods, such as: `font()`,`text-position()` and text-transform()
+- text state variables: CharSpacing, WordSpacing, HorizScaling, TextLeading, TextRender, TextRise [1].
+
+`print()` and `say()` can be used outside of a text block, but you
+need to at least pass a `:$font` option and will likely need a `:$text-position` method (if the text is not at 0, 0 in current user coordinates).
+
+[1] see [Appendix I: Graphics / Text Operators](#text-operators).
+
 ### font, core-font
 
 ```raku
@@ -540,7 +560,7 @@ Synopsis:
 my ($x-o, $y-o, ...) = $gfx.base-coords(
                            $x-t, $y-t, ...,
                            :$user=True,    # map to user default coordinates
-                           :$text=False);  # unmap text matrix
+                           :$text=False);  # un-map text matrix
 ```
 Options:
 
@@ -570,7 +590,7 @@ Synopsis: `my @rect = print(
                  :align<left|center|right>, :valign<top|center|bottom>,
                  :$font, :$font-size,
                  :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
-                 :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>
+                 :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>,
                  :kern, :squish, :$leading, :$width, :$height, :nl)`
 
 Renders a text string, or [Text Block](https://pdf-raku.github.io/PDF-Content-raku/#pdfcontenttextblock).
@@ -601,6 +621,7 @@ given $page.gfx {
     .Restore;
 }
 ```
+
 ### transform
 
 Synopsis: `$gfx.transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s, $sy?], :skew[$x,y];`
@@ -802,7 +823,7 @@ say $gfx.LineWidth; # 1.5
 
 The PDF Model maintains two separate color states; for filling and stroking.
 
-They applicable to general graphics as well as displayed text (see [below](#text-colors)).
+They are applicable to general graphics as well as displayed text.
 
 ### FillColor, FillAlpha
 
@@ -912,6 +933,7 @@ the `$*gfx` dynamic variable.
 
 ```Raku
 use PDF::API6;
+use PDF::Content;
 use PDF::Content::Ops :OpCode;
 my PDF::API6 $pdf .= open: "tmp/basic.pdf";
 my $page = $pdf.page: 1;
@@ -924,7 +946,7 @@ my sub callback($op, *@args) {
    }
 }
 
-my $gfx = $page.render( :&callback);
+my PDF::Content $gfx = $page.render( :&callback);
 ```
 
 ## AcroForm Fields
@@ -1057,10 +1079,6 @@ Display the pages in two columns, with odd numbered pages on the left.
 #### `$prefs.PageLayout = 'TwoColumnRight'`
 
 Display the pages in two columns, with odd numbered pages on the right.
-
-#### `$prefs.PageLayout = 'SinglePage'`
-
-Display a single page at a time.
 
 #### `$prefs.direction = 'r2l';`
 
@@ -1318,6 +1336,7 @@ use PDF::Content::Color :ColorName;
 use PDF::Border :BorderStyle;
 use PDF::Annot::Text;
 use PDF::Filespec;
+use PDF::Content;
 
 my PDF::API6 $pdf .= new;
 
@@ -1326,7 +1345,7 @@ $pdf.add-page for 1 .. 2;
 sub dest(|c) { :Dest($pdf.destination(|c)) }
 sub action(|c) { :action($pdf.action(|c)) }
 
-my $gfx = $pdf.page(1).gfx;
+my PDF::Content $gfx = $pdf.page(1).gfx;
 $gfx.text: {
     .font = .core-font: 'Times-Roman';
 
@@ -1400,32 +1419,86 @@ $pdf.annotation(
 
 ```
 
+## Tagged Content
+
+PDF::API6 has some basic ability to tag graphical content. See also
+the [PDF::Tags]() module
+
+### tag
+
+    my PDF::Content::Tag $tag = $gfx.tag($tag-name, &block?, *%attrs);
+    $gfx.tag: 'Span', {
+        .print: 'Hasta la vista.';
+    }, :Lang<es-MX>;
+
+Create a local tag in a content stream, if a code block is given. The block is
+marked, otherwise a marked point is made in the content stream.
+
+### mark
+
+    my PDF::Content::Tag $mark = $gfx.mark($tag-name, &block?, *%attrs);
+    say $mark.mcid;
+
+Similar to the `tag` method, but allocates a marked content identifier (MCID)
+for marked content that forms part of a document's logical structure. See also
+the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module.
+
 # APPENDIX
 
 ## Appendix I: Graphics
 
+Graphics are used to construct page content, as well as Form XObjects and Tiling Patterns.
+
+The variables and methods described in this section implement the PDF graphics model.
+
+Some of these may need to be used directly. In particular,
+
+- [Text State Variables](#text-state-variables) - for advanced text affects
+- General Graphics - for lines and colors
+- [Path Construction Operands](#path-construction-operators) - for drawing curves and lines
+
+There are some nesting and sequencing rules for operators, including:
+
+- There are three types of block structures, [graphics](#graphics), [text](#text) and [marked content](#marked-content).
+- [Text blocks](#text) don't nest, the other block types do
+- [Text state variables](#text-state-variables) should only be used in a [text block](#text) and are scoped to it.
+- Other Graphics state variables should be used in a [graphics block](#graphics) (possibly nested) and are scoped to the innermost graphics block.
+- [Font](#font-core-font) and [text position](#text-position) should be set before rendering text.
+- A sequence of [path construction operands](#path-construction-operators) should be followed by a [path painting operand](#path-painting-operators).
+
+PDF::API6 will warn if there are any problems with operator sequencing or block structure.
+
 ### Graphics Variables
 
-#### Text Variables
+#### Text State Variables
 
-Accessor | Code | Description | Default | Example Setters
--------- | ------ | ----------- | ------- | -------
-TextMatrix | Tm | Text transformation matrix | [1,0,0,1,0,0] | `.TextMatrix = :scale(1.5);`
+These are scoped to text blocks and influence the appearance
+and layout of text.
+
+Accessor | Code | Description | Default | Example Setters | Notes
+-------- | ------ | ----------- | ------- | ------- | ---
+TextMatrix | Tm | Text transformation matrix | [1,0,0,1,0,0] | `.TextMatrix = :scale(1.5);` | [1]
 CharSpacing | Tc | Character spacing adjustment | 0.0 | `.CharSpacing = 1.0`
 WordSpacing | Tw | Word spacing adjustment | 0.0 | `.WordSpacing = 2.5`
 HorizScaling | Th | Horizontal scaling (percent) | 100 | `.HorizScaling = 150`
 TextLeading | Tl | Text line height | 0.0 | `.TextLeading = 12;`
-Font | [Tf, Tfs] | Text font and size | | `.font = [ .core-font( :family<Helvetica> ), 12 ]`
-TextRender | Tmode | Text rendering mode(*) | 0 | `.TextRender = TextMode::OutlineText`
+Font | [Tf, Tfs] | Text font and size | | `.font = [ .core-font( :family<Helvetica> ), 12 ]` | [2]
+TextRender | Tmode | Text rendering mode | 0 | `.TextRender = TextMode::OutlineText` | [3]
 TextRise | Trise | Text rise | 0.0 | `.TextRise = 3`
 
-(*) See [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
+[1] See also the [text-transform](#text-transform) method
 
-#### General Graphics - Common
+[2] See also the [font](#font-core-font) method.
 
-Accessor | Code | Description | Default | Example Setters
--------- | ------ | ----------- | ------- | -------
-CTM |  | The current transformation matrix | [1,0,0,1,0,0] | `.ConcatMatrix: :scale(1.5);`
+[3] See [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
+
+#### General Graphics - Common State Variables
+
+These variables affect the appearance of lines and set stroke and fill colors
+
+Accessor | Code | Description | Default | Example Setters | Notes
+-------- | ------ | ----------- | ------- | ------- | ---
+CTM |  | The current transformation matrix | [1,0,0,1,0,0] | `.ConcatMatrix: :scale(1.5);` | [1]
 DashPattern | D |  A description of the dash pattern to be used when paths are stroked | solid | `.DashPattern = [[3, 5], 6];`
 FillAlpha | ca | The constant shape or constant opacity value to be used for other painting operations | 1.0 | `.FillAlpha = 0.25`
 FillColor| | current fill color-space and color | :DeviceGray[0.0] | `.FillColor = :DeviceCMYK[.7,.2,.2,.1]`
@@ -1435,7 +1508,9 @@ LineWidth | w | Stroke line-width | 1.0 | `.LineWidth = 2.5`
 StrokeAlpha | CA | The constant shape or constant opacity value to be used when paths are stroked | 1.0 | `.StrokeAlpha = 0.5;`
 StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | `.StrokeColor = :DeviceRGB[.7,.2,.2]`
 
-#### General Graphics - Advanced
+[1] See also the [transform](#transform) method
+
+#### General Graphics - Advanced State Variables
 
 Accessor | Code | Description | Default
 -------- | ------ | ----------- | -------
@@ -1459,6 +1534,8 @@ UndercolorRemovalFunction | UCR2 | A function that calculates the reduction in t
 
 #### Color Operators
 
+Low level setters for [FillColor](#fillcolor-fillalpha) and [StrokeColor](#strokecolor-strokealpha).
+
 Method | Code | Description
 --- | --- | ---
 SetStrokeColorSpace(name) | CS | Set the current space to use for stroking operations. This can be a standard name, such as 'DeviceGray', 'DeviceRGB', 'DeviceCMYK', or a name declared in the parent's Resource<ColorSpace> dictionary.
@@ -1476,11 +1553,11 @@ SetStrokeCMYK(c, m, y, k) | k | Same as K but used for non-stroking operations.
 
 ### Graphics State
 
-Method | Code | Description
---- | --- | ---
-Save() | q | Save the current graphics state on the graphics state stack
-Restore() | Q | Restore the graphics state by removing the most recently saved state from the stack and making it the current state.
-ConcatMatrix(a, b, c, d, e, f) | cm | Modify the current transformation matrix (CTM) by concatenating the specified matrix
+Method | Code | Description | Notes
+--- | --- | --- | ---
+Save() | q | Save the current graphics state on the graphics state stack | [1]
+Restore() | Q | Restore the graphics state by removing the most recently saved state from the stack and making it the current state. | [1]
+ConcatMatrix(a, b, c, d, e, f) | cm | Modify the current transformation matrix (CTM) by concatenating the specified matrix | [2]
 SetLineWidth(width) | w | Set the line width in the graphics state
 SetLineCap(cap-style) | J | Set the line cap style in the graphics state (see LineCap enum)
 SetLineJoin(join-style) | j | Set the line join style in the graphics state (see LineJoin enum)
@@ -1488,24 +1565,40 @@ SetMiterLimit(ratio) | M | Set the miter limit in the graphics state
 SetDashPattern(dashArray, dashPhase) | d | Set the line dash pattern in the graphics state
 SetRenderingIntent(intent) | ri | Set the colour rendering intent in the graphics state: AbsoluteColorimetric, RelativeColormetric, Saturation, or Perceptual
 SetFlatness(flat) | i | Set the flatness tolerance in the graphics state. flatness is a number in the range 0 to 100; 0 specifies the output device’s default flatness tolerance.
-SetGraphics(dictName) | gs | Set the specified parameters in the graphics state. dictName is the name of a graphics state parameter dictionary in the ExtGState resource sub-dictionary
+SetGraphics(dictName) | gs | Set the specified parameters in the graphics state. dictName is the name of a graphics state parameter dictionary in the ExtGState resource sub-dictionary | [3]
+
+[1] See also the [graphics](#graphics) method
+
+[2] See also the [transform](#transform) method
+
+[3] See also [Advanced State Variables](#general-graphics---advanced-state-variables)
 
 ### Text Operators
 
-Method | Code | Description
---- | --- | ---
-BeginText() | BT | Begin a text object, initializing $.TextMatrix, to the identity matrix. Text objects cannot be nested.
-EndText() | ET | End a text object, discarding the text matrix.
-TextMove(tx, ty) | Td | Move to the start of the next line, offset from the start of the current line by (tx, ty ); where tx and ty are expressed in unscaled text space units.
+Method | Code | Description | Notes
+--- | --- | --- | ---
+BeginText() | BT | Begin a text object, initializing $.TextMatrix, to the identity matrix. Text objects cannot be nested. | [1]
+EndText() | ET | End a text object, discarding the text matrix. | [1]
+TextMove(tx, ty) | Td | Move to the start of the next line, offset from the start of the current line by (tx, ty ); where tx and ty are expressed in unscaled text space units. |
 TextMoveSet(tx, ty) | TD | Move to the start of the next line, offset from the start of the current line by (tx, ty ). Set $.TextLeading to ty.
-SetTextMatrix(a, b, c, d, e, f) | Tm | Set $.TextMatrix
+SetTextMatrix(a, b, c, d, e, f) | Tm | Set $.TextMatrix | [2]
 TextNextLine| T* | Move to the start of the next line
-ShowText(string) | Tj | Show a text string
-MoveShowText(string) | ' | Move to the next line and show a text string.
-MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting $.WordSpacing to  aw and $.CharSpacing to ac
-ShowSpacetext(array) |  TJ | Show one or more text strings, allowing individual glyph positioning. Each element of array is either a string or a number. If the element is a string, show it. If it is a number, adjust the text position by that amount
+ShowText(string) | Tj | Show a text string | [3][4]
+MoveShowText(string) | ' | Move to the next line and show a text string. | [3][4]
+MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting $.WordSpacing to  aw and $.CharSpacing to ac | [3][4]
+ShowSpacetext(array) |  TJ | Show one or more text strings, allowing individual glyph positioning. Each element of array is either a string or a number. If the element is a string, show it. If it is a number, adjust the text position by that amount | [3][4]
 
-### Path Construction
+[1] See also the [text](#text) method
+
+[2] See also the [text-transform](#text-transform) method
+
+[3] See also the [print](#print) and [say](#say) methods
+
+[4] `string` arguments should be encoded using the current font. For example:
+
+    $gfx.ShowText: $gfx.font.encode("Sample Text", :str)
+
+### Path Construction Operators
 
 Method | Code | Description
 --- | --- | ---
@@ -1517,46 +1610,52 @@ Rectangle(x, y, width, Height) | re | Append a rectangle to the current path as 
 
 ### Path Painting Operators
 
-Method | Code | Description
---- | --- | ---
-Stroke() | S | Stroke the path.
-CloseStroke() | s | Close and stroke the path. Same as: $.Close; $.Stroke
-Fill() | f | Fill the path, using the nonzero winding number rule to determine the region. Any open sub-paths are implicitly closed before being filled.
-EOFill() | f* | Fill the path, using the even-odd rule to determine the region to fill
-FillStroke() | B | Fill and then stroke the path, using the nonzero winding number rule to determine the region to fill.
-EOFillStroke() | B* | Fill and then stroke the path, using the even-odd rule to determine the region to fill.
-CloseFillStroke() | b | Close, fill, and then stroke the path, using the nonzero winding number rule to determine the region to fill.
-CloseEOFillStroke() | b* | Close, fill, and then stroke the path, using the even-odd rule to determine the region to fill.
-EndPath() | n | End the path object without filling or stroking it. This operator is a path-painting no-op, used primarily for the side effect of changing the current clipping path.
+Method | Code | Description | Notes
+--- | --- | --- | ---
+Stroke() | S | Stroke the path. | [1]
+CloseStroke() | s | Close and stroke the path. Same as: $.ClosePath; $.Stroke | [1]
+Fill() | f | Fill the path, using the nonzero winding number rule to determine the region. Any open sub-paths are implicitly closed before being filled. | [1]
+EOFill() | f* | Fill the path, using the even-odd rule to determine the region to fill | [1]
+FillStroke() | B | Fill and then stroke the path, using the nonzero winding number rule to determine the region to fill. | [1]
+EOFillStroke() | B* | Fill and then stroke the path, using the even-odd rule to determine the region to fill. | [1]
+CloseFillStroke() | b | Close, fill, and then stroke the path, using the nonzero winding number rule to determine the region to fill. | [1]
+CloseEOFillStroke() | b* | Close, fill, and then stroke the path, using the even-odd rule to determine the region to fill. | [1]
+EndPath() | n | End the path object without filling or stroking it. This operator is a path-painting no-op, used primarily for the side effect of changing the current clipping path. | [1]
+
+[1] See also [paint](#paint) method, which can replace the operators in this section. For example:
+
+    $gfx.paint(:close, :fill, :stroke);   # equivalent to $gfx.CloseFillStroke
+    $gfx.paint(:close, :fill);            # equivalent to $gfx.ClosePath; $gfx.Fill
 
 ### Path Clipping
 
 Method | Code | Description
---- | --- | ---
-Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path.
-EOClip() | W* | Modify the current clipping path by intersecting it with the current path, using the even-odd rule to determine which regions lie inside the clipping path.
+ --- | --- | ---
+Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path. | [1]
+EOClip() | W* | Modify the current clipping path by intersecting it with the current path, using the even-odd rule to determine which regions lie inside the clipping path. | [1]
 
 ### Marked Content
 
-Method | Code | Description
---- | --- | ---
-MarkPoint(tag) | MP | Designate a marked-content point.
-MarkPointDict(tag,props) | DP | Designate a marked-content point with an associated property dictionary.
-BeginMarkContent(tag) | BMC |  Begin a marked-content sequence terminated by a balancing `EMC` (EndMarkedContent) operator.
-BeginMarkedContentDict(tag,props) |  BDC |  Begin a marked-content sequence with an associated property dictionary
-EndMarkContent | EMC | End a marked-content sequence begun by a BMC (BeginMarkedContent) or BDC (BeginMarkedContentDict) operator.
+Method | Code | Description | Notes
+--- | --- | --- | ---
+MarkPoint(tag) | MP | Designate a marked-content point. | [1]
+MarkPointDict(tag,props) | DP | Designate a marked-content point with an associated property dictionary. | [1]
+BeginMarkContent(tag) | BMC |  Begin a marked-content sequence terminated by a balancing `EMC` (EndMarkedContent) operator. | [1]
+BeginMarkedContentDict(tag,props) |  BDC |  Begin a marked-content sequence with an associated property dictionary | [1]
+EndMarkContent | EMC | End a marked-content sequence begun by a BMC (BeginMarkedContent) or BDC (BeginMarkedContentDict) operator. | [1]
 
-### Graphics Introspection
+[1] See also  [tag](#tag) and [mark](#mark) methods
 
-The follow methods give an overview of the current state of the graphics engine:
+### Graphics Introspection Methods
 
-#### graphics-state
+
+#### Method graphics-state()
 
 Synopsis: `my %gstate = $gfx.graphics-state: :delta`
 
 Returns a snapshot of the current graphics state. Summarising the values of all of the graphics variables described above. The `:delta` option returns only those values that have been updated since the last `.Save()` ('q' operator).
 
-#### gsaves
+#### Method gsaves()
 
 Synopsis: `my Hash @gstates = $gfx.gsaves: :delta`
 
@@ -1564,35 +1663,66 @@ A summary of all currently saved graphics states. This corresponds to the the nu
 
 The `:delta` option returns the differences from the current graphics state to the last gsave, and the difference between each previously saved graphics state.
 
-#### context
+#### Method context()
 
 Synopsis: `my $ctxt  = $gfx.context()`
 
 Returns the current graphics state context. As defined in the PDF::Content::Ops::GraphicsContext enumeration. One of: Path, Text, Clipping, Page, Shading or Image.
 
-#### ops
+#### Method ops()
 
-Synopsis: `my Pair @ops = $gfx.ops(); PDF::Writer.write-content(@ops);`
+Synopsis: `my Pair @ops = $gfx.ops(); PDF::IO::Writer.write-content(@ops);`
 
 Returns a raw list of operations to date.
 
-#### content-dump
+#### Method content-dump()
 
 Synopsis: `my Str @lines = .content-dump()`
 
 Returns a serialized content stream to-date as a list of lines
 
-#### open-tags
+#### Method open-tags()
 
 Synopsis: `my PDF::Content::Tag @tags = .open-tags();`
 
 Returns any currently open marked-content tags.
 
-#### tags
+#### Method tags()
 
 Synopsis: `my PDF::Content::Tag @closed-tags = .tags()`
 
 Returns previously closed marked content tags
+
+### Graphics Tracing
+
+The `gfx :trace` option enables tracing as graphics operations are executed. For example:
+
+    use PDF::API6;
+    use PDF::Page;
+    use PDF::Content;
+    my PDF::API6 $pdf .= new;
+    my PDF::Page $page = $pdf.add-page;
+    my PDF::Content $gfx = $page.gfx: :trace;
+    $gfx.text: {
+        .font = $page.core-font: 'Times-Roman';
+        .print: "Hello World";
+    };
+
+Produces:
+
+    BT	% BeginText
+      /F1 16 Tf	% SetFont	{"Font":[{"BaseFont":"Courier","Encoding":"WinAnsiEncoding","Subtype":"Type1","Type":"Font"},16]}
+      (Hello World) Tj	% ShowText
+    ET	% EndText
+
+To break this down:
+- The `text()` method is adding a BeginText (BT) graphics operation
+  on block entry and a EndText (ET) method on exit.
+- The `font()` method sets the current font object and size. Behind the scenes it has also set up a font dictionary, registered as /F1 for the font
+- The `print()` command is displaying WinsAnsi encoded text
+
+
+The follow methods give an overview of the current state of the graphics engine:
 
 ## Appendix II: Text Rendering Modes
 
@@ -1659,7 +1789,7 @@ The optional *PDF::Font::Loader* can be used to load Type-1 and Free-Type fonts
 for use by either *PDF::Class*, or *PDF::Lite*.
 
 3. *PDF::Class* is a comprehensive set of classes that understand most of
-the commonly used objects in a PDF, including fonts, interative features, tagged
+the commonly used objects in a PDF, including fonts, interactive features, tagged
 PDF, AcroForm fields and annotations.
 
 *PDF::Lite* understands content only, including pages and xobjects (forms and images). 
