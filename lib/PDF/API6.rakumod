@@ -3,7 +3,7 @@ use PDF::Class:ver(v0.4.3+);
 use PDF:ver(v0.3.5+);
 use PDF::Content:ver(v0.3.1+);
 
-class PDF::API6:ver<0.2.1>
+class PDF::API6:ver<0.2.2>
     is PDF::Class {
 
     use PDF::Action;

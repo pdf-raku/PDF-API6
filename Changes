@@ -1,6 +1,8 @@
 {{$NEXT}}
-    - general README.md documentation
-    - removed PDF::API6::Font::Synthetic (dug up by App::Mi6)
+
+0.2.2  2021-01-19T11:26:05+13:00
+   - general README.md documentation
+   - removed PDF::API6::Font::Synthetic (dug up by App::Mi6)
 
 0.2.1  2021-01-12T06:57:48+13:00
    - Upgrade to PDF::Class 0.4.4; use top level .fields() and .fields-hash() methods.
