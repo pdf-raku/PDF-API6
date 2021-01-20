@@ -1447,26 +1447,32 @@ the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module.
 
 ## Appendix I: Graphics
 
+The PDF standard implements a state machine for rendering graphics. There are
+a set of graphics operations that are used to construct content, or affect the
+graphics state. These are short codes that appear in a content stream (e.g. 'cm'). [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku/) implements a graphics engine that can execute these operations and maintain graphics state.
+
+The operations and graphics variables accessors are mapped to (camel-cased) mnemonics that can be executed as methods on the [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku/) `$gfx` object.
+
+For example 'cm' is mapped to the `ConcatMatrix` mnemonic. Its takes a matrix array as an argument and updates the `CTM` graphics state variable.
+
 Graphics are used to construct page content, as well as Form XObjects and Tiling Patterns.
 
-The variables and methods described in this section implement the PDF graphics model.
-
-Some of these may need to be used directly. In particular,
+Graphics operations and variables sometimes need to be used directly. In particular,
 
 - [Text State Variables](#text-state-variables) - for advanced text affects
 - [General Graphics](#general-graphics---common-state-variables) - for lines and colors
 - [Path Construction Operands](#path-construction-operators) - for drawing curves and lines
 
-There are some nesting and sequencing rules for operators, including:
+There are some nesting and sequencing rules for operations, including:
 
 - There are three types of block structures, [graphics](#graphics), [text](#text) and [marked content](#marked-content).
-- [Text blocks](#text) don't nest, the other block types do
+- [Text blocks](#text) don't nest, or contain graphics blocks.
 - [Text state variables](#text-state-variables) should only be used in a [text block](#text) and are scoped to it.
 - Other Graphics state variables should be used in a [graphics block](#graphics) (possibly nested) and are scoped to the innermost graphics block.
 - [Font](#font-core-font) and [text position](#text-position) should be set before rendering text.
 - A sequence of [path construction operands](#path-construction-operators) should be followed by a [path painting operand](#path-painting-operators).
 
-PDF::API6 will warn if there are any problems with operator sequencing or block structure.
+PDF::Content will warn if there are any problems with operator sequencing or block structure.
 
 ### Graphics Variables
 
