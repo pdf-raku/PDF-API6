@@ -481,6 +481,32 @@ See also [Patterns](#patterns) and [XObject Forms](#xobject-forms) which also ha
 
 ## Text Methods
 
+Text-blocks are designed to construct one or more paragraphs of
+text. The [print](#print) method can be used to add text to a line. The [say](#say) methods adds text then advances to the start of the next line.
+
+```raku
+use PDF::API6;
+
+my PDF::API6 $pdf .= new;
+my $header-font = $pdf.core-font: :family<Helvetica>, :weight<bold>;
+my $body-font = $pdf.core-font: :family<Helvetica>;
+
+my $page = $pdf.add-page;
+my @curpos;
+$page.graphics: -> $gfx {
+    $gfx.text: {
+        $gfx.say: 'My first novel', :position[10, 200], :font($header-font); # output a line
+        $gfx.print: 'It was a dark and stormy', :font($body-font); # start a line
+        $gfx.say: ' night.', :font($header-font); # finish it
+        @curpos = $gfx.text-position.List; # save current position.
+    }
+}
+```
+
+There are a number of [text variables](#text-state-variables) (e.g. WordSpacing) and [graphics varibles](#general-graphics---common-state-variables) (e.g. FillColor) that can be set to affect the appearance of the dispplayed text.
+
+Please note that text variables and `text-position` are scoped to a text block. You will need to set them up again when starting a new text block.
+
 ### text
 
 Synopsis: `$gfx.text: &block`
