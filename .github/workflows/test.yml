@@ -1,0 +1,37 @@
+name: test
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  raku:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          #- macOS-latest
+          #- windows-latest
+        raku-version:
+          - 'latest'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: Raku/setup-raku@v1
+        with:
+          raku-version: ${{ matrix.raku-version }}
+      - name: Install Dependencies
+        run: |
+          # install and test if need be (includes [test-depends])
+          #sudo apt-get install -y libperl-dev libexcel-writer-xlsx-perl libspreadsheet-read-perl cpanminus
+          #sudo cpanm Spreadsheet::Reader::ExcelXML Spreadsheet::ParseXLSX
+          #sudo apt-get install -y libcsv-dev
+          #sudo apt-get install -y libcairo2-dev libfreetype6-dev
+          zef install .
+          zef install --/test App::Prove6
+      - name: Run Tests
+        run: prove6 -l t

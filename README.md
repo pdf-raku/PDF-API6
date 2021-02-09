@@ -493,7 +493,7 @@ my $body-font = $pdf.core-font: :family<Helvetica>;
 
 my $page = $pdf.add-page;
 my @curpos;
-$page.graphics: -> $gfx {
+$page.gfx.graphics: -> $gfx {
     $gfx.text: {
         $gfx.say: 'My first novel', :position[10, 200], :font($header-font); # output a line
         $gfx.print: 'It was a dark and stormy', :font($body-font); # start a line
@@ -503,7 +503,7 @@ $page.graphics: -> $gfx {
 }
 ```
 
-There are a number of [text variables](#text-state-variables) (e.g. WordSpacing) and [graphics varibles](#general-graphics---common-state-variables) (e.g. FillColor) that can be set to affect the appearance of the dispplayed text.
+There are a number of [text variables](#text-state-variables) (e.g. WordSpacing) and [graphics varibles](#general-graphics---common-state-variables) (e.g. FillColor) that can be set to affect the appearance of the displayed text.
 
 Please note that text variables and `text-position` are scoped to a text block. You will need to set them up again when starting a new text block.
 
@@ -619,7 +619,7 @@ Synopsis: `my @rect = print(
                  :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>,
                  :kern, :squish, :$leading, :$width, :$height, :nl)`
 
-Renders a text string, or [Text Block](https://pdf-raku.github.io/PDF-Content-raku/#pdfcontenttextblock).
+Renders a text string, or [Text Box](https://pdf-raku.github.io/PDF-Content-raku/#pdfcontenttextbox).
 
 ### say
 
@@ -1634,13 +1634,15 @@ ShowSpacetext(array) |  TJ | Show one or more text strings, allowing individual 
 
 ### Path Construction Operators
 
-Method | Code | Description
---- | --- | ---
-MoveTo(x, y) | m | Begin a new sub-path by moving the current point to coordinates (x, y), omitting any connecting line segment. If the previous path construction operator in the current path was also m, the new m overrides it.
-LineTo(x, y) | l | Append a straight line segment from the current point to the point (x, y). The new current point is (x, y).
-CurveTo(x1, y1, x2, y2, x3, y3) | c | Append a cubic Bézier curve to the current path. The curve extends from the current point to the point (x3, y3 ), using (x1 , y1 ) and (x2, y2 ) as the Bézier control points. The new current point is (x3, y3 ).
-ClosePath | h | Close the current sub-path by appending a straight line segment from the current point to the starting point of the sub-path.
-Rectangle(x, y, width, Height) | re | Append a rectangle to the current path as a complete sub-path, with lower-left corner (x, y) and dimensions `width` and `height`.
+Method | Code | Description | Notes
+--- | --- | --- | ---
+MoveTo(x, y) | m | Begin a new sub-path by moving the current point to coordinates (x, y), omitting any connecting line segment. If the previous path construction operator in the current path was also m, the new m overrides it. | [1]
+LineTo(x, y) | l | Append a straight line segment from the current point to the point (x, y). The new current point is (x, y). | [1]
+CurveTo(x1, y1, x2, y2, x3, y3) | c | Append a cubic Bézier curve to the current path. The curve extends from the current point to the point (x3, y3 ), using (x1 , y1 ) and (x2, y2 ) as the Bézier control points. The new current point is (x3, y3 ). | [1]
+Rectangle(x, y, width, Height) | re | Append a rectangle to the current path as a complete sub-path, with lower-left corner (x, y) and dimensions `width` and `height`. | [1]
+ClosePath | h | Close the current sub-path by appending a straight line segment from the current point to the starting point of the sub-path. | [1]
+
+[1] The [current-point](#method-current-point) accessor can be used to obtain the Current Point.
 
 ### Path Painting Operators
 
@@ -1656,7 +1658,7 @@ CloseFillStroke() | b | Close, fill, and then stroke the path, using the nonzero
 CloseEOFillStroke() | b* | Close, fill, and then stroke the path, using the even-odd rule to determine the region to fill. | [1]
 EndPath() | n | End the path object without filling or stroking it. This operator is a path-painting no-op, used primarily for the side effect of changing the current clipping path. | [1]
 
-[1] See also [paint](#paint) method, which can replace the operators in this section. For example:
+[1] See also [paint](#paint) method, which encapsulates the operators in this section. For example:
 
     $gfx.paint(:close, :fill, :stroke);   # equivalent to $gfx.CloseFillStroke
     $gfx.paint(:close, :fill);            # equivalent to $gfx.ClosePath; $gfx.Fill
@@ -1726,6 +1728,10 @@ Returns any currently open marked-content tags.
 Synopsis: `my PDF::Content::Tag @closed-tags = .tags()`
 
 Returns previously closed marked content tags
+
+### Method current-point()
+
+Returns the Current Point coordinates during path construction, as a two element list (`x` and `y`). Returns `(Numeric, Numeric)` if a path is not being constructed.
 
 ### Graphics Tracing
 
