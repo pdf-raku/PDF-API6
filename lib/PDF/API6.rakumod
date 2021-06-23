@@ -22,17 +22,17 @@ class PDF::API6:ver<0.2.2>
 
     use PDF::Class::Util :from-roman;
     use PDF::COS;
+    use PDF::COS::Array;
+    use PDF::COS::Dict;
+    use PDF::COS::Name;
     use PDF::API6::Preferences;
 
     subset PageRef where {$_ ~~ UInt|PDF::Page};
-    sub prefix:</>($name) { PDF::COS.coerce(:$name) };
+    sub prefix:</>($name) { PDF::COS::Name.COERCE($name) };
 
     has PDF::API6::Preferences $.preferences;
     method preferences {
-        $!preferences //= do {
-            my PDF::Catalog $catalog = self.catalog;
-            PDF::API6::Preferences.new: :$catalog;
-        }
+        $!preferences //= PDF::API6::Preferences.new: :$.catalog;
     }
 
     #| A remote destination to a page (by number) in another PDF file
@@ -64,7 +64,7 @@ class PDF::API6:ver<0.2.2>
         Str :$file!, UInt :$page!, |c
           --> PDF::Action::GoToR) {
         my $destination = $.destination(:$page, :remote, |c);
-        PDF::COS.coerce: {
+        PDF::Action::GoToR.COERCE: {
             :Type(/'Action'),
             :S(/'GoToR'),
             :$file,
@@ -74,7 +74,7 @@ class PDF::API6:ver<0.2.2>
 
     #| A URI (link) action
     multi method action( Str :uri($URI)! --> PDF::Action::URI) {
-        PDF::COS.coerce: {
+        PDF::Action::URI.COERCE: {
             :Type(/'Action'),
             :S(/'URI'),
             :$URI
@@ -163,13 +163,13 @@ class PDF::API6:ver<0.2.2>
             my %dict = :Type(/'EmbeddedFile');
             %dict<Params> = %( :Size(.s), :ModDate(.modified.DateTime) )
                 with $io;
-            my $F = PDF::COS::Stream.new: :%dict, :$decoded;
+            my PDF::COS::Stream $F .= COERCE: { :%dict, :$decoded };
             $F.compress if $compress;
-            PDF::COS.coerce({
+            PDF::Filespec.COERCE: {
                 :Type(/<Filespec>),
                 :$file-name,
                 :embedded-file{ :$F },
-            }, PDF::Filespec);
+            };
         }
     }
 
@@ -203,12 +203,12 @@ class PDF::API6:ver<0.2.2>
 
         %dict<Type> //= /'Annot';
         with $text {
-            my $text-block = $gfx.text-block( :$text, :baseline<bottom>);
-            my @text-region[4] = $gfx.print($text-block);
+            my $text-box = $gfx.text-box( :$text, :baseline<bottom>);
+            my @text-region[4] = $gfx.print($text-box);
             %dict<rect> //= [ $gfx.base-coords: |@text-region ];
         }
 
-        my PDF::Annot $annot = PDF::COS.coerce: :%dict;
+        my PDF::Annot $annot .= COERCE: %dict;
 
         # add a bidirectional link between the page and annotation
         $annot.page = $page;
@@ -266,8 +266,8 @@ class PDF::API6:ver<0.2.2>
         }
 
         my %dict = :Domain[0,1], :@Range, :Size[2,], :BitsPerSample(8), :Filter( /<ASCIIHexDecode> );
-        my PDF::Function::Sampled $function .= new: :%dict, :$encoded;
-        PDF::COS.coerce: [ /<Separation>, /$name, /($color.key), $function ];
+        my PDF::Function::Sampled $function .= COERCE: { :%dict, :$encoded };
+        PDF::ColorSpace::Separation.COERCE: [ /<Separation>, /$name, /($color.key), $function ];
     }
 
     method color-devicen(@colors --> PDF::ColorSpace::DeviceN) {
@@ -293,14 +293,14 @@ class PDF::API6:ver<0.2.2>
 
         # create approximate compound function based on range maximum only.
         # Adapted from Perl 5's PDF::API2::Resource::ColorSpace::DeviceN
-        my @xclr = @functions.map: {.calc([.domain>>.max])};
+        my @xclr = @functions.map: {.calc([.domain».max])};
 
         for 0 ..^ $nc -> $xc {
             for 0 ..^ (Sampled ** $nc) -> $n {
                 my \factor = ($n div (Sampled**$xc)) % Sampled;
                 my @thiscolor = @xclr[$xc].map: { ($_ * factor)/(Sampled-1) };
                 for 0..3 -> $s {
-                    @samples[$n;$s] += @thiscolor[$s];
+                    @samples[$n; $s] += @thiscolor[$s];
                 }
             }
         }
@@ -311,7 +311,7 @@ class PDF::API6:ver<0.2.2>
         my @names = @colors.map: *.Name;
         my %Colorants = @names Z=> @colors;
 
-        my PDF::Function::Sampled $function .= new: :%dict, :$decoded;
-        PDF::COS.coerce: [ /<DeviceN>, @names, /<DeviceCMYK>, $function, { :%Colorants } ];
+        my PDF::Function::Sampled $function .= COERCE: { :%dict, :$decoded };
+        PDF::ColorSpace::DeviceN.COERCE: [ /<DeviceN>, @names, /<DeviceCMYK>, $function, { :%Colorants } ];
     }
 }

@@ -117,6 +117,7 @@ use v6;
 use PDF::API6;
 use PDF::Page;
 use PDF::XObject::Image;
+use PDF::Content::FontObj;
 
 my PDF::API6 $pdf .= new;
 $pdf.media-box = [0, 0, 200, 100];
@@ -125,8 +126,8 @@ constant Padding = 10;
 
 $page.graphics: {
     enum <x0 y0 x1 y1>;
-    my $font = .core-font: :family<Helvetica>, :weight<bold>, :style<italic>;
-    my @box  = .say: 'Hello, world', :$font, :position[10, 10];
+    my PDF::Content::FontObj $font = .core-font: :family<Helvetica>, :weight<bold>, :style<italic>;
+    my @box = .say: 'Hello, world', :$font, :position[10, 10];
 
     my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.png";
     .do: $img, :position[@box[x1] + Padding, 10];
@@ -158,7 +159,7 @@ PDF::API2 features that are not yet available in PDF::API6 include:
 
 - Fonts. A variety of formats are handled by the [PDF::Font::Loader](https://pdf-raku.github.io/PDF-Font-Loader-raku/) module (available on CPAN).
 
-   - Font sub-setting (to reduces file sizes) is experimental. See [HarfBuzz::Subset](https://pdf-raku.github.io/HarfBuzz-Subset-raku/)
+   - Font sub-setting (to reduces file sizes) is experimental. See [HarfBuzz::Subset](https://harfbuzz-raku.github.io/HarfBuzz-Subset-raku/)
    - Synthetic fonts are NYI (wanted: module PDF::Font::Synthetic)
 
 
@@ -189,9 +190,9 @@ use PDF::Content::Page :PageSizes;
 $page.media-box = Letter;
 
 # Use a standard PDF core font
-use PDF::Content::Font::CoreFont;
-constant CoreFont = PDF::Content::Font::CoreFont;
-my CoreFont $font = $pdf.core-font('Helvetica-Bold');
+use PDF::Content::FontObj;
+constant FontObj = PDF::Content::FontObj;
+my FontObj $font = $pdf.core-font('Helvetica-Bold');
 $font = $pdf.core-font: :family<Helvetica>, :weight<Bold>;
 
 # Add an external TrueType font to the PDF
@@ -282,6 +283,8 @@ PDF::API6 $pdf .= open("our/original.pdf");
 $pdf.save-as: 'our/updated.pdf', :rebuild, :compress;
 ```
 The reverse flag, `:!compress` is useful when you want to optimise for human-readability of the output PDF. It will uncompress `Flate`, `LZW`, `ASCIIHex` and `ASCII85` encoded streams.
+
+The `:stream` option writes the PDF file progressively, starting as early as possible.
 
 A PDF file can also be saved as, and opened from an intermediate JSON representation, by saving to, or reading from, files with a `.json` extension
 ```raku
@@ -486,12 +489,14 @@ text. The [print](#print) method can be used to add text to a line. The [say](#s
 
 ```raku
 use PDF::API6;
+use PDF::Content::FontObj;
+use PDF::Page;
 
 my PDF::API6 $pdf .= new;
-my $header-font = $pdf.core-font: :family<Helvetica>, :weight<bold>;
-my $body-font = $pdf.core-font: :family<Helvetica>;
+my PDF::Content::FontObj $header-font = $pdf.core-font: :family<Helvetica>, :weight<bold>;
+my PDF::Content::FontObj $body-font = $pdf.core-font: :family<Helvetica>;
 
-my $page = $pdf.add-page;
+my PDF::Page $page = $pdf.add-page;
 my @curpos;
 $page.gfx.graphics: -> $gfx {
     $gfx.text: {
@@ -961,8 +966,9 @@ the `$*gfx` dynamic variable.
 use PDF::API6;
 use PDF::Content;
 use PDF::Content::Ops :OpCode;
+use PDF::Page;
 my PDF::API6 $pdf .= open: "tmp/basic.pdf";
-my $page = $pdf.page: 1;
+my PDF::Page $page = $pdf.page: 1;
 
 my sub callback($op, *@args) {
    given $op {

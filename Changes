@@ -1,4 +1,5 @@
 {{$NEXT}}
+   - Internal use of PDF 0.4.4+ coercements (COERCE method)
 
 0.2.2  2021-01-19T11:26:05+13:00
    - general README.md documentation
