@@ -665,18 +665,40 @@ Unlike [Text Transforms](#text-transform), Graphics Transforms accumulate; and a
 
 ### paint
 
-Synopsis: `$gfx.paint( :close, :stroke, :fill, :even-odd)`
+Synopsis: `$gfx.paint( &block?, :close, :stroke, :fill, :even-odd)`
 
 `paint` is a general purpose method for closing, stroking and filling shapes.
+
+`paint` takes an optional block which may contain operations
+to set up the graphics state and ends with one or more path
+construction operations:
+
 ```raku
-# fill and stroke a rectangle
 use PDF::Content::Color :rgb;
-$gfx.FillColor = rgb(.7, .7, .9);
-$gfx.StrokeColor = rgb(.9, .5, .5);
-$gfx.LineWidth = 2.5; # set stroking line-width
-$gfx.Rectangle(0, 20, 100, 250);
-$gfx.paint: :fill, :stroke;
+# fill and stroke a colored rectangle
+
+$gfx.paint: :fill, :stroke, {
+    .FillColor = rgb(.7, .7, .9);
+    .StrokeColor = rgb(.9, .5, .5);
+    .LineWidth = 2.5; # set stroking line-width
+    .Rectangle(0, 20, 100, 250);
+}
 ```
+The graphics state is saved and restored if the optional block is provided. The above example is equivalent to:
+
+```raku
+use PDF::Content::Color :rgb;
+given $gfx: {
+    .Save;
+    .FillColor = rgb(.7, .7, .9);
+    .StrokeColor = rgb(.9, .5, .5);
+    .LineWidth = 2.5; # set stroking line-width
+    .Rectangle(0, 20, 100, 250);
+    .FillStroke;
+    .Restore;
+}
+```
+
 ## Image Methods
 
 ### load-image
