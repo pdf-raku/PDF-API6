@@ -31,12 +31,7 @@ endstream
 endobj
 
 4 0 obj
-<<
-  /Type /Pages
-  /Count 1
-  /Kids [ 5 0 R ]
-  /Resources << /Font << /F1 7 0 R >> /ProcSet [ /PDF /Text ] >>
->>
+<< /Type /Pages /Count 1 /Kids [ 5 0 R ] >>
 endobj
 
 5 0 obj
@@ -45,6 +40,7 @@ endobj
   /Contents 6 0 R
   /MediaBox [ 0 0 612 792 ]
   /Parent 4 0 R
+  /Resources << /Font << /F1 7 0 R >> >>
   /Rotate 90
 >>
 endobj
@@ -77,9 +73,9 @@ xref
 0000000057 00000 n 
 0000000137 00000 n 
 0000000808 00000 n 
-0000000939 00000 n 
-0000001050 00000 n 
-0000001172 00000 n 
+0000000868 00000 n 
+0000001020 00000 n 
+0000001142 00000 n 
 trailer
 <<
   /ID [ (t/00-basic.t    ) (t/00-basic.t    ) ]
@@ -88,5 +84,5 @@ trailer
   /Size 8
 >>
 startxref
-1278
+1248
 %%EOF
