@@ -87,7 +87,8 @@ lives-ok {
          ];
 }, '.kids rw accessor';
 
-$pdf.save-as: "tmp/preferences.pdf";
+$pdf.id = $*PROGRAM-NAME.fmt('%-16.16s');
+$pdf.save-as: "t/preferences.pdf", :!info;
 
 done-testing;
 

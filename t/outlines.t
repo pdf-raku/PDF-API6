@@ -14,6 +14,7 @@ lives-ok { $dest = $pdf.destination(:page(2))}, 'fit destination';
 ok $dest.page === $pdf.page(2), 'fit dest page ref';
 is $dest.fit, 'Fit', 'destination fit';
 
-$pdf.save-as: "tmp/outlines.pdf";
+$pdf.id = $*PROGRAM-NAME.fmt('%-16.16s');
+$pdf.save-as: "t/outlines.pdf", :!info;
 
 done-testing;

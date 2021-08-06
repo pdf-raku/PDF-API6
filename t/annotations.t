@@ -122,6 +122,8 @@ $gfx.text: {
                      :rect[ 377, 395, 425, 412 ],
                  ); }, 'construct file attachment annot';
 
-    };
-$pdf.save-as: "tmp/annotations.pdf";
+};
+
+$pdf.id = $*PROGRAM-NAME.fmt('%-16.16s');
+$pdf.save-as: "t/annotations.pdf", :!info;
 done-testing;

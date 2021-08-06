@@ -1,0 +1,231 @@
+%PDF-1.3
+%¥±ë¼
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+
+2 0 obj
+<<
+  /Type /Pages
+  /Count 1
+  /Kids [ 3 0 R ]
+  /Resources <<
+    /ColorSpace <<
+      /CS1 5 0 R
+      /CS2 7 0 R
+      /CS3 9 0 R
+      /CS4 [ /Separation /Green /DeviceRGB 11 0 R ]
+      /CS5 [ /DeviceN [ /Cyan /Magenta /Yellow /Black /PANTONE#20032CV ] /DeviceCMYK 12 0 R <<
+          /Colorants <<
+            /Black 5 0 R
+            /Cyan 7 0 R
+            /Magenta 13 0 R
+            /PANTONE#20032CV 9 0 R
+            /Yellow 15 0 R
+          >>
+        >> ]
+    >>
+    /Font << /F1 17 0 R >>
+    /ProcSet [ /PDF /Text ]
+  >>
+>>
+endobj
+
+3 0 obj
+<< /Type /Page /Contents 4 0 R /MediaBox [ 0 0 612 792 ] /Parent 2 0 R >>
+endobj
+
+4 0 obj
+<< /Length 527 >> stream
+q
+  BT
+    1 0 0 1 50 600 Tm
+    /F1 16 Tf
+    (Normal Gray -->) Tj
+    /CS1 cs
+    1 scn
+    ( \(separation\)) Tj
+    17.6 TL
+    T*
+    /CS2 cs
+    1 scn
+    (Cyan \(100%\) -->) Tj
+    /CS2 cs
+    0.4 scn
+    ( \(40%\)) Tj
+    T*
+    /CS3 cs
+    1 scn
+    (PMS Color -->) Tj
+    0 1 1 0 k
+    (\(CMYK\)) Tj
+    T*
+    0 1 0 rg
+    (Green \(regular\) -->) Tj
+    /CS4 cs
+    1 scn
+    ( \(separation\)) Tj
+    T*
+    1 1 0 0.2 k
+    (Blue \(regular\) -->) Tj
+    /CS5 cs
+    1 1 0 0.2 0 scn
+    ( \(devicen\)) Tj
+    T*
+  ET
+Q
+endstream
+endobj
+
+5 0 obj
+[ /Separation /Black /DeviceCMYK 6 0 R ]
+endobj
+
+6 0 obj
+<<
+  /FunctionType 0
+  /BitsPerSample 8
+  /Domain [ 0 1 ]
+  /Filter /ASCIIHexDecode
+  /Range [ 0 0 0 0 0 0 0 1 ]
+  /Size [ 2 ]
+  /Length 17
+>> stream
+00000000FFFFFFFF>
+endstream
+endobj
+
+7 0 obj
+[ /Separation /Cyan /DeviceCMYK 8 0 R ]
+endobj
+
+8 0 obj
+<<
+  /FunctionType 0
+  /BitsPerSample 8
+  /Domain [ 0 1 ]
+  /Filter /ASCIIHexDecode
+  /Range [ 0 1 0 0 0 0 0 0 ]
+  /Size [ 2 ]
+  /Length 17
+>> stream
+00000000FFFFFFFF>
+endstream
+endobj
+
+9 0 obj
+[ /Separation /PANTONE#20032CV /DeviceCMYK 10 0 R ]
+endobj
+
+10 0 obj
+<<
+  /FunctionType 0
+  /BitsPerSample 8
+  /Domain [ 0 1 ]
+  /Filter /ASCIIHexDecode
+  /Range [ 0 0 0 1 0 1 0 0 ]
+  /Size [ 2 ]
+  /Length 17
+>> stream
+00000000FFFFFFFF>
+endstream
+endobj
+
+11 0 obj
+<<
+  /FunctionType 0
+  /BitsPerSample 8
+  /Domain [ 0 1 ]
+  /Filter /ASCIIHexDecode
+  /Range [ 0 1 1 1 0 1 ]
+  /Size [ 2 ]
+  /Length 13
+>> stream
+FFFFFF000000>
+endstream
+endobj
+
+12 0 obj
+<<
+  /FunctionType 0
+  /BitsPerSample 8
+  /Domain [ 0 1 0 1 0 1 0 1 0 1 ]
+  /Filter /ASCIIHexDecode
+  /Range [ 0 1 0 1 0 1 0 1 ]
+  /Size [ 2 2 2 2 2 ]
+  /Length 257
+>> stream
+00000000FF00000000FF0000FFFF00000000FF00FF00FF0000FFFF00FFFFFF00000000FFFF0000FF00FF00FFFFFF00FF0000FFFFFF00FFFF00FFFFFFFFFFFFFF00FFFF00FFFFFF0000FFFF00FFFFFF0000FFFF00FFFFFF0000FFFF00FFFFFF0000FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF>
+endstream
+endobj
+
+13 0 obj
+[ /Separation /Magenta /DeviceCMYK 14 0 R ]
+endobj
+
+14 0 obj
+<<
+  /FunctionType 0
+  /BitsPerSample 8
+  /Domain [ 0 1 ]
+  /Filter /ASCIIHexDecode
+  /Range [ 0 0 0 1 0 0 0 0 ]
+  /Size [ 2 ]
+  /Length 17
+>> stream
+00000000FFFFFFFF>
+endstream
+endobj
+
+15 0 obj
+[ /Separation /Yellow /DeviceCMYK 16 0 R ]
+endobj
+
+16 0 obj
+<<
+  /FunctionType 0
+  /BitsPerSample 8
+  /Domain [ 0 1 ]
+  /Filter /ASCIIHexDecode
+  /Range [ 0 0 0 0 0 1 0 0 ]
+  /Size [ 2 ]
+  /Length 17
+>> stream
+00000000FFFFFFFF>
+endstream
+endobj
+
+17 0 obj
+<<
+  /Type /Font
+  /Subtype /Type1
+  /BaseFont /Courier
+  /Encoding /WinAnsiEncoding
+>>
+endobj
+
+xref
+0 18
+0000000000 65535 f 
+0000000015 00000 n 
+0000000065 00000 n 
+0000000620 00000 n 
+0000000710 00000 n 
+0000001289 00000 n 
+0000001346 00000 n 
+0000001540 00000 n 
+0000001596 00000 n 
+0000001790 00000 n 
+0000001858 00000 n 
+0000002053 00000 n 
+0000002240 00000 n 
+0000002700 00000 n 
+0000002761 00000 n 
+0000002956 00000 n 
+0000003016 00000 n 
+0000003211 00000 n 
+trailer
+<< /ID [ (t/colors.t      ) (t/colors.t      ) ] /Root 1 0 R /Size 18 >>
+startxref
+3316
+%%EOF

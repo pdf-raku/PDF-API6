@@ -1,0 +1,188 @@
+%PDF-1.3
+%¥±ë¼
+1 0 obj
+<<
+  /Type /Catalog
+  /OpenAction [ 2 0 R /Fit ]
+  /Outlines 14 0 R
+  /PageLabels <<
+    /Nums [ 0 << /S /r /St 1 >> 3 << /S /D /St 1 >> 6 << /S /D /P (A-) /St 1 >> 8 << /S /D /P (B-) /St 1 >> 10 << /S /R /P (B-) /St 1 >> ]
+  >>
+  /PageLayout /SinglePage
+  /PageMode /UseNone
+  /Pages 3 0 R
+  /ViewerPreferences << /HideToolbar true /NonFullScreenPageMode /UseNone >>
+>>
+endobj
+
+2 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+3 0 obj
+<<
+  /Type /Pages
+  /Count 11
+  /Kids [ 2 0 R 4 0 R 5 0 R 6 0 R 7 0 R 8 0 R 9 0 R 10 0 R 11 0 R 12 0 R 13 0 R ]
+  /Resources << /ProcSet [ /PDF /Text ] >>
+>>
+endobj
+
+4 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+5 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+6 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+7 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+8 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+9 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+10 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+11 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+12 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+13 0 obj
+<< /Type /Page /MediaBox [ 0 0 612 792 ] /Parent 3 0 R >>
+endobj
+
+14 0 obj
+<< /Count 9 /First 15 0 R /Last 23 0 R >>
+endobj
+
+15 0 obj
+<<
+  /Count 1
+  /Dest [ 2 0 R /Fit ]
+  /Next 16 0 R
+  /Title (Table of Contents)
+>>
+endobj
+
+16 0 obj
+<<
+  /Count 1
+  /Dest [ 2 0 R /Fit ]
+  /Next 17 0 R
+  /Prev 15 0 R
+  /Title (1. Purpose of this Document)
+>>
+endobj
+
+17 0 obj
+<<
+  /Count 1
+  /Dest [ 4 0 R /Fit ]
+  /Next 18 0 R
+  /Prev 16 0 R
+  /Title (2. Pre-requisites)
+>>
+endobj
+
+18 0 obj
+<<
+  /Count 1
+  /Dest [ 5 0 R /Fit ]
+  /Next 19 0 R
+  /Prev 17 0 R
+  /Title (3. Compiler Speed-up)
+>>
+endobj
+
+19 0 obj
+<<
+  /Count 4
+  /Dest [ 6 0 R /Fit ]
+  /First 20 0 R
+  /Last 22 0 R
+  /Next 23 0 R
+  /Prev 18 0 R
+  /Title (4. Recompiling the Kernel for Modules)
+>>
+endobj
+
+20 0 obj
+<<
+  /Count 1
+  /Dest [ 7 0 R /XYZ null 798 null ]
+  /Next 21 0 R
+  /Title (5.1. Configuring Debian or RedHat for Modules)
+>>
+endobj
+
+21 0 obj
+<<
+  /Count 1
+  /Dest [ 7 0 R /XYZ null 400 null ]
+  /Next 22 0 R
+  /Prev 20 0 R
+  /Title (5.2. Configuring Slackware for Modules)
+>>
+endobj
+
+22 0 obj
+<<
+  /Count 1
+  /Dest [ 7 0 R /XYZ null 200 null ]
+  /Prev 21 0 R
+  /Title (5.3. Configuring Other Distributions for Module)
+>>
+endobj
+
+23 0 obj
+<< /Count 1 /Dest [ 9 0 R /Fit ] /Prev 19 0 R /Title (Appendix) >>
+endobj
+
+xref
+0 24
+0000000000 65535 f 
+0000000015 00000 n 
+0000000402 00000 n 
+0000000476 00000 n 
+0000000650 00000 n 
+0000000724 00000 n 
+0000000798 00000 n 
+0000000872 00000 n 
+0000000946 00000 n 
+0000001020 00000 n 
+0000001094 00000 n 
+0000001169 00000 n 
+0000001244 00000 n 
+0000001319 00000 n 
+0000001394 00000 n 
+0000001453 00000 n 
+0000001554 00000 n 
+0000001680 00000 n 
+0000001796 00000 n 
+0000001915 00000 n 
+0000002082 00000 n 
+0000002225 00000 n 
+0000002376 00000 n 
+0000002521 00000 n 
+trailer
+<< /ID [ (t/preferences.t ) (t/preferences.t ) ] /Root 1 0 R /Size 24 >>
+startxref
+2605
+%%EOF

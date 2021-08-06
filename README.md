@@ -576,7 +576,7 @@ Gets or sets the current text output position. Origin `(0, 0)` is at the bottom 
 
 Synopsis: `$gfx.text-transform: :$matrix, :translate[$x,$y], :rotate($rad), :scale[$s, $sy?], :skew[$x,y];`
 
-Applies text transforms, such as translation, rotation, scaling, etc.
+Applies text transforms, such as translation, rotation, scaling, and skew.
 ```raku
 $gfx.text-transform: :translate[110, 10], :rotate(.1);
 ```
@@ -938,7 +938,10 @@ $gfx.StrokeColor = color Color::Named.new( :name<azure> );
 ```    
 ### Text Modes
 
-By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLineText rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor:
+By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLineText rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor.
+
+Setting the same `FillColor` and `StrokeColor` with `TextMode::OutlineText`
+artifically increasing the font weight by `LineWidth`.
 
 ```Raku
 use v6;
@@ -949,7 +952,7 @@ use PDF::Content::Ops :TextMode;
 my PDF::API6 $pdf .= new;
 $pdf.media-box = [0, 0, 200, 100];
 my PDF::Page $page = $pdf.add-page;
-my $font = $page.core-font( :family<Helvetica>, :weight<bold> );
+my $font = $page.core-font( :family<Helvetica> );
 
 $page.graphics: {
     .text: {
@@ -958,7 +961,7 @@ $page.graphics: {
         .StrokeColor = color Red;
         .LineWidth = .6;
 
-        .text-position = 10, 70;
+        .text-position = 10, 75;
         .say: "Filled/Solid";
 
         .TextRender = TextMode::OutlineText;
@@ -966,6 +969,10 @@ $page.graphics: {
 
         .TextRender = TextMode::FillOutlineText;
         .say: "Filled/Stroked";
+
+        .StrokeColor = .FillColor;
+        .LineWidth = 1;
+        .say: "Bolded Text";
     }
 }
 
@@ -989,7 +996,7 @@ use PDF::API6;
 use PDF::Content;
 use PDF::Content::Ops :OpCode;
 use PDF::Page;
-my PDF::API6 $pdf .= open: "tmp/basic.pdf";
+my PDF::API6 $pdf .= open: "t/basic.pdf";
 my PDF::Page $page = $pdf.page: 1;
 
 my sub callback($op, *@args) {
@@ -1501,7 +1508,7 @@ the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module.
 
 ## Appendix I: Graphics
 
-The PDF standard implements a state machine for rendering graphics. There are
+The PDF standard defines a state machine for rendering graphics. There are
 a set of graphics operations that are used to construct content, or affect the
 graphics state. These are short codes that appear in a content stream (e.g. 'cm'). [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku/) implements a graphics engine that can execute these operations and maintain graphics state.
 
@@ -1513,7 +1520,7 @@ Graphics are used to construct page content, as well as Form XObjects and Tiling
 
 Graphics operations and variables sometimes need to be used directly. In particular,
 
-- [Text State Variables](#text-state-variables) - for advanced text affects
+- [Text State Variables](#text-state-variables) - for advanced text effects
 - [General Graphics](#general-graphics---common-state-variables) - for lines and colors
 - [Path Construction Operands](#path-construction-operators) - for drawing curves and lines
 
@@ -1695,8 +1702,8 @@ EndPath() | n | End the path object without filling or stroking it. This operato
 
 Method | Code | Description
  --- | --- | ---
-Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path. | [1]
-EOClip() | W* | Modify the current clipping path by intersecting it with the current path, using the even-odd rule to determine which regions lie inside the clipping path. | [1]
+Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path. |
+EOClip() | W* | Modify the current clipping path by intersecting it with the current path, using the even-odd rule to determine which regions lie inside the clipping path. |
 
 ### Marked Content
 

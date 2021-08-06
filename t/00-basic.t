@@ -44,4 +44,5 @@ $page.text: {
     .say: "Rotated Text";
 }
 
-$pdf.save-as: "tmp/basic.pdf";
+$pdf.id = $*PROGRAM-NAME.fmt('%-16.16s');
+$pdf.save-as: "t/basic.pdf", :!info;

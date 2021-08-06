@@ -66,5 +66,6 @@ $gfx.graphics: {
     }
 }
 
-$pdf.save-as: "tmp/colors.pdf";
+$pdf.id = $*PROGRAM-NAME.fmt('%-16.16s');
+$pdf.save-as: "t/colors.pdf", :!info;
 
