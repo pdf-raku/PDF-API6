@@ -7,13 +7,14 @@ class PDF::API6:ver<0.2.3>
     is PDF::Class {
 
     use PDF::Action;
+    use PDF::Action::GoTo;
     use PDF::Action::GoToR;
     use PDF::Action::URI;
     use PDF::Annot;
     use PDF::Catalog;
     use PDF::ColorSpace::DeviceN;
     use PDF::ColorSpace::Separation;
-    use PDF::Destination :Fit;
+    use PDF::Destination :Fit, :DestRef;
     use PDF::Info;
     use PDF::Filespec;
     use PDF::Function::Sampled;
@@ -23,16 +24,52 @@ class PDF::API6:ver<0.2.3>
     use PDF::Class::Util :from-roman;
     use PDF::COS;
     use PDF::COS::Array;
+    use PDF::COS::ByteString;
     use PDF::COS::Dict;
     use PDF::COS::Name;
     use PDF::API6::Preferences;
 
-    subset PageRef where {$_ ~~ UInt|PDF::Page};
+    subset PageRef where {$_ ~~ UInt|Str|PDF::Page|PDF::Destination|PDF::Action::GoTo|PDF::Annot};
     sub prefix:</>($name) { PDF::COS::Name.COERCE($name) };
+
+    multi method page(PDF::Page $_) {
+        $_;
+    }
+    multi method page(UInt:D $num) {
+        self.Pages.page($num);
+    }
+    multi method page(Str:D $name) {
+        do with self<Root><Dests> {
+            self.page: .{$name}
+        } // PDF::Page;
+    }
+    multi method page(PDF::Destination:D $_) {
+        self.page(.[0]);
+    }
+    multi method page(PDF::Action::GoTo:D $_) {
+        self.page(.<D>);
+    }
+    multi method page(PDF::Annot:D $_ ) {
+        self.page(.<P>);
+    }
+    multi method page(Any:U) {
+        PDF::Page;
+    }
 
     has PDF::API6::Preferences $.preferences;
     method preferences {
         $!preferences //= PDF::API6::Preferences.new: :$.catalog;
+    }
+
+    #| A miscellaneous named destination
+    multi method destination(Str:D :$name! is copy, |c) {
+        my PDF::Destination $dest = $.destination: |c;
+        given $name {
+            $_ = PDF::COS::Name.COERCE($_)
+                unless $_ ~~ PDF::COS::Name|PDF::COS::ByteString;
+        }
+        ($.catalog.destinations //= {}){$name} = $dest;
+        $name;
     }
 
     #| A remote destination to a page (by number) in another PDF file
@@ -45,17 +82,12 @@ class PDF::API6:ver<0.2.3>
         $page--;
         PDF::Destination.construct($fit, :$page, |c);
     }
-    #| A destination page (by number) within this PDF
-    multi method destination( UInt :page($page-num)!, |c ) {
-        # resolve a page number to a page object
-        my $page = self.page($page-num);
-        $.destination(:$page, |c);
-    }
     #| A destination page (by object) within this PDF
     multi method destination(
-        PDF::Page :$page!,
+        PageRef :page($page-ref)!,
         Fit :$fit = FitWindow,
-        |c ) is default {
+        |c ) {
+        my PDF::Page:D $page = self.page($page-ref);
         PDF::Destination.construct($fit, :$page, |c);
     }
 
@@ -193,11 +225,11 @@ class PDF::API6:ver<0.2.3>
 
     }
 
-    method !annot(PageRef :$page is copy,
+    method !annot(PageRef :page($page-ref)! is copy,
                   Str :$text,
                   *%dict is copy) { 
 
-        $page = $.page($page) if $page ~~ UInt;
+        my PDF::Page:D $page = $.page($page-ref);
         my $gfx = $page.gfx;
         my List $rect;
 
@@ -218,7 +250,7 @@ class PDF::API6:ver<0.2.3>
     }
 
     #| Page annotation with a destination; e.g. link to another page
-    multi method annotation(:$page!, PDF::Destination :$destination!, *%props) {
+    multi method annotation(:$page!, DestRef :$destination!, *%props) {
         my $Subtype = /'Link';
         self!annot( :$Subtype, :$page, :$destination, |%props);
     }

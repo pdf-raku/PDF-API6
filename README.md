@@ -1,8 +1,6 @@
 [[Raku PDF Project]](https://pdf-raku.github.io)
  / [PDF::API6](https://pdf-raku.github.io/PDF-API6)
 <a href="https://travis-ci.org/pdf-raku/PDF-API6"><img src="https://travis-ci.org/pdf-raku/PDF-API6.svg?branch=master"></a>
- <a href="https://ci.appveyor.com/project/dwarring/PDF-API6/branch/master"><img src="https://ci.appveyor.com/api/projects/status/github/pdf-raku/PDF-API6?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true"></a>
-
 
 PDF::API6 - A Raku PDF API
 ===
@@ -66,6 +64,7 @@ PDF::API6 - A Raku PDF API
        - [Text Modes](#text-modes)
    - [Rendering Methods](#rendering-methods)
        - [render: :&callback](#render-callback)
+       - [html-canvas()](#html-canvas)
    - [AcroForm Fields](#acroform-fields)
 - [SECTION III: PDF::API6 Specific Methods](#section-iii-pdfapi6-specific-methods)
    - [Metadata Methods](#metadata-methods)
@@ -632,6 +631,8 @@ Takes the same parameters as `print`. Sets the final text position (`$.text-posi
 
 ## Graphics Methods
 
+These methods are applicable to objects that perform the `PDF::Content::Canvas` role: `PDF::Page`, `PDF::XObject::Form`, and `PDF::Pattern::Tiling`
+
 ### graphics
 
 Synopsis: `$gfx.graphics: &block`
@@ -1008,6 +1009,31 @@ my sub callback($op, *@args) {
 }
 
 my PDF::Content $gfx = $page.render( :&callback);
+```
+
+### html-canvas
+
+The optional [HTML::Canvas::To::PDF](https://pdf-raku.github.io/HTML-Canvas-To-PDF-raku/) module needs to be installed before using this method. It adds a rendering backend to enable HTML5 Canvas like graphics construction on Pages or XObject Forms (which perform the PDF::Content::Canvas role).
+
+In this mode, fonts are registered via [CSS:Font::Descriptor](https://css-raku.github.io/CSS-Properties-raku/CSS/Font/Descriptor) objects.
+
+```
+use PDF::API6;
+use PDF::Content::Canvas;
+use CSS::Font::Descriptor;
+
+my PDF::API6 $pdf .= new;
+my PDF::Content::Canvas $page = $pdf.add-page;
+my CSS::Font::Descriptor $arial .= new: :font-family<arial>, :src<url(resources/font/FreeMono.ttf)>;
+$page.html-canvas: :font-face[$arial], {
+    .beginPath();
+    .arc(95, 50, 40, 0, 2 * pi);
+    .stroke();
+    .font = "30px Arial";
+    .fillText("Hello World", 10, 50);
+}
+
+$pdf.save-as: "tmp/html-canvas.pdf";
 ```
 
 ## AcroForm Fields
@@ -1480,10 +1506,42 @@ $pdf.annotation(
 
 ```
 
+## Named Destinations
+
+The `destination()` method (above), also accepts an optiona `:$name` argument.
+
+This causes the PDF to keep a table that maps names to destinations. So for example:
+
+    ```
+    $pdf.destination: :page(99), :name<appendix-i-graphics>;
+    $pdf.save-as: "doc.pdf";
+
+Is enough to create a named declaration. This may have several benefits in browsers and other third-party software:
+
+- major browsers support opening PDF's to named declarations. Opening url "file://doc.pdf#appendix-i-graphics" will open the PDF at paghe 99.
+
+- PDF::API can then also locate pages by name: `$pdf.page('appendix-i-graphics')` will open page 99.
+
+Note that destinations can be combined with link annotations to create
+links that are both internally and externally accessable.
+
+```
+    .text-position = 377, 545;
+    my PDF::Annot::Link $link = $pdf.annotation(
+                     :page(1), # linking from page 1 [this could also be a name]
+                     :text("see Appendix I - graphics"),
+                     :dest(:page(99), :name<appendix-i-graphics>),
+                     :color(Blue),
+                 );
+
+```
 ## Tagged Content
 
-PDF::API6 has some basic ability to tag graphical content. See also
-the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module
+PDF::API6 has some basic ability to tag graphical content.
+
+See also
+the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module,
+which can be used with PDF::API and provides more functionality.
 
 ### tag
 

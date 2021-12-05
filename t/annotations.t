@@ -1,19 +1,27 @@
 use v6;
 use Test;
-plan 19;
+plan 22;
 use PDF::API6;
-use PDF::Destination :Fit;
-use PDF::Content::Color :ColorName;
-use PDF::Page;
-use PDF::XObject::Image;
 use PDF::Action::GoToR;
+use PDF::Annot::FileAttachment;
+use PDF::Annot::Link;
 use PDF::Annot::Text;
 use PDF::Border :BorderStyle;
+use PDF::Content::Color :ColorName;
+use PDF::Destination :Fit;
+use PDF::Filespec;
+use PDF::Page;
+use PDF::XObject::Image;
 
 my PDF::API6 $pdf .= new;
 
 $pdf.add-page for 1 .. 2;
 my PDF::Page $page1 = $pdf.page(1);
+my PDF::Page $page2 = $pdf.page(2);
+
+$page2.graphics: {
+    .say: "Hello, I'm page2", :position[50, 600], :font-size(20);
+}
 
 sub dest(|c) { :destination($pdf.destination(|c)) }
 sub action(|c) { :action($pdf.action(|c)) }
@@ -23,19 +31,26 @@ my $gfx = $pdf.page(1).gfx;
 $gfx.Save;
 $gfx.transform(:translate(5,10));
 
-my $link;
+my PDF::Annot::Link $link;
 $gfx.text: {
     .text-position = 377 -5 , 545 - 10;
     $link = $pdf.annotation(
         :text("See page 2"),
         :page(1),
-        |dest(:page(2)),
+        |dest(:name<foo>,:page(2)),
         :color(Blue),
     );
 }
 
-ok  $page1.Annots[0] === $link, "annot added to source page";
-ok $link.destination.page == $pdf.page(2), "annot reference to destination page";
+my Str $link-name = $link.destination;
+is $link-name, 'foo'; # named destination
+
+my PDF::Destination $dest = $pdf.catalog<Dests>{$link-name};
+ok $dest.defined, "named destination added";
+ok $dest.page === $page2, "dest page dereference";
+
+ok $page1.Annots[0] === $link, "annot added to source page";
+ok $page1.Annots[0].P === $pdf.page(1), "/P entry in annots";
 
 my $image = PDF::XObject::Image.open: "t/images/lightbulb.gif";
 my @image-region = $gfx.do($image, 350 - 5, 544 - 10);
@@ -50,7 +65,7 @@ lives-ok { $link = $pdf.annotation(
 $gfx.Restore;
 
 ok  $page1.Annots[1] === $link, "annot added to source page";
-ok $link.destination.page == $pdf.page(2), "annot reference to destination page";
+ok $link.destination.page == $page2, "annot reference to destination page";
 
 $gfx.text: {
     .text-position = 377, 515;
@@ -112,8 +127,9 @@ $gfx.text: {
     ); }, 'construct styled uri annot';
     is $link.border-style.style, BorderStyle::Dashed, "setting of dashed border";
 
-    my $attachment = $pdf.attachment("t/images/lightbulb.gif");
-    lives-ok { $link = $pdf.annotation(
+    my PDF::Filespec $attachment = $pdf.attachment("t/images/lightbulb.gif");
+    my PDF::Annot::FileAttachment $image-annot;
+    lives-ok { $image-annot = $pdf.annotation(
                      :page(1),
                      :$attachment,
                      :text-label("Light Bulb"),
