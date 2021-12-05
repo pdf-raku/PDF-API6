@@ -80,6 +80,7 @@ PDF::API6 - A Raku PDF API
        - [Outlines](#outlines)
        - [Page Labels](#page-labels)
        - [Annotations](#annotations)
+       - [Named Destinations](#named-destinations)
    - [Tagged Content](#tagged-content)
        - [tag](#tag)
        - [mark](#mark)
@@ -507,7 +508,7 @@ $page.gfx.graphics: -> $gfx {
 }
 ```
 
-There are a number of [text variables](#text-state-variables) (e.g. WordSpacing) and [graphics varibles](#general-graphics---common-state-variables) (e.g. FillColor) that can be set to affect the appearance of the displayed text.
+There are a number of [text variables](#text-state-variables) (e.g. WordSpacing) and [graphics variables](#general-graphics---common-state-variables) (e.g. FillColor) that can be set to affect the appearance of the displayed text.
 
 Please note that text variables and `text-position` are scoped to a text block. You will need to set them up again when starting a new text block.
 
@@ -942,7 +943,7 @@ $gfx.StrokeColor = color Color::Named.new( :name<azure> );
 By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLineText rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor.
 
 Setting the same `FillColor` and `StrokeColor` with `TextMode::OutlineText`
-artifically increasing the font weight by `LineWidth`.
+artificially increasing the font weight by `LineWidth`.
 
 ```Raku
 use v6;
@@ -1013,7 +1014,7 @@ my PDF::Content $gfx = $page.render( :&callback);
 
 ### html-canvas
 
-The optional [HTML::Canvas::To::PDF](https://pdf-raku.github.io/HTML-Canvas-To-PDF-raku/) module needs to be installed before using this method. It adds a rendering backend to enable HTML5 Canvas like graphics construction on Pages or XObject Forms (which perform the PDF::Content::Canvas role).
+The optional [HTML::Canvas::To::PDF](https://pdf-raku.github.io/HTML-Canvas-To-PDF-raku/) module needs to be installed before using this method. It adds a rendering back-end to enable HTML5 Canvas like graphics construction on Pages or XObject Forms (which perform the PDF::Content::Canvas role).
 
 In this mode, fonts are registered via [CSS:Font::Descriptor](https://css-raku.github.io/CSS-Properties-raku/CSS/Font/Descriptor) objects.
 
@@ -1506,9 +1507,9 @@ $pdf.annotation(
 
 ```
 
-## Named Destinations
+### Named Destinations
 
-The `destination()` method (above), also accepts an optiona `:$name` argument.
+The `destination()` method (above), also accepts an optional `:$name` argument.
 
 This causes the PDF to keep a table that maps names to destinations. So for example:
 
@@ -1518,12 +1519,12 @@ This causes the PDF to keep a table that maps names to destinations. So for exam
 
 Is enough to create a named declaration. This may have several benefits in browsers and other third-party software:
 
-- major browsers support opening PDF's to named declarations. Opening url "file://doc.pdf#appendix-i-graphics" will open the PDF at paghe 99.
+- major browsers support opening PDF's to named declarations. Opening url "file://doc.pdf#appendix-i-graphics" will open the PDF at page 99.
 
-- PDF::API can then also locate pages by name: `$pdf.page('appendix-i-graphics')` will open page 99.
+- PDF::API can then also locate pages by name: `$pdf.open("doc.pdf").page('appendix-i-graphics')` will open page 99.
 
 Note that destinations can be combined with link annotations to create
-links that are both internally and externally accessable.
+links that are both internally and externally accessible.
 
 ```
     .text-position = 377, 545;
