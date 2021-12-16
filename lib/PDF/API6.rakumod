@@ -1,9 +1,7 @@
 use v6;
 use PDF::Class:ver(v0.4.3+);
-use PDF:ver(v0.3.5+);
-use PDF::Content:ver(v0.3.1+);
 
-class PDF::API6:ver<0.2.3>
+class PDF::API6:ver<0.2.4>
     is PDF::Class {
 
     use PDF::Action;
@@ -14,7 +12,7 @@ class PDF::API6:ver<0.2.3>
     use PDF::Catalog;
     use PDF::ColorSpace::DeviceN;
     use PDF::ColorSpace::Separation;
-    use PDF::Destination :Fit, :DestRef;
+    use PDF::Destination :Fit, :DestRef, :&coerce-dest;
     use PDF::Info;
     use PDF::Filespec;
     use PDF::Function::Sampled;
@@ -29,7 +27,7 @@ class PDF::API6:ver<0.2.3>
     use PDF::COS::Name;
     use PDF::API6::Preferences;
 
-    subset PageRef where {$_ ~~ UInt|Str|PDF::Page|PDF::Destination|PDF::Action::GoTo|PDF::Annot};
+    subset PageRef where {$_ ~~ UInt|Str|PDF::Page|PDF::Destination|PDF::Action::GoTo};
     sub prefix:</>($name) { PDF::COS::Name.COERCE($name) };
 
     multi method page(PDF::Page $_) {
@@ -49,9 +47,6 @@ class PDF::API6:ver<0.2.3>
     multi method page(PDF::Action::GoTo:D $_) {
         self.page(.<D>);
     }
-    multi method page(PDF::Annot:D $_ ) {
-        self.page(.<P>);
-    }
     multi method page(Any:U) {
         PDF::Page;
     }
@@ -68,7 +63,7 @@ class PDF::API6:ver<0.2.3>
             $_ = PDF::COS::Name.COERCE($_)
                 unless $_ ~~ PDF::COS::Name|PDF::COS::ByteString;
         }
-        ($.catalog.destinations //= {}){$name} = $dest;
+        ($.catalog<Dests> //= {}){$name} = $dest;
         $name;
     }
 
@@ -101,6 +96,15 @@ class PDF::API6:ver<0.2.3>
             :S(/'GoToR'),
             :$file,
             :$destination;
+        };
+    }
+
+    multi method action( :$destination! is copy ) {
+        my $D = coerce-dest($destination, DestRef);
+        PDF::Action::GoTo.COERCE: {
+            :Type(/'Action'),
+            :S(/'GoTo'),
+            :$D
         };
     }
 

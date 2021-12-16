@@ -27,6 +27,7 @@ PDF::API6 - A Raku PDF API
    - [Pages](#pages)
        - [page-count](#page-count)
        - [page](#page)
+       - [iterate-pages](#iterate-pages)
        - [add-page](#add-page)
        - [delete-page](#delete-page)
    - [Page Methods](#page-methods)
@@ -343,6 +344,16 @@ use PDF::Page;
 my PDF::Page $second-page = $pdf.page(2);
 ```
 Returns the nth page from the PDF
+
+
+### iterate-pages
+```raku
+for $pdf.iterate-pages -> PDF::Page $page { ... }
+my PDF::Page @all-pages = $pdf.iterate-pages;
+my $page-iterator = $pdf.iterate-pages;
+$page-iterator.pull-one for ^$pdf.page-count;
+```
+Returns an iterator that traverses all pages in sequence.
 
 ### add-page
 
@@ -1531,7 +1542,7 @@ links that are both internally and externally accessible.
     my PDF::Annot::Link $link = $pdf.annotation(
                      :page(1), # linking from page 1 [this could also be a name]
                      :text("see Appendix I - graphics"),
-                     :dest(:page(99), :name<appendix-i-graphics>),
+                     :destination(:page(99), :name<appendix-i-graphics>),
                      :color(Blue),
                  );
 
