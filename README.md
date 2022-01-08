@@ -1530,7 +1530,7 @@ This causes the PDF to keep a table that maps names to destinations. So for exam
 
 Is enough to create a named declaration. This may have several benefits in browsers and other third-party software:
 
-- major browsers support opening PDF's to named declarations. Opening url "file://doc.pdf#appendix-i-graphics" will open the PDF at page 99.
+- major browsers support opening PDF's to named declarations. For examplle, opening url "file://doc.pdf#appendix-i-graphics" will open the PDF at page 99.
 
 - PDF::API can then also locate pages by name: `$pdf.open("doc.pdf").page('appendix-i-graphics')` will open page 99.
 
@@ -1571,8 +1571,10 @@ marked, otherwise a marked point is made in the content stream.
     say $mark.mcid;
 
 Similar to the `tag` method, but allocates a marked content identifier (MCID)
-for marked content that forms part of a document's logical structure. See also
-the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module.
+for marked content that forms part of a document's logical structure.
+
+See also the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module,
+which is able to read and write structure trees.
 
 # APPENDIX
 
