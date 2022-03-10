@@ -25,13 +25,11 @@ jobs:
       - uses: Raku/setup-raku@v1
         with:
           raku-version: ${{ matrix.raku-version }}
+      - if: matrix.os == 'macOS-latest'
+        run: brew install openssl
       - name: Install Dependencies
         run: |
           # install and test if need be (includes [test-depends])
-          #sudo apt-get install -y libperl-dev libexcel-writer-xlsx-perl libspreadsheet-read-perl cpanminus
-          #sudo cpanm Spreadsheet::Reader::ExcelXML Spreadsheet::ParseXLSX
-          #sudo apt-get install -y libcsv-dev
-          #sudo apt-get install -y libcairo2-dev libfreetype6-dev
           zef install .
           zef install --/test App::Prove6
       - name: Run Tests
