@@ -1,7 +1,7 @@
 use v6;
 use PDF::Class:ver(v0.4.3+);
 
-class PDF::API6:ver<0.2.4>
+class PDF::API6:ver<0.2.5>
     is PDF::Class {
 
     use PDF::Action;

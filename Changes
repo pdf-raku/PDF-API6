@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.2.5  2022-03-11T05:10:08+13:00
+   - Encode destination URIs to ASCII subset
+
 0.2.4  2021-12-17T12:35:14+13:00
    - Implement named destinations #12
 
