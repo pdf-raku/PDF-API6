@@ -127,7 +127,8 @@ $gfx.text: {
     ); }, 'construct styled uri annot';
     is $link.border-style.style, BorderStyle::Dashed, "setting of dashed border";
 
-    my PDF::Filespec $attachment = $pdf.attachment("t/images/lightbulb.gif");
+    my DateTime $ModDate .= new: :year(2001);
+    my PDF::Filespec $attachment = $pdf.attachment("t/images/lightbulb.gif", :$ModDate);
     my PDF::Annot::FileAttachment $image-annot;
     lives-ok { $image-annot = $pdf.annotation(
                      :page(1),

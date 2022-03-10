@@ -108,8 +108,13 @@ class PDF::API6:ver<0.2.4>
         };
     }
 
+    sub uri-to-ascii($s) {
+        $s.subst: rx/<- [\x0 .. \x7f]>/, { .Str.encode.list.fmt('%%%X', "") }, :g
+    }
+
     #| A URI (link) action
-    multi method action( Str :uri($URI)! --> PDF::Action::URI) {
+    multi method action( Str :$uri! --> PDF::Action::URI) {
+        my $URI = uri-to-ascii($uri);
         PDF::Action::URI.COERCE: {
             :Type(/'Action'),
             :S(/'URI'),
@@ -193,11 +198,12 @@ class PDF::API6:ver<0.2.4>
     method attachment(Str $file-name,
                      IO::Path :$io = $file-name.IO,
                      blob8 :$decoded = $io.open(:bin).read,
+                     :$ModDate = $io.modified.DateTime,
                      :$compress = True
                        --> PDF::Filespec) {
         %!attachments{$file-name} = do {
             my %dict = :Type(/'EmbeddedFile');
-            %dict<Params> = %( :Size(.s), :ModDate(.modified.DateTime) )
+            %dict<Params> = %( :Size(.s), :$ModDate )
                 with $io;
             my PDF::COS::Stream $F .= COERCE: { :%dict, :$decoded };
             $F.compress if $compress;
