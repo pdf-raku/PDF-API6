@@ -39,7 +39,7 @@ quietly dies-ok {$page.Rotate = 89}, 'invalid rotation';
 lives-ok {$page.Rotate = 90}, '90 degree rotation';
 
 $page.text: {
-    .font = .core-font('Helvetica');
+    .font = $pdf.core-font('Helvetica');
     .text-position = 10, 10;
     .say: "Rotated Text";
 }

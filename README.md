@@ -127,7 +127,7 @@ constant Padding = 10;
 
 $page.graphics: {
     enum <x0 y0 x1 y1>;
-    my PDF::Content::FontObj $font = .core-font: :family<Helvetica>, :weight<bold>, :style<italic>;
+    my PDF::Content::FontObj $font = $pdf.core-font: :family<Helvetica>, :weight<bold>, :style<italic>;
     my @box = .say: 'Hello, world', :$font, :position[10, 10];
 
     my PDF::XObject::Image $img = .load-image: "t/images/lightbulb.png";
@@ -483,7 +483,7 @@ my PDF::Content $gfx = $page.gfx;
 dd $gfx.content-dump; # dump existing graphics operations
 
 # add some more text to the page
-$gfx.font = $gfx.core-font: :family<Courier>;
+$gfx.font = $pdf.core-font: :family<Courier>;
 $gfx.text: {
     .text-position = (10, 30);
     .say("Demo added text");
@@ -561,9 +561,9 @@ need to at least pass a `:$font` option and will likely need a `:$text-position`
 ### font, core-font
 
 ```raku
-$gfx.font = $gfx.core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
-$gfx.font = $gfx.core-font('Times-Bold');
-$gfx.font = $gfx.core-font('ZapfDingbats');
+$gfx.font = $pdf.core-font( :family<Helvetica>, :weight<bold>, :style<italic> );
+$gfx.font = $pdf.core-font('Times-Bold');
+$gfx.font = $pdf.core-font('ZapfDingbats');
 ```
 Read/write accessor to set, or get the current font.
 
@@ -619,7 +619,7 @@ my @position-on-page = $gfx.base-coords(|@image-region);
 ### print
 ```raku
 $gfx.WordSpacing = 2; # add extra spacing between words
-my $font = $gfx.core-font( :family<Helvetica>, :weight<bold> );
+my $font = $pdf.core-font( :family<Helvetica>, :weight<bold> );
 my $font-size = 16;
 my $text = "Hello.  Ting, ting-ting. Attention! … ATTENTION! ";
 
@@ -768,7 +768,7 @@ $form.graphics: {
 
 $form.text: {
     # add some sample text
-    .font = .core-font('Helvetica');
+    .font = $pdf.core-font('Helvetica');
     .text-position = 10, 10;
     .say: "Sample form";
 }
@@ -965,7 +965,7 @@ use PDF::Content::Ops :TextMode;
 my PDF::API6 $pdf .= new;
 $pdf.media-box = [0, 0, 200, 100];
 my PDF::Page $page = $pdf.add-page;
-my $font = $page.core-font( :family<Helvetica> );
+my $font = $pdf.core-font( :family<Helvetica> );
 
 $page.graphics: {
     .text: {
@@ -1446,7 +1446,7 @@ sub action(|c) { :action($pdf.action(|c)) }
 
 my PDF::Content $gfx = $pdf.page(1).gfx;
 $gfx.text: {
-    .font = .core-font: 'Times-Roman';
+    .font = $pdf.core-font: 'Times-Roman';
 
     #-- create a link from a region on Page 1 to Page 2 --
     .text-position = 377, 545;
@@ -1602,7 +1602,7 @@ There are some nesting and sequencing rules for operations, including:
 - [Text blocks](#text) don't nest, or contain graphics blocks.
 - [Text state variables](#text-state-variables) should only be used in a [text block](#text) and are scoped to it.
 - Other Graphics state variables should be used in a [graphics block](#graphics) (possibly nested) and are scoped to the innermost graphics block.
-- [Font](#font-core-font) and [text position](#text-position) should be set before rendering text.
+- [Font](#font) and [text position](#text-position) should be set before rendering text.
 - A sequence of [path construction operands](#path-construction-operators) should be followed by a [path painting operand](#path-painting-operators).
 
 PDF::Content will warn if there are any problems with operator sequencing or block structure.
@@ -1621,13 +1621,13 @@ CharSpacing | Tc | Character spacing adjustment | 0.0 | `.CharSpacing = 1.0`
 WordSpacing | Tw | Word spacing adjustment | 0.0 | `.WordSpacing = 2.5`
 HorizScaling | Th | Horizontal scaling (percent) | 100 | `.HorizScaling = 150`
 TextLeading | Tl | Text line height | 0.0 | `.TextLeading = 12;`
-Font | [Tf, Tfs] | Text font and size | | `.font = [ .core-font( :family<Helvetica> ), 12 ]` | [2]
+Font | [Tf, Tfs] | Text font and size | | `.font = [ $pdf.core-font( :family<Helvetica> ), 12 ]` | [2]
 TextRender | Tmode | Text rendering mode | 0 | `.TextRender = TextMode::OutlineText` | [3]
 TextRise | Trise | Text rise | 0.0 | `.TextRise = 3`
 
 [1] See also the [text-transform](#text-transform) method
 
-[2] See also the [font](#font-core-font) method.
+[2] See also the [font](#font) method.
 
 [3] See [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
 
@@ -1851,7 +1851,7 @@ The `gfx :trace` option enables tracing as graphics operations are executed. For
     my PDF::Page $page = $pdf.add-page;
     my PDF::Content $gfx = $page.gfx: :trace;
     $gfx.text: {
-        .font = $page.core-font: 'Times-Roman';
+        .font = $pdf.core-font: 'Times-Roman';
         .print: "Hello World";
     };
 
