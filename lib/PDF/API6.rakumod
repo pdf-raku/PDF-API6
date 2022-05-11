@@ -1,6 +1,6 @@
 use PDF::Class:ver(v0.4.3+);
 
-class PDF::API6:ver<0.2.5>
+class PDF::API6:ver<0.2.6>
     is PDF::Class {
 
     use PDF::Action;
@@ -36,12 +36,12 @@ class PDF::API6:ver<0.2.5>
         self.Pages.page($num);
     }
     multi method page(Str:D $name) {
-        do with self<Root><Dests> {
-            self.page: .{$name}
+        do with self<Root><Dests> -> PDF::Destination $dest {
+            .[0]
         } // PDF::Page;
     }
     multi method page(PDF::Destination:D $_) {
-        self.page(.[0]);
+        my PDF::Page:D $ = .[0];
     }
     multi method page(PDF::Action::GoTo:D $_) {
         self.page(.<D>);
@@ -55,7 +55,7 @@ class PDF::API6:ver<0.2.5>
         $!preferences //= PDF::API6::Preferences.new: :$.catalog;
     }
 
-    #| A miscellaneous named destination
+    #| Make a miscellaneous named destination
     multi method destination(Str:D :$name! is copy, |c) {
         my PDF::Destination $dest = $.destination: |c;
         given $name {
@@ -66,7 +66,7 @@ class PDF::API6:ver<0.2.5>
         $name;
     }
 
-    #| A remote destination to a page (by number) in another PDF file
+    #| Make a remote destination to a page (by number) in another PDF file
     multi method destination(
         Bool :$remote! where .so,
         UInt :$page! is copy,
@@ -76,7 +76,7 @@ class PDF::API6:ver<0.2.5>
         $page--;
         PDF::Destination.construct($fit, :$page, |c);
     }
-    #| A destination page (by object) within this PDF
+    #| Make destination page (by object) within this PDF
     multi method destination(
         PageRef :page($page-ref)!,
         Fit :$fit = FitWindow,
@@ -85,7 +85,7 @@ class PDF::API6:ver<0.2.5>
         PDF::Destination.construct($fit, :$page, |c);
     }
 
-    #| A remote action on a page in another PDF file
+    #| Make a remote action on a page in another PDF file
     multi method action(
         Str :$file!, UInt :$page!, |c
           --> PDF::Action::GoToR) {
@@ -98,6 +98,7 @@ class PDF::API6:ver<0.2.5>
         };
     }
 
+    #| Make a goto action to a page within this PDF
     multi method action( :$destination! is copy ) {
         my $D = coerce-dest($destination, DestRef);
         PDF::Action::GoTo.COERCE: {
@@ -111,7 +112,7 @@ class PDF::API6:ver<0.2.5>
         $s.subst: rx/<- [\x0 .. \x7f]>/, { .Str.encode.list.fmt('%%%X', "") }, :g
     }
 
-    #| A URI (link) action
+    #| Make a URI (link) action
     multi method action( Str :$uri! --> PDF::Action::URI) {
         my $URI = uri-to-ascii($uri);
         PDF::Action::URI.COERCE: {
@@ -194,24 +195,25 @@ class PDF::API6:ver<0.2.5>
     }
 
     has PDF::Filespec %!attachments;
+    #| Make a PDF attachment
     method attachment(Str $file-name,
                      IO::Path :$io = $file-name.IO,
                      blob8 :$decoded = $io.open(:bin).read,
                      :$ModDate = $io.modified.DateTime,
                      :$compress = True
                        --> PDF::Filespec) {
-        %!attachments{$file-name} = do {
-            my %dict = :Type(/'EmbeddedFile');
-            %dict<Params> = %( :Size(.s), :$ModDate )
-                with $io;
-            my PDF::COS::Stream $F .= COERCE: { :%dict, :$decoded };
-            $F.compress if $compress;
-            PDF::Filespec.COERCE: {
-                :Type(/<Filespec>),
-                :$file-name,
-                :embedded-file{ :$F },
-            };
-        }
+        my %dict = :Type(/'EmbeddedFile');
+        %dict<Params> = %( :Size(.s), :$ModDate )
+            with $io;
+        my PDF::COS::Stream() $F = { :%dict, :$decoded };
+        $F.compress if $compress;
+        my PDF::Filespec() $filespec ={
+            :Type(/<Filespec>),
+            :$file-name,
+            :embedded-file{ :$F },
+        };
+
+        %!attachments{$file-name} = $filespec;
     }
 
     method cb-finish {
@@ -249,7 +251,7 @@ class PDF::API6:ver<0.2.5>
             %dict<rect> //= [ $gfx.base-coords: |@text-region ];
         }
 
-        my PDF::Annot $annot .= COERCE: %dict;
+        my PDF::Annot() $annot = %dict;
 
         # add a bidirectional link between the page and annotation
         $annot.page = $page;
@@ -258,7 +260,7 @@ class PDF::API6:ver<0.2.5>
         $annot;
     }
 
-    #| Page annotation with a destination; e.g. link to another page
+    #| Make a page annotation with a destination; e.g. link to another page
     multi method annotation(:$page!, DestRef :$destination!, *%props) {
         my $Subtype = /'Link';
         self!annot( :$Subtype, :$page, :$destination, |%props);
@@ -268,19 +270,19 @@ class PDF::API6:ver<0.2.5>
         $.annotation(:$destination, |c);
     }
 
-    #| Page annotation with an action; e.g. URL link
+    #| Make a page annotation with an action; e.g. URL link
     multi method annotation(:$page!, PDF::Action :$action!, *%props) {
         my $Subtype = /'Link';
         self!annot( :$Subtype, :$page, :$action, |%props);
     }
 
-    #| File attachment annotation
+    #| Make a file attachment annotation
     multi method annotation(:$page!, PDF::Filespec :$attachment!, *%props) {
         my $Subtype = /'FileAttachment';
         my $annot = self!annot( :$Subtype, :$page, :file-spec($attachment), |%props);
     }
 
-    #| Page text (sticky note) annotation
+    #| Make a page text (sticky note) annotation
     multi method annotation(:$page!, Str :$content!, *%props) {
         my $Subtype = /'Text';
         self!annot( :$Subtype, :$page, :$content, |%props);
@@ -307,7 +309,7 @@ class PDF::API6:ver<0.2.5>
         }
 
         my %dict = :Domain[0,1], :@Range, :Size[2,], :BitsPerSample(8), :Filter( /<ASCIIHexDecode> );
-        my PDF::Function::Sampled $function .= COERCE: { :%dict, :$encoded };
+        my PDF::Function::Sampled() $function = %( :%dict, :$encoded );
         PDF::ColorSpace::Separation.COERCE: [ /<Separation>, /$name, /($color.key), $function ];
     }
 
@@ -352,7 +354,7 @@ class PDF::API6:ver<0.2.5>
         my @names = @colors.map: *.Name;
         my %Colorants = @names Z=> @colors;
 
-        my PDF::Function::Sampled $function .= COERCE: { :%dict, :$decoded };
+        my PDF::Function::Sampled() $function = %( :%dict, :$decoded );
         PDF::ColorSpace::DeviceN.COERCE: [ /<DeviceN>, @names, /<DeviceCMYK>, $function, { :%Colorants } ];
     }
 }
