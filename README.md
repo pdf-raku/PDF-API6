@@ -200,7 +200,7 @@ $font = $pdf.core-font: :family<Helvetica>, :weight<Bold>;
 # (requires PDF::Font::Loader module to be installed)
 use PDF::Font::Loader;
 $font = PDF::Font::Loader.load-font: :file</path/to/font.ttf>;
-# (requires both PDF::Font::Loader module and fontconfig package)
+# (requires both PDF::Font::Loader and FontConfig modules)
 $font = PDF::Font::Loader.load-font: :family<Vera>, :weight<Bold>;
 
 # Add some text to the page
@@ -571,7 +571,8 @@ Note: other fonts can be loaded via the PDF::Font::Loader module:
 ```raku
 use PDF::Font::Loader :load-font;
 $gfx.font = load-font( :file</usr/share/fonts/truetype/tlwg/Garuda-BoldOblique.ttf> );
-# this also requires the fontconfig package on your system
+# Select a matching system font. This requires the FontConfig module
+# to also be installed.
 $gfx.font = load-font( :family<Garuda>, :weight<bold>, :slant<oblique> );
 ```
 ### text-position

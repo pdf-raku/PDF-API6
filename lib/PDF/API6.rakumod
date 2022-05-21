@@ -11,7 +11,7 @@ class PDF::API6:ver<0.2.6>
     use PDF::Catalog;
     use PDF::ColorSpace::DeviceN;
     use PDF::ColorSpace::Separation;
-    use PDF::Destination :Fit, :DestRef, :&coerce-dest;
+    use PDF::Destination :Fit, :DestRef, :DestDict, :&coerce-dest;
     use PDF::Info;
     use PDF::Filespec;
     use PDF::Function::Sampled;
@@ -35,15 +35,28 @@ class PDF::API6:ver<0.2.6>
     multi method page(UInt:D $num) {
         self.Pages.page($num);
     }
+    method destinations is rw {
+        # Depending on the PDF named destinations may be a simple /Names hash in the catalog,
+        # or a /Names /Dests name-tree
+        given self<Root> {
+            do with .<Names> {
+                do with .<Dests> {
+                    .name-tree;
+                }
+            } // .<Dests>
+        }
+    }
     multi method page(Str:D $name) {
-        do with self<Root><Dests> -> PDF::Destination $dest {
-            .[0]
+        do with $.destinations {
+            do with .{$name} -> PDF::Destination $_ {
+                .[0];
+            }
         } // PDF::Page;
     }
     multi method page(PDF::Destination:D $_) {
         my PDF::Page:D $ = .[0];
     }
-    multi method page(PDF::Action::GoTo:D $_) {
+    multi method page(DestDict:D $_) {
         self.page(.<D>);
     }
     multi method page(Any:U) {
@@ -62,7 +75,7 @@ class PDF::API6:ver<0.2.6>
             $_ = PDF::COS::Name.COERCE($_)
                 unless $_ ~~ PDF::COS::Name|PDF::COS::ByteString;
         }
-        ($.catalog<Dests> //= {}){$name} = $dest;
+        $.destinations{$name} = $dest;
         $name;
     }
 
