@@ -391,8 +391,8 @@ my PDF::API6 $pdf .= new;
 my PDF::Page $page = $pdf.add-page;
 my PDF::Content $gfx = $page.gfx;
 
-# Import Page 2 from the old PDF
-my PDF::XObject $xo = $pdf.page(2).to-xobject;
+# Import first page from the old PDF
+my PDF::XObject $xo = $old.page(1).to-xobject;
 
 # Add it to the new PDF's first page at 1/2 scale
 my $width = $xo.width / 2;
@@ -401,6 +401,7 @@ my $left = 10;
 $gfx.do($xo, :position[$bottom, $left], :$width);
 
 $pdf.save-as('our/new.pdf');
+
 ```
 ### images
 
@@ -1574,8 +1575,42 @@ marked, otherwise a marked point is made in the content stream.
 Similar to the `tag` method, but allocates a marked content identifier (MCID)
 for marked content that forms part of a document's logical structure.
 
-See also the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module,
-which is able to read and write structure trees.
+See also the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module, which
+can be used in conjunction with [this module](https://pdf-raku.github.io/PDF-API6)
+to create Tagged PDF for accessibility and other purposes:
+
+```raku
+use PDF::Tags;
+use PDF::Tags::Elem;
+use PDF::API6;
+
+my PDF::API6 $pdf .= new;
+my PDF::Tags $tags .= create: :$pdf;
+# create the document root
+my PDF::Tags::Elem $doc = $tags.Document;
+
+my $page = $pdf.add-page;
+my $header-font = $page.core-font: :family<Helvetica>, :weight<bold>;
+my $body-font = $page.core-font: :family<Helvetica>;
+
+$pdf.add-page; # blank second page, as a target
+
+$page.graphics: -> $gfx {
+
+    $doc.Header1: $gfx, {
+        .say('Sample tagged level-1 header',
+             :font($header-font),
+             :font-size(15),
+             :position[50, 120]);
+    };
+
+    $doc.Paragraph: $gfx, {
+        .say('Sample tagged paragraph', :position[50, 100], :font($body-font), :font-size(12));
+    };
+}
+
+$pdf-save-as: "tmp/tagged.pdf";
+```
 
 # APPENDIX
 
