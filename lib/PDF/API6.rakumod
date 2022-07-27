@@ -112,7 +112,7 @@ class PDF::API6:ver<0.2.6>
     }
 
     #| Make a goto action to a page within this PDF
-    multi method action( :$destination! is copy ) {
+    multi method action( :$destination! ) {
         my $D = coerce-dest($destination, DestRef);
         PDF::Action::GoTo.COERCE: {
             :Type(/'Action'),
