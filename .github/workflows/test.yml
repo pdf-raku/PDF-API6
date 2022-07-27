@@ -33,7 +33,7 @@ jobs:
         run: brew install openssl
       - name: Windows specific setup
         if: matrix.os == 'windows-latest'
-        run; zef install --force LibraryMake
+        run: zef install --force LibraryMake
       - name: Install Dependencies
         run: |
           # install and test if need be (includes [test-depends])
