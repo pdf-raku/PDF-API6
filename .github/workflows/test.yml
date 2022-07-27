@@ -28,8 +28,12 @@ jobs:
       - uses: Raku/setup-raku@v1
         with:
           raku-version: ${{ matrix.raku-version }}
-      - if: matrix.os == 'macOS-latest'
+      - name: MacOS specific setup
+        if: matrix.os == 'macOS-latest'
         run: brew install openssl
+      - name: Windows specific setup
+        if: matrix.os == 'windows-latest'
+        run; zef install --force LibraryMake
       - name: Install Dependencies
         run: |
           # install and test if need be (includes [test-depends])
