@@ -4,7 +4,6 @@
 
 PDF::API6 - A Raku PDF API
 ===
-
 - [NAME](#name)
 - [DESCRIPTION](#description)
 - [EXAMPLE](#example)
@@ -65,7 +64,7 @@ PDF::API6 - A Raku PDF API
        - [Text Modes](#text-modes)
    - [Rendering Methods](#rendering-methods)
        - [render: :&callback](#render-callback)
-       - [html-canvas()](#html-canvas)
+       - [html-canvas](#html-canvas)
    - [AcroForm Fields](#acroform-fields)
 - [SECTION III: PDF::API6 Specific Methods](#section-iii-pdfapi6-specific-methods)
    - [Metadata Methods](#metadata-methods)
@@ -96,11 +95,10 @@ PDF::API6 - A Raku PDF API
        - [Path Clipping](#path-clipping)
        - [Marked Content](#marked-content)
        - [Graphics Introspection Methods](#graphics-introspection-methods)
+       - [Method current-point()](#method-current-point)
        - [Graphics Tracing](#graphics-tracing)
    - [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
    - [Appendix III: Module Overview](#appendix-iii-module-overview)
-
-
 # NAME
 
 PDF::API6 - Facilitates the creation and modification of PDF files
@@ -1529,6 +1527,7 @@ This causes the PDF to keep a table that maps names to destinations. So for exam
     ```
     $pdf.destination: :page(99), :name<appendix-i-graphics>;
     $pdf.save-as: "doc.pdf";
+    ```
 
 Is enough to create a named declaration. This may have several benefits in browsers and other third-party software:
 
@@ -1682,6 +1681,7 @@ LineJoin | LJ | A code specifying the shape of joints between connected segments
 LineWidth | w | Stroke line-width | 1.0 | `.LineWidth = 2.5`
 StrokeAlpha | CA | The constant shape or constant opacity value to be used when paths are stroked | 1.0 | `.StrokeAlpha = 0.5;`
 StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | `.StrokeColor = :DeviceRGB[.7,.2,.2]`
+Font | Tf | The current font object and size as a 2 element array | 
 
 [1] See also the [transform](#transform) method
 
