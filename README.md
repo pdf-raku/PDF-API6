@@ -1637,7 +1637,7 @@ There are some nesting and sequencing rules for operations, including:
 - [Text blocks](#text) don't nest, or contain graphics blocks.
 - [Text state variables](#text-state-variables) should only be used in a [text block](#text) and are scoped to it.
 - Other Graphics state variables should be used in a [graphics block](#graphics) (possibly nested) and are scoped to the innermost graphics block.
-- [Font](#font) and [text position](#text-position) should be set before rendering text.
+- [Font](#font-core-font) and [text position](#text-position) should be set before rendering text.
 - A sequence of [path construction operands](#path-construction-operators) should be followed by a [path painting operand](#path-painting-operators).
 
 PDF::Content will warn if there are any problems with operator sequencing or block structure.
@@ -1662,7 +1662,7 @@ TextRise | Trise | Text rise | 0.0 | `.TextRise = 3`
 
 [1] See also the [text-transform](#text-transform) method
 
-[2] See also the [font](#font) method.
+[2] See also the [font](#font-core-font) method.
 
 [3] See [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
 
@@ -1681,7 +1681,6 @@ LineJoin | LJ | A code specifying the shape of joints between connected segments
 LineWidth | w | Stroke line-width | 1.0 | `.LineWidth = 2.5`
 StrokeAlpha | CA | The constant shape or constant opacity value to be used when paths are stroked | 1.0 | `.StrokeAlpha = 0.5;`
 StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | `.StrokeColor = :DeviceRGB[.7,.2,.2]`
-Font | Tf | The current font object and size as a 2 element array | 
 
 [1] See also the [transform](#transform) method
 
