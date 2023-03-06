@@ -630,6 +630,7 @@ note "text block has size {$x1 - $x0} X {$y1 - $y0};
 Synopsis: `my @rect = print(
                  $text-str-or-chunks-or-block,
                  :align<left|center|right>, :valign<top|center|bottom>,
+                 :position[x, y],
                  :$font, :$font-size,
                  :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
                  :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>,
@@ -639,7 +640,7 @@ Renders a text string, or [Text Box](https://pdf-raku.github.io/PDF-Content-raku
 
 ### say
 
-Takes the same parameters as `print`. Sets the final text position (`$.text-position`) to the start pf the next line.
+Takes the same parameters as `print`. Sets the final text position (`$.text-position`) to the start of the next line.
 
 ## Graphics Methods
 
