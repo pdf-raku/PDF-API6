@@ -22,7 +22,7 @@ PDF::API6 - A Raku PDF API
    - [Serialization Methods](#serialization-methods)
        - [Str, Blob](#str-blob)
        - [ast](#ast)
-- [SECTION II: Content Methods (role PDF::Content::API)](#section-ii-content-methods-inherited-from-pdfclass)
+- [SECTION II: Content Methods (role PDF::Content::API)](#section-ii-content-methods-role-pdfcontentapi)
    - [Pages](#pages)
        - [page-count](#page-count)
        - [page](#page)
