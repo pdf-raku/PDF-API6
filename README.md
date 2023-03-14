@@ -22,7 +22,7 @@ PDF::API6 - A Raku PDF API
    - [Serialization Methods](#serialization-methods)
        - [Str, Blob](#str-blob)
        - [ast](#ast)
-- [SECTION II: Content Methods (inherited from PDF::Class)](#section-ii-content-methods-inherited-from-pdfclass)
+- [SECTION II: Content Methods (role PDF::Content::API)](#section-ii-content-methods-inherited-from-pdfclass)
    - [Pages](#pages)
        - [page-count](#page-count)
        - [page](#page)
@@ -326,7 +326,9 @@ my $pdf-byte-string = PDF::IO::Writer.new.write: |%cos;
 "/tmp/out.pdf".IO.spurt(:bin, $pdf-byte-string);
 ```
 
-# SECTION II: Content Methods (inherited from PDF::Class)
+# SECTION II: Content Methods (role PDF::Content::API)
+
+The methods in this section are performed by PDF::Lite and PDF::API6.
 
 ## Pages
 
