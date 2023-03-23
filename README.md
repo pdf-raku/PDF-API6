@@ -171,6 +171,7 @@ my PDF::API6 $pdf .= new();
 
 # Open an existing PDF file
 my PDF::API6 $pdf .= open('some.pdf');
+my PDF::API6 $pdf .= new( :file<some.pdf> );
 
 # Add a blank page
 use PDF::Page;
@@ -1534,9 +1535,9 @@ This causes the PDF to keep a table that maps names to destinations. So for exam
 
 Is enough to create a named declaration. This may have several benefits in browsers and other third-party software:
 
-- major browsers support opening PDF's to named declarations. For examplle, opening url "file://doc.pdf#appendix-i-graphics" will open the PDF at page 99.
+- major browsers support opening PDF's to named declarations. For example, opening url "file://doc.pdf#appendix-i-graphics" will open the PDF at page 99.
 
-- PDF::API can then also locate pages by name: `$pdf.open("doc.pdf").page('appendix-i-graphics')` will open page 99.
+- PDF::API6can then also locate pages by name: `$pdf.open("doc.pdf").page('appendix-i-graphics')` will open page 99.
 
 Note that destinations can be combined with link annotations to create
 links that are both internally and externally accessible.
@@ -1555,8 +1556,7 @@ links that are both internally and externally accessible.
 
 PDF::API6 has some basic ability to tag graphical content.
 
-See also
-the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module,
+See also the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module,
 which can be used with PDF::API and provides more functionality.
 
 ### tag
@@ -1980,7 +1980,7 @@ PDF, AcroForm fields and annotations.
 *PDF::Lite* understands content only, including pages and xobjects (forms and images). 
 
 The optional *PDF::Tags* module is applicable to PDF files that are 'Tagged'. It
-presents DOM like interface for reading document structure elements.
+presents a DOM like interface for reading document structure elements.
 
 *PDF::API6* is a lightweight class that inherits from *PDF::Class*. It provides
 sugar and extra functionality for common use cases such as colors, outlines
