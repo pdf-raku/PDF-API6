@@ -42,6 +42,7 @@ PDF::API6 - A Raku PDF API
        - [text-position](#text-position)
        - [text-transform](#text-transform)
        - [base-coords](#base-coords)
+       - [user-coords](#user-coords)
        - [print](#print)
        - [say](#say)
    - [Graphics Methods](#graphics-methods)
@@ -188,6 +189,10 @@ $pdf.media-box = A4;
 # Set the size of a specific page
 use PDF::Content::Page :PageSizes;
 $page.media-box = Letter;
+
+# Set a landscape page-size
+use PDF::Content::Page :PageSizes, :&to-landscape;
+$page.media-box = to-landscape(Letter);
 
 # Use a standard PDF core font
 use PDF::Content::FontObj;
@@ -602,8 +607,8 @@ $gfx.text-transform: :translate[110, 10], :rotate(.1);
 
 Synopsis:
 ```raku
-my ($x-o, $y-o, ...) = $gfx.base-coords(
-                           $x-t, $y-t, ...,
+my ($x-base, $y-base, ...) = $gfx.base-coords(
+                           $x-trans, $y-trans, ...,
                            :$user=True,    # map to user default coordinates
                            :$text=False);  # un-map text matrix
 ```
@@ -619,6 +624,19 @@ $gfx.transform: :translate($x,$y), :scale(.8);
 my @image-region = $gfx.do($my-image, :align<middle>, :position[20, 30]);
 my @position-on-page = $gfx.base-coords(|@image-region);
 ```
+
+### user-coords
+
+Synopsis:
+```raku
+my ($x-trans, $y-trans, ...) = $gfx.base-coords(
+                           $x-base, $y-base, ...,
+                           :$user=True,    # map to user default coordinates
+                           :$text=False);  # un-map text matrix
+```
+
+This is the inverse function to `base-coords` and computes transformed coordinates from original coordinates.
+
 ### print
 ```raku
 $gfx.WordSpacing = 2; # add extra spacing between words
@@ -1537,7 +1555,7 @@ Is enough to create a named declaration. This may have several benefits in brows
 
 - major browsers support opening PDF's to named declarations. For example, opening url "file://doc.pdf#appendix-i-graphics" will open the PDF at page 99.
 
-- PDF::API6can then also locate pages by name: `$pdf.open("doc.pdf").page('appendix-i-graphics')` will open page 99.
+- PDF::API6 can then also locate pages by name: `$pdf.open("doc.pdf").page('appendix-i-graphics')` will open page 99.
 
 Note that destinations can be combined with link annotations to create
 links that are both internally and externally accessible.
