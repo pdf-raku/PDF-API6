@@ -629,7 +629,7 @@ my @position-on-page = $gfx.base-coords(|@image-region);
 
 Synopsis:
 ```raku
-my ($x-trans, $y-trans, ...) = $gfx.base-coords(
+my ($x-trans, $y-trans, ...) = $gfx.user-coords(
                            $x-base, $y-base, ...,
                            :$user=True,    # map to user default coordinates
                            :$text=False);  # un-map text matrix
