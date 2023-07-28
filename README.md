@@ -157,9 +157,8 @@ PDF::API2 features that are not yet available in PDF::API6 include:
 
     - currently not supported are: TIFF and PNM images.
 
-- Fonts. A variety of formats are handled by the [PDF::Font::Loader](https://pdf-raku.github.io/PDF-Font-Loader-raku/) module (available on CPAN).
+- Fonts
 
-   - Font sub-setting (to reduces file sizes) is experimental. See [HarfBuzz::Subset](https://harfbuzz-raku.github.io/HarfBuzz-Subset-raku/)
    - Synthetic fonts are NYI (wanted: module PDF::Font::Synthetic)
 
 
@@ -582,6 +581,18 @@ $gfx.font = load-font( :file</usr/share/fonts/truetype/tlwg/Garuda-BoldOblique.t
 # to also be installed.
 $gfx.font = load-font( :family<Garuda>, :weight<bold>, :slant<oblique> );
 ```
+
+See also L<HarfBuzz::Subset>, which can be used to subset fonts, reducing the
+size of PDF files.
+
+```raku
+use PDF::Font::Loader :load-font;
+use FontConfig;
+use HarfBuzz::Subset;
+$gfx.font = load-font( :file</usr/share/fonts/truetype/tlwg/Garuda-BoldOblique.ttf>, :subset );
+$gfx.font = load-font( :family<Garuda>, :weight<bold>, :slant<oblique>, :subset );
+```
+
 ### text-position
 ```raku
 $page.text: {
