@@ -582,7 +582,7 @@ $gfx.font = load-font( :file</usr/share/fonts/truetype/tlwg/Garuda-BoldOblique.t
 $gfx.font = load-font( :family<Garuda>, :weight<bold>, :slant<oblique> );
 ```
 
-See also L<HarfBuzz::Subset>, which can be used to subset fonts, reducing the
+See also [HarfBuzz::Subset](https://harfbuzz-raku.github.io/HarfBuzz-Subset-raku), which can be used to subset fonts, reducing the
 size of PDF files.
 
 ```raku
