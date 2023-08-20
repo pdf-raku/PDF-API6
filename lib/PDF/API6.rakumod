@@ -261,6 +261,8 @@ class PDF::API6:ver<0.2.6>
         with $text {
             my $text-box = $gfx.text-box( :$text, :baseline<bottom>);
             my @text-region[4] = $gfx.print($text-box);
+            @text-region[1] -= $text-box.TextRise;
+            @text-region[3] -= $text-box.TextRise;
             %dict<rect> //= [ $gfx.base-coords: |@text-region ];
         }
 
