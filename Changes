@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.2.7  2023-08-21T08:07:06+12:00
+   - Fix annotation text placement for PDF::Content 0.6.14+
+
 0.2.6  2022-05-11T13:20:14+12:00
    - Bump PDF and PDF::Content to thread-safe versions
    - Use PDF::Content 0.6.1 core font cache. Prefer core-font loading
