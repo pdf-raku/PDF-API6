@@ -662,13 +662,13 @@ note "text block has size {$x1 - $x0} X {$y1 - $y0};
 Synopsis: `my @rect = print(
                  $text-str-or-chunks-or-block,
                  :align<left|center|right>, :valign<top|center|bottom>,
+                 :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>,
                  :position[x, y],
                  :$font, :$font-size,
                  :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
-                 :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>,
                  :kern, :squish, :$leading, :$width, :$height, :nl)`
 
-Renders a text string, or [Text Box](https://pdf-raku.github.io/PDF-Content-raku/#pdfcontenttextbox).
+Renders a text string, or [Text Box](https://pdf-raku.github.io/PDF-Content-raku/PDF/Content/Text/Box).
 
 ### say
 
@@ -1649,9 +1649,9 @@ $pdf-save-as: "tmp/tagged.pdf";
 
 The PDF standard defines a state machine for rendering graphics. There are
 a set of graphics operations that are used to construct content, or affect the
-graphics state. These are short codes that appear in a content stream (e.g. 'cm'). [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku/) implements a graphics engine that can execute these operations and maintain graphics state.
+graphics state. These are short codes that appear in a content stream (e.g. 'cm'). [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku/PDF/Content/Ops) implements a graphics engine that can execute these operations and maintain graphics state.
 
-The operations and graphics variables accessors are mapped to (camel-cased) mnemonics that can be executed as methods on the [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku/) `$gfx` object.
+The operations and graphics variables accessors are mapped to (camel-cased) mnemonics that can be executed as methods on the [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku//PDF/Content/Ops) `$gfx` object.
 
 For example 'cm' is mapped to the `ConcatMatrix` mnemonic. Its takes a matrix array as an argument and updates the `CTM` graphics state variable.
 
