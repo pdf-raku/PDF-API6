@@ -18,7 +18,7 @@ previews :
 	git add -f tmp/.previews/*.png;
 
 toc :
-	@raku $(TocMaker) README.md > README.tmp;
+	@raku -I. $(TocMaker) README.md > README.tmp;
 	@mv README.tmp README.md;
 
 test :

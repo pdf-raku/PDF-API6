@@ -660,15 +660,21 @@ my ($x0, $x1, $y1, $y1) = $gfx.print: $text, :$font, :$font-size, :width(120);
 note "text block has size {$x1 - $x0} X {$y1 - $y0};
 ```
 Synopsis: `my @rect = print(
-                 $text-str-or-chunks-or-block,
+                 $text-str-or-chunks-or-box,
                  :align<left|center|right>, :valign<top|center|bottom>,
                  :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>,
                  :position[x, y],
                  :$font, :$font-size,
                  :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
-                 :kern, :squish, :$leading, :$width, :$height, :nl)`
+                 :kern, :squish, :$leading, :$width, :$height,
+                 :shape, :direction<ltr|rtl>, :!bidi, :nl)`
 
 Renders a text string, or [Text Box](https://pdf-raku.github.io/PDF-Content-raku/PDF/Content/Text/Box).
+
+The optional [Text::FriBidi](https://raku.land/zef:dwarring/Text::FriBidi) module is required when:
+
+- the `:direction<rlt>` option is being used
+- the input text contains [Unicode bidirectional control](https://www.w3.org/International/questions/qa-bidi-unicode-controls.en) (BiDi) characters and the `:!bidi` option has not been used to disable BiDi processing.
 
 ### say
 
