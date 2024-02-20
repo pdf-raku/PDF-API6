@@ -220,10 +220,10 @@ class PDF::API6:ver<0.2.7>
             with $io;
         my PDF::COS::Stream() $F = { :%dict, :$decoded };
         $F.compress if $compress;
-        my PDF::Filespec() $filespec ={
+        my PDF::Filespec() $filespec = {
             :Type(/<Filespec>),
             :$file-name,
-            :embedded-file{ :$F },
+            :embedded-files{ :$F },
         };
 
         %!attachments{$file-name} = $filespec;
