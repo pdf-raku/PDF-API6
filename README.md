@@ -1724,7 +1724,9 @@ StrokeAlpha | CA | The constant shape or constant opacity value to be used when 
 StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | `.StrokeColor = :DeviceRGB[.7,.2,.2]`
 
 [1] See also the [transform](#transform) method
+
 [2] See [Line Cap Enumerations](#line-cap-enumerations)
+
 [3] See [Line Join Enumerations](#line-join-enumerations)
 
 
