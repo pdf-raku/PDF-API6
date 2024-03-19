@@ -1717,13 +1717,16 @@ CTM |  | The current transformation matrix | [1,0,0,1,0,0] | `.ConcatMatrix: :sc
 DashPattern | D |  A description of the dash pattern to be used when paths are stroked | solid | `.DashPattern = [[3, 5], 6];`
 FillAlpha | ca | The constant shape or constant opacity value to be used for other painting operations | 1.0 | `.FillAlpha = 0.25`
 FillColor| | current fill color-space and color | :DeviceGray[0.0] | `.FillColor = :DeviceCMYK[.7,.2,.2,.1]`
-LineCap  |  LC | A code specifying the shape of the endpoints for any open path that is stroked | 0 (butt) | `.LineCap = LineCaps::RoundCaps;` | See [Line Cap Enumerations](#line-cap-enumerations)
-LineJoin | LJ | A code specifying the shape of joints between connected segments of a stroked path | 0 (miter) | `.LineJoin = LineJoin::RoundJoin` | See [Line Join Enumerations](#line-join-enumerations)
+LineCap  |  LC | A code specifying the shape of the endpoints for any open path that is stroked | 0 (butt) | `.LineCap = LineCaps::RoundCaps;` | [2]
+LineJoin | LJ | A code specifying the shape of joints between connected segments of a stroked path | 0 (miter) | `.LineJoin = LineJoin::RoundJoin` | [3]
 LineWidth | w | Stroke line-width | 1.0 | `.LineWidth = 2.5`
 StrokeAlpha | CA | The constant shape or constant opacity value to be used when paths are stroked | 1.0 | `.StrokeAlpha = 0.5;`
 StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | `.StrokeColor = :DeviceRGB[.7,.2,.2]`
 
 [1] See also the [transform](#transform) method
+[2] See [Line Cap Enumerations](#line-cap-enumerations)
+[3] See [Line Join Enumerations](#line-join-enumerations)
+
 
 #### General Graphics - Advanced State Variables
 
