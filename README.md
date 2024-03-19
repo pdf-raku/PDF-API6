@@ -98,7 +98,10 @@ PDF::API6 - A Raku PDF API
        - [Graphics Introspection Methods](#graphics-introspection-methods)
        - [Method current-point()](#method-current-point)
        - [Graphics Tracing](#graphics-tracing)
-   - [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
+   - [Appendix II: Enumerations](#appendix-ii-enumerations)
+       - [Text Rendering Modes](#text-rendering-modes)
+       - [Line Cap Enumerations](#line-cap-enumerations)
+       - [Line Join Enumerations](#line-join-enumerations)
    - [Appendix III: Module Overview](#appendix-iii-module-overview)
 # NAME
 
@@ -896,7 +899,7 @@ use PDF::Content::Ops :OpCode
 $gfx.op(OpCode::TextMove, 10,20);
 $gfx.op('Td', 10,20);  # TextMove
 ```
-A number of graphics variables are tracked as the instructions are executed. For example,
+A number of [graphics variables](#graphics-variables) are tracked as the instructions are executed. For example,
 to set the line-width for stroking operations:
 ```raku
 $gfx.LineWidth = 2.5;
@@ -1033,7 +1036,7 @@ $pdf.save-as: "tmp/text-render-modes.pdf";
 
 ![example.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/text-render-modes-001.png)
 
-See [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
+See [Appendix II: Enumerations - Text Rendering Modes](#text-rendering-modes)
 
 ## Rendering Methods
 
@@ -1657,7 +1660,7 @@ The PDF standard defines a state machine for rendering graphics. There are
 a set of graphics operations that are used to construct content, or affect the
 graphics state. These are short codes that appear in a content stream (e.g. 'cm'). [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku/PDF/Content/Ops) implements a graphics engine that can execute these operations and maintain graphics state.
 
-The operations and graphics variables accessors are mapped to (camel-cased) mnemonics that can be executed as methods on the [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku//PDF/Content/Ops) `$gfx` object.
+The graphics operations and variables accessors are mapped to (camel-cased) mnemonics that can be executed as methods on the [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku//PDF/Content/Ops) `$gfx` object.
 
 For example 'cm' is mapped to the `ConcatMatrix` mnemonic. Its takes a matrix array as an argument and updates the `CTM` graphics state variable.
 
@@ -1702,7 +1705,7 @@ TextRise | Trise | Text rise | 0.0 | `.TextRise = 3`
 
 [2] See also the [font](#font-core-font) method.
 
-[3] See [Appendix II: Text Rendering Modes](#appendix-ii-text-rendering-modes)
+[3] See [Appendix II: Enumerations - Text Rendering Modes](#text-rendering-modes)
 
 #### General Graphics - Common State Variables
 
@@ -1714,8 +1717,8 @@ CTM |  | The current transformation matrix | [1,0,0,1,0,0] | `.ConcatMatrix: :sc
 DashPattern | D |  A description of the dash pattern to be used when paths are stroked | solid | `.DashPattern = [[3, 5], 6];`
 FillAlpha | ca | The constant shape or constant opacity value to be used for other painting operations | 1.0 | `.FillAlpha = 0.25`
 FillColor| | current fill color-space and color | :DeviceGray[0.0] | `.FillColor = :DeviceCMYK[.7,.2,.2,.1]`
-LineCap  |  LC | A code specifying the shape of the endpoints for any open path that is stroked | 0 (butt) | `.LineCap = LineCaps::RoundCaps;`
-LineJoin | LJ | A code specifying the shape of joints between connected segments of a stroked path | 0 (miter) | `.LineJoin = LineJoin::RoundJoin`
+LineCap  |  LC | A code specifying the shape of the endpoints for any open path that is stroked | 0 (butt) | `.LineCap = LineCaps::RoundCaps;` | See [Line Cap Enumerations](#line-cap-enumerations)
+LineJoin | LJ | A code specifying the shape of joints between connected segments of a stroked path | 0 (miter) | `.LineJoin = LineJoin::RoundJoin` | See [Line Join Enumerations](#line-join-enumerations)
 LineWidth | w | Stroke line-width | 1.0 | `.LineWidth = 2.5`
 StrokeAlpha | CA | The constant shape or constant opacity value to be used when paths are stroked | 1.0 | `.StrokeAlpha = 0.5;`
 StrokeColor| | current stroke color-space and color | :DeviceGray[0.0] | `.StrokeColor = :DeviceRGB[.7,.2,.2]`
@@ -1941,16 +1944,23 @@ To break this down:
 - The `font()` method sets the current font object and size. Behind the scenes it has also set up a font dictionary, registered as /F1 for the font
 - The `print()` command is displaying text using thew ShowText (Tj) operator
 
-
 The following methods give an overview of the current state of the graphics engine:
 
-## Appendix II: Text Rendering Modes
+## Appendix II: Enumerations
 
+### Text Rendering Modes
+
+```raku
+use PDF::Content::Ops :TextMode;
+$gfx.text: {
+    .TextRender = TextMode::OutlineText;
+    .say: "Outlined";
+    # ...
+}
+```
 Text is filled using the current `FillColor` and/or stroked using the
 current `StrokeColor`, depending on the current `TextRender` mode
 as listed below.
-
-Enumerations can be imported via `use PDF::Content::Ops :TextMode`
 
 Mode | Enumeration | Description
 ---- | ----------- | -----------
@@ -1962,6 +1972,32 @@ Mode | Enumeration | Description
 5 | OutlineClipText | Stroke text and add to path for clipping.
 6 | FillOutlineClipText | Fill, then stroke text and add to path for clipping.
 7 |ClipText | Add text to path for clipping.
+
+### Line Cap Enumerations
+
+```raku
+use PDF::Content::Ops :LineCaps;
+$gfx.LineCap = LineCaps::SquareCaps;
+```
+
+Mode | Enumeration | Description
+---- | ----------- | -----------
+0 | ButtCaps | Square ends (default)
+1 | RoundCaps | Semicircular ends
+2 | SquareCaps | Squared and projected a half line-width
+
+### Line Join Enumerations
+
+```raku
+use PDF::Content::Ops :LineJoin;
+$gfx.LineJoin = LineJoin::RoundJoin;
+```
+Mode | Enumeration | Description
+---- | ----------- | -----------
+0 | MiterJoin | Fully extended joins (default)
+1 | RoundJoin | Rounded joins
+2 | BevelJoin | Truncated joins (similar to ButtCaps)
+
 
 ## Appendix III: Module Overview
 
