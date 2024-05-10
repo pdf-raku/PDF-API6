@@ -7,7 +7,7 @@
   ],
   "depends": [
     "PDF:ver<0.5.9+>",
-    "PDF::Class:ver<0.5.5+>",
+    "PDF::Class:ver<0.5.16+>",
     "PDF::Content:ver<0.7.0+>"
   ],
   "description": "Facilitates the creation and modification of PDF files",
