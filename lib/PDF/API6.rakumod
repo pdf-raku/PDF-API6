@@ -25,6 +25,7 @@ class PDF::API6:ver<0.2.8>
     use PDF::COS::Dict;
     use PDF::COS::Name;
     use PDF::API6::Preferences;
+    use PDF::Content::Text::Box;
 
     subset PageRef where {$_ ~~ UInt|Str|PDF::Page|PDF::Destination|PDF::Action::GoTo};
     sub prefix:</>($name) { PDF::COS::Name.COERCE($name) };
@@ -127,7 +128,7 @@ class PDF::API6:ver<0.2.8>
 
     #| Make a URI (link) action
     multi method action( Str :$uri! --> PDF::Action::URI) {
-        my $URI = uri-to-ascii($uri);
+        my Str:D $URI = uri-to-ascii($uri);
         PDF::Action::URI.COERCE: {
             :Type(/'Action'),
             :S(/'URI'),
@@ -249,20 +250,23 @@ class PDF::API6:ver<0.2.8>
 
     }
 
-    method !annot(PageRef :page($page-ref)! is copy,
-                  Str :$text,
-                  *%dict is copy) { 
+    my subset Text where Str|PDF::Content::Text::Box;
+    method !annot(
+        PageRef:D :page($page-ref)!,
+        Text :$text is copy = Str,
+        *%dict is copy) {
 
         my PDF::Page:D $page = $.page($page-ref);
         my $gfx = $page.gfx;
-        my List $rect;
 
         %dict<Type> //= /'Annot';
-        with $text {
-            my $text-box = $gfx.text-box( :$text, :baseline<bottom>);
-            my @text-region[4] = $gfx.print($text-box);
-            @text-region[1] -= $text-box.TextRise;
-            @text-region[3] -= $text-box.TextRise;
+        if $text.defined {
+            $text = $gfx.text-box: :$text, :baseline<bottom>
+                  if $text ~~ Str;
+
+            my @text-region[4] = $gfx.print($text);
+            @text-region[1] -= $text.TextRise;
+            @text-region[3] -= $text.TextRise;
             %dict<rect> //= [ $gfx.base-coords: |@text-region ];
         }
 
@@ -278,23 +282,23 @@ class PDF::API6:ver<0.2.8>
     #| Make a page annotation with a destination; e.g. link to another page
     multi method annotation(:$page!, DestRef :$destination!, *%props) {
         my $Subtype = /'Link';
-        self!annot( :$Subtype, :$page, :$destination, |%props);
+        self!annot: :$Subtype, :$page, :$destination, |%props;
     }
     #| Alias :Dest to :destination
     multi method annotation(:Dest($destination)!, |c) {
-        $.annotation(:$destination, |c);
+        $.annotation: :$destination, |c;
     }
 
     #| Make a page annotation with an action; e.g. URL link
     multi method annotation(:$page!, PDF::Action :$action!, *%props) {
         my $Subtype = /'Link';
-        self!annot( :$Subtype, :$page, :$action, |%props);
+        self!annot: :$Subtype, :$page, :$action, |%props;
     }
 
     #| Make a file attachment annotation
     multi method annotation(:$page!, PDF::Filespec :$attachment!, *%props) {
         my $Subtype = /'FileAttachment';
-        my $annot = self!annot( :$Subtype, :$page, :file-spec($attachment), |%props);
+        my $annot = self!annot: :$Subtype, :$page, :file-spec($attachment), |%props;
     }
 
     #| Make a page text (sticky note) annotation
@@ -340,7 +344,7 @@ class PDF::API6:ver<0.2.8>
             die "unsupported colorspace(s): {.[2]}"
                 unless .[2] ~~ 'DeviceCMYK';
             my $function = .TintTransform.calculator;
-            die "unsupported colorspace transform: {.TintTransform.perl}"
+            die "unsupported colorspace transform: {.TintTransform.raku}"
                 unless $function.domain.elems == 1
                 && $function.range.elems == 4;
             @functions.push: $function;
