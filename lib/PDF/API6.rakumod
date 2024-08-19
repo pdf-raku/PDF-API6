@@ -77,7 +77,7 @@ class PDF::API6:ver<0.2.8>
             $_ = PDF::COS::Name.COERCE($_)
                 unless $_ ~~ PDF::COS::Name|PDF::COS::ByteString;
         }
-        $.destinations{$name} = $dest;
+        $.protect: { $.destinations{$name} = $dest };
         $name;
     }
 
@@ -230,7 +230,7 @@ class PDF::API6:ver<0.2.8>
             :embedded-files{ :$F },
         };
 
-        %!attachments{$file-name} = $filespec;
+        $.protect: { %!attachments{$file-name} = $filespec };
     }
 
     method cb-finish {
