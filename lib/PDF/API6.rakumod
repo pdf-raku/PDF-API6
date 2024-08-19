@@ -26,6 +26,7 @@ class PDF::API6:ver<0.2.8>
     use PDF::COS::Name;
     use PDF::API6::Preferences;
     use PDF::Content::Text::Box;
+    has Lock $!lock handles<protect> .= new() ;
 
     subset PageRef where {$_ ~~ UInt|Str|PDF::Page|PDF::Destination|PDF::Action::GoTo};
     sub prefix:</>($name) { PDF::COS::Name.COERCE($name) };
@@ -66,7 +67,7 @@ class PDF::API6:ver<0.2.8>
 
     has PDF::API6::Preferences $.preferences;
     method preferences {
-        $!preferences //= PDF::API6::Preferences.new: :$.catalog;
+        $.protect: { $!preferences //= PDF::API6::Preferences.new: :$.catalog };
     }
 
     #| Make a miscellaneous named destination
@@ -137,17 +138,19 @@ class PDF::API6:ver<0.2.8>
     }
     multi method action( PDF::Action::URI :$uri!) { $uri; }
 
-    method outlines is rw { self.catalog.Outlines //= {} };
+    method outlines is rw { $.protect: { self.catalog.Outlines //= %() } };
 
     method is-encrypted { ? self.Encrypt }
     method info returns PDF::Info { self.Info //= {} }
 
     has PDF::Metadata::XML $.xmp-metadata is rw;
     method xmp-metadata is rw {
-        $!xmp-metadata //= ($.catalog.Metadata //= {
-            :Type(/<Metadata>),
-            :Subtype(/<XML>),
-        });
+        $.protect: {
+            $!xmp-metadata //= ($.catalog.Metadata //= {
+                                       :Type(/<Metadata>),
+                                       :Subtype(/<XML>),
+                                   });
+        }
 
         $!xmp-metadata.decoded; # rw target
     }
@@ -235,7 +238,7 @@ class PDF::API6:ver<0.2.8>
         # final finishing hook for document. Called just prior to serializing
         if %!attachments {
             # new attachments to be added
-            my $names = $.catalog.Names //= {};
+            my $names = $.protect: { $.catalog.Names //= %() };
             with $names.EmbeddedFiles {
                 # construct a simple name tree /EmbeddedFiles entry in the Catalog. If
                 # there's an existing tree, just flatten it. Potentially expensive for

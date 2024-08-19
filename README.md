@@ -7,9 +7,6 @@ PDF::API6 - A Raku PDF API
 - [NAME](#name)
 - [DESCRIPTION](#description)
 - [EXAMPLE](#example)
-- [DIFFERENCES BETWEEN PDF::API2 AND PDF::API6](#differences-between-pdfapi2-and-pdfapi6)
-   - [PDF::API6](#pdfapi6)
-   - [TODO](#todo)
 - [SYNOPSIS](#synopsis)
 - [SECTION I: Input/Output Methods (inherited from PDF)](#section-i-inputoutput-methods-inherited-from-pdf)
    - [Input/Output](#inputoutput)
@@ -140,30 +137,6 @@ $pdf.save-as: "tmp/hello-world.pdf";
 ```
 
 ![example.pdf](https://raw.githubusercontent.com/pdf-raku/PDF-API6/master/tmp/.previews/hello-world-001.png)
-
-# DIFFERENCES BETWEEN PDF::API2 AND PDF::API6
-
-## PDF::API6
-
-- Has a Graphics State engine. This is based on the graphics operators and variables as described PDF 32000 chapter 8 "Graphics and the operators".
-
-- Supports the creation and manipulation of XObject Forms and Patterns.
-
-- Implements an Object Graph model for data access. A PDF file is modelled as an object tree of Dictionaries (Hashes) and Arrays that contain simpler
-values such as Integers, Reals and Strings.
-
-## TODO
-
-PDF::API2 features that are not yet available in PDF::API6 include:
-
-- Images. PDF::API6 supports PNG, JPEG and GIF images
-
-    - currently not supported are: TIFF and PNM images.
-
-- Fonts
-
-   - Synthetic fonts are NYI (wanted: module PDF::Font::Synthetic)
-
 
 # SYNOPSIS
 
@@ -1595,7 +1568,7 @@ links that are both internally and externally accessible.
 PDF::API6 has some basic ability to tag graphical content.
 
 See also the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module,
-which can be used with PDF::API and provides more functionality.
+which can be used with this module and provides more functionality.
 
 ### tag
 
