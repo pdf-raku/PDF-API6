@@ -70,15 +70,27 @@ class PDF::API6:ver<0.2.8>
         $.protect: { $!preferences //= PDF::API6::Preferences.new: :$.catalog };
     }
 
-    #| Make a miscellaneous named destination
-    multi method destination(Str:D :$name! is copy, |c) {
-        my PDF::Destination $dest = $.destination: |c;
-        given $name {
-            $_ = PDF::COS::Name.COERCE($_)
-                unless $_ ~~ PDF::COS::Name|PDF::COS::ByteString;
+    method !unique-dest-name($name) {
+        my $gen-name = $name;
+        my Int $n;
+        while $.destinations{$gen-name}:exists {
+            $gen-name = $name ~ '_' ~ ++$n;
         }
-        $.protect: { $.destinations{$name} = $dest };
-        $name;
+        $gen-name;
+    }
+
+    my subset DestName where PDF::COS::Name|PDF::COS::ByteString;
+    #| Make a miscellaneous named destination
+    multi method destination(Str:D :$name!, |c --> DestName:D) {
+        my PDF::Destination $dest = $.destination: |c;
+        $.protect: {
+            given self!unique-dest-name($name) {
+                $.destinations{$_} = $dest;
+                $_ ~~ DestName
+                ?? $_
+                !! PDF::COS::Name.COERCE($_)
+            }
+        }
     }
 
     #| Make a remote destination to a page (by number) in another PDF file
