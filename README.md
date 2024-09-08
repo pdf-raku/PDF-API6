@@ -691,6 +691,8 @@ $gfx.transform: :rotate(pi/4), :scale(2);
 ```
 Unlike [Text Transforms](#text-transform), Graphics Transforms accumulate; and are applied in addition to any existing transforms.
 
+Text transforms are scoped to a [graphics](#graphics) block.
+
 ### paint
 
 Synopsis: `$gfx.paint( &block?, :close, :stroke, :fill, :even-odd)`
@@ -716,7 +718,7 @@ The graphics state is saved and restored if the optional block is provided. The 
 
 ```raku
 use PDF::Content::Color :rgb;
-given $gfx: {
+given $gfx {
     .Save;
     .FillColor = rgb(.7, .7, .9);
     .StrokeColor = rgb(.9, .5, .5);
@@ -1830,6 +1832,18 @@ Method | Code | Description
  --- | --- | ---
 Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path. |
 EOClip() | W* | Modify the current clipping path by intersecting it with the current path, using the even-odd rule to determine which regions lie inside the clipping path. |
+
+The current clipping path is applied to the next painting or text output
+operation. For example:
+
+```raku
+given $gfx {
+    .Rectangle: 100, 100, 125, 20;
+    .Clip;
+    .EndPath;
+    .say: 'Clip me', :position[98, 98];
+}
+```
 
 ### Marked Content
 
