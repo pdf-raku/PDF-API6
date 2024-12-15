@@ -652,6 +652,8 @@ The optional [Text::FriBidi](https://raku.land/zef:dwarring/Text::FriBidi) modul
 - the `:direction<rlt>` option is being used
 - the input text contains [Unicode bidirectional control](https://www.w3.org/International/questions/qa-bidi-unicode-controls.en) (BiDi) characters and the `:!bidi` option has not been used to disable BiDi processing.
 
+The `:shape` enables font shaping via [HarfBuzz](https://harfbuzz.github.io/). This option works best when the font has been loaded via [PDF::Font::Loader](https://pdf-raku.github.io/PDF-Font-Loader-raku/) and the [PDF::Font::Loader::HarfBuzz](https://pdf-raku.github.io/PDF-Font-Loader-HarfBuzz-raku/) module has been installed.
+
 ### say
 
 Takes the same parameters as `print`. Sets the final text position (`$.text-position`) to the start of the next line.
