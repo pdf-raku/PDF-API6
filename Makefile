@@ -22,4 +22,7 @@ toc :
 	@mv README.tmp README.md;
 
 test :
-	@prove6 -I . t
+	@prove6 -I . -j 8 t
+
+loudtest :
+	@prove6 -I . -v t
