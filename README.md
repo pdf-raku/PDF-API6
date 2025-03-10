@@ -451,18 +451,18 @@ Debugging options:
 
 Graphics form the basis of PDF rendering and display. This includes text, images, graphics, colors and painting.
 
-Pages, XObject Forms and Tiling Patterns all have associated graphics. These can be accessed by the`.gfx` method.
+Pages, XObject Forms and Tiling Patterns all perform the [PDF::Content::Canvas](https://pdf-raku.github.io/PDF-Content-raku/PDF/Content/Canvas) role, and have associated graphics of type [PDF::Content](https://pdf-raku.github.io/PDF-Content-raku/PDF/Content). These can be accessed by the`.gfx` method.
 
 ```Raku
 use v6;
 use PDF::API6;
+use PDF::Content::Canvas;
 use PDF::Content;
 
 my PDF::API6 $pdf .= open("tmp/hello-world.pdf");
 # dump existing graphics on page 1
-my $page = $pdf.page(1);
+my PDF::Content::Canvas $page = $pdf.page(1);
 my PDF::Content $gfx = $page.gfx;
-dd $gfx.content-dump; # dump existing graphics operations
 
 # add some more text to the page
 $gfx.font = $pdf.core-font: :family<Courier>;
@@ -470,7 +470,7 @@ $gfx.text: {
     .text-position = (10, 30);
     .say("Demo added text");
 }
-
+dd $gfx.content-dump; # dump added graphics operations
 ```
 
 See also [Patterns](#patterns) and [XObject Forms](#xobject-forms) which also have associated graphics.
@@ -639,17 +639,18 @@ Synopsis: `my @rect = print(
                  $text-str-or-chunks-or-box,
                  :align<left|center|right>, :valign<top|center|bottom>,
                  :baseline-shift<top|middle|bottom|alphabetic|ideographic|hanging>,
-                 :position[x, y],
+                 :position[x, y], :offset[dx, dy],
                  :$font, :$font-size,
-                 :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
                  :kern, :squish, :$leading, :$width, :$height,
+                 :$margin-top, :$margin-right, :$margin-bottom, :$margin-left,
+                 :$.WordSpacing, :$.CharSpacing, :$.HorizScaling, :$.TextRise
                  :shape, :direction<ltr|rtl>, :!bidi, :nl)`
 
 Renders a text string, or [Text Box](https://pdf-raku.github.io/PDF-Content-raku/PDF/Content/Text/Box).
 
 The optional [Text::FriBidi](https://raku.land/zef:dwarring/Text::FriBidi) module is required when:
 
-- the `:direction<rlt>` option is being used
+- the `:direction<rtl>` option is being used
 - the input text contains [Unicode bidirectional control](https://www.w3.org/International/questions/qa-bidi-unicode-controls.en) (BiDi) characters and the `:!bidi` option has not been used to disable BiDi processing.
 
 The `:shape` enables font shaping via [HarfBuzz](https://harfbuzz.github.io/). This option works best when the font has been loaded via [PDF::Font::Loader](https://pdf-raku.github.io/PDF-Font-Loader-raku/) and the [PDF::Font::Loader::HarfBuzz](https://pdf-raku.github.io/PDF-Font-Loader-HarfBuzz-raku/) module has been installed.
