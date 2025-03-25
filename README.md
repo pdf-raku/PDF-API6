@@ -1909,7 +1909,7 @@ Returns previously closed marked content tags
 
 ### Method current-point()
 
-Returns the Current Point coordinates during path construction, as a two element list (`x` and `y`). Returns `(Numeric, Numeric)` if a path is not being constructed.
+Returns the Current Point coordinates during path construction, as a two element list (`x` and `y`). Returns `List:U` if a path is not being constructed.
 
 ### Graphics Tracing
 
