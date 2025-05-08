@@ -99,7 +99,11 @@ PDF::API6 - A Raku PDF API
        - [Text Rendering Modes](#text-rendering-modes)
        - [Line Cap Enumerations](#line-cap-enumerations)
        - [Line Join Enumerations](#line-join-enumerations)
-   - [Appendix III: Module Overview](#appendix-iii-module-overview)
+   - [Appendix III: Text Block Special Characters](#appendix-iii-text-block-special-characters)
+       - [Spacing characters](#spacing-characters)
+       - [Line breaking control](#line-breaking-control)
+   - [Bidi Control](#bidi-control)
+   - [Appendix IV: Module Overview](#appendix-iv-module-overview)
 # NAME
 
 PDF::API6 - Facilitates the creation and modification of PDF files
@@ -651,13 +655,16 @@ Renders a text string, or [Text Box](https://pdf-raku.github.io/PDF-Content-raku
 The optional [Text::FriBidi](https://raku.land/zef:dwarring/Text::FriBidi) module is required when:
 
 - the `:direction<rtl>` option is being used
-- the input text contains [Unicode bidirectional control](https://www.w3.org/International/questions/qa-bidi-unicode-controls.en) (BiDi) characters and the `:!bidi` option has not been used to disable BiDi processing.
+- the input text contains [Unicode bidirectional control](https://www.w3.org/International/questions/qa-bidi-unicode-controls.en) (BiDi) characters, and the `:!bidi` option has not been used to disable BiDi processing.
 
 The `:shape` enables font shaping via [HarfBuzz](https://harfbuzz.github.io/). This option works best when the font has been loaded via [PDF::Font::Loader](https://pdf-raku.github.io/PDF-Font-Loader-raku/) and the [PDF::Font::Loader::HarfBuzz](https://pdf-raku.github.io/PDF-Font-Loader-HarfBuzz-raku/) module has been installed.
 
+Both the [print](#print) and [say](#say) methods may interpret a number of control and spacing characters, please see [Appendix III: Text Block Special Characters](#appendix-iii-text-block-special-characters)
+for details.
+
 ### say
 
-Takes the same parameters as `print`. Sets the final text position (`$.text-position`) to the start of the next line.
+Takes the same parameters as [print](#print). Sets the final text position (`$.text-position`) to the start of the next line.
 
 ## Graphics Methods
 
@@ -968,7 +975,7 @@ use PDF::Content::Color :ColorName, :color;
 use Color::Named;
 $gfx.FillColor = color Blue; # a PDF::Content named color
 $gfx.StrokeColor = color Color::Named.new( :name<azure> );
-```    
+```
 ### Text Modes
 
 By default text is drawn solidly using the current fill color. There are other text rendering modes that alter how text is stroked and filled. For example, the FillOutLineText rendering mode strokes the text using the current StrokeColor to a thickness determined by the current LineWidth then fills it using the current FillColor.
@@ -1993,8 +2000,45 @@ Mode | Enumeration | Description
 1 | RoundJoin | Rounded joins
 2 | BevelJoin | Truncated joins (similar to ButtCaps)
 
+## Appendix III: Text Block Special Characters
 
-## Appendix III: Module Overview
+The following Unicode characters can be used to control
+layout and formatting by the [print](#print) and [say](#say) methods.
+
+### Spacing characters
+
+Character | Description
+--------- | -----------
+\c[SPACE] | Regular space
+\c[EN SPACE]  | .5 EM
+\c[EM SPACE]  | 1 EM
+\c[THREE-PER-EM SPACE] | 3 EM
+\c[FOUR-PER-EM SPACE] | 4 EM
+\c[SIX-PER-EM SPACE] | 6 EM
+\c[THIN SPACE] | .2 EM
+\c[HAIR SPACE] | .1 EM
+
+### Line breaking control
+
+Character | Description | Usage
+--------- | ----------- | -----
+\n | Logical new-line | line-break in `:verbatum mode, regular space otherwise
+\c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] | Regular and narrow non-breaking spaces |
+\c[HYPHEN] \c[HYPHEN-MINUS] | regular hyphenation |
+\c[HYPHENATION POINT] | Potential hyphenation point within a word |
+\c[ZERO WIDTH SPACE] | Potential non-hyphenating word breaks |
+
+## Bidi Control
+
+A number of [Unicode bidirectional control](https://www.w3.org/International/questions/qa-bidi-unicode-controls.en) (BiDi) characters are enabled, if the [Text::FriBidi](https://raku.land/zef:dwarring/Text::FriBidi) is installed.
+
+Bidi control character include \c[LEFT-TO-RIGHT EMBEDDING],
+\c[RIGHT-TO-LEFT EMBEDDING], \c[POP DIRECTIONAL FORMATTING] and
+other characters in the ranges x2066..x2069 and x202A..x202E.
+
+The `:!bidi` option can be  been used to disable BiDi processing, or to silence warnings if [Text::FriBidi](https://raku.land/zef:dwarring/Text::FriBidi) is not installed.
+
+## Appendix IV: Module Overview
 
 
                                PDF::API6

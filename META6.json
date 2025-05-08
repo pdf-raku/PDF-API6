@@ -8,7 +8,7 @@
   "depends": [
     "PDF:ver<0.5.9+>",
     "PDF::Class:ver<0.5.16+>",
-    "PDF::Content:ver<0.7.0+>"
+    "PDF::Content:ver<0.8.15+>"
   ],
   "description": "Facilitates the creation and modification of PDF files",
   "license": "Artistic-2.0",
