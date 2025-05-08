@@ -102,7 +102,7 @@ PDF::API6 - A Raku PDF API
    - [Appendix III: Text Block Special Characters](#appendix-iii-text-block-special-characters)
        - [Spacing characters](#spacing-characters)
        - [Line breaking control](#line-breaking-control)
-   - [Bidi Control](#bidi-control)
+       - [Bidi Control](#bidi-control)
    - [Appendix IV: Module Overview](#appendix-iv-module-overview)
 # NAME
 
@@ -2022,13 +2022,13 @@ Character | Description
 
 Character | Description | Usage
 --------- | ----------- | -----
-\n | Logical new-line | line-break in `:verbatum mode, regular space otherwise
+\n | Logical new-line | line-break in `:verbatum` mode, regular space otherwise
 \c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] | Regular and narrow non-breaking spaces |
 \c[HYPHEN] \c[HYPHEN-MINUS] | regular hyphenation |
 \c[HYPHENATION POINT] | Potential hyphenation point within a word |
 \c[ZERO WIDTH SPACE] | Potential non-hyphenating word breaks |
 
-## Bidi Control
+### Bidi Control
 
 A number of [Unicode bidirectional control](https://www.w3.org/International/questions/qa-bidi-unicode-controls.en) (BiDi) characters are enabled, if the [Text::FriBidi](https://raku.land/zef:dwarring/Text::FriBidi) is installed.
 
