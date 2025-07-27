@@ -1,4 +1,4 @@
-unit class PDF::API6:ver<0.2.8>;
+unit class PDF::API6:ver<0.2.9>;
 
 use PDF::Class;
 also is PDF::Class;

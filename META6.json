@@ -20,11 +20,11 @@
   },
   "resources": [
   ],
-  "source-url": "git://github.com/pdf-raku/PDF-API6.git",
+  "source-url": "https://github.com/pdf-raku/PDF-API6.git",
   "tags": [
     "pdf"
   ],
   "test-depends": [
   ],
-  "version": "0.2.8"
+  "version": "0.2.9"
 }
