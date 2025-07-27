@@ -212,25 +212,25 @@ sub to-page-labels(Pair @labels) {
 }
 
 method page-labels is rw {
-    Proxy.new(
-        STORE => -> $, List $_ {
-            my Pair @labels = .list;
-            $.catalog.PageLabels = %( Nums => to-page-labels(@labels) );
-        },
-        FETCH => {
-            .nums.Hash with $.catalog.PageLabels;
-        },
-    )
+    sub FETCH($) {
+        .nums.Hash with $.catalog.PageLabels;
+    }
+    sub STORE($, List $_) {
+        my Pair @labels = .list;
+        $.catalog.PageLabels = %( Nums => to-page-labels(@labels) );
+    }
+    Proxy.new: :&FETCH, :&STORE;
 }
 
 has PDF::Filespec %!attachments;
 #| Make a PDF attachment
-method attachment(Str $file-name,
-                 IO::Path :$io = $file-name.IO,
-                 blob8 :$decoded = $io.open(:bin).read,
-                 :$ModDate = $io.modified.DateTime,
-                 :$compress = True
-                   --> PDF::Filespec) {
+method attachment(
+    Str $file-name,
+    IO::Path :$io = $file-name.IO,
+    blob8 :$decoded = $io.open(:bin).read,
+    :$ModDate = $io.modified.DateTime,
+    :$compress = True
+        --> PDF::Filespec) {
     my %dict = :Type(/'EmbeddedFile');
     %dict<Params> = %( :Size(.s), :$ModDate )
         with $io;
@@ -280,16 +280,18 @@ method !annot(
               if $text ~~ Str;
 
         my @text-region[4] = $gfx.print($text);
-        @text-region[1] -= $text.TextRise;
-        @text-region[3] -= $text.TextRise;
-        %dict<rect> //= [ $gfx.base-coords: |@text-region ];
+        if $text.TextRise -> $tr {
+            $_ -= $tr for @text-region[1],  @text-region[3];
+        }
+
+        %dict<rect> //= $gfx.base-coords: |@text-region;
     }
 
     my PDF::Annot() $annot = %dict;
 
     # add a bidirectional link between the page and annotation
     $annot.page = $page;
-    ($page.Annots //= []).push: $annot; 
+    ($page.Annots //= []).push: $annot;
 
     $annot;
 }
