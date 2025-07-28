@@ -1585,11 +1585,11 @@ which can be used with this module and provides more functionality.
 ### tag
 
     my PDF::Content::Tag $tag = $gfx.tag($tag-name, &block?, *%attrs);
-    $gfx.tag: 'Span', {
+    $gfx.tag: 'Span', :Lang<es-MX>, {
         .print: 'Hasta la vista.';
-    }, :Lang<es-MX>;
+    };
 
-Create a local tag in a content stream, if a code block is given. The block is
+Create a local tag in a content stream. If a code block is given, the block's output is
 marked, otherwise a marked point is made in the content stream.
 
 ### mark
