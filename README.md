@@ -1173,7 +1173,7 @@ $pdf.xmp-metadata = $xml
 use PDF::Destination :Fit;
 given $pdf.preferences {
     .HideToolBar = True;
-    .OpenAction = $pdf.destination( :page(2), :fit(FitWindow) );
+    .OpenAction = $pdf.destination( :page(2), :fit(FitWindow), :name<intro> );
 }
 ```
 Controls viewing preferences for the PDF. Options are:
@@ -1261,12 +1261,16 @@ Print duplex by default and flip on the short edge of the sheet.
 
 Print duplex by default and flip on the long edge of the sheet.
 
-#### `$prefs.OpenAction = $pdf.destination( :$page, :fit(FitWindow));
+#### `$prefs.OpenAction = $pdf.destination( :$page, :fit(FitWindow), :name<into>);
 
 Specifying the page (either a page number or a page object) to be
 displayed by a PDF viewer, plus one of the following options:
 
 #### `destination()` Options:
+
+##### `Str :$name`
+
+Optional. See [Named Destinations](#named-destinations).
 
 ##### `:fit(FitWindow)`
 
@@ -1386,9 +1390,9 @@ use PDF::Destination :Fit;
 sub dest(|c) { :Dest($pdf.destination(|c)) }
 
 $pdf.outlines.kids = [
-          %( :Title('1. Purpose of this Document'), dest(:page(1))),
-          %( :Title('2. Pre-requisites'),           dest(:page(2))),
-          %( :Title('3. Compiler Speed-up'),        dest(:page(3))),
+          %( :Title('1. Purpose of this Document'), dest(:page(1), :name<chapt1>)),
+          %( :Title('2. Pre-requisites'),           dest(:page(2), :name<chapt2>)),
+          %( :Title('3. Compiler Speed-up'),        dest(:page(3), :name<chapt3>)),
           %( :Title('4. Recompiling the Kernel for Modules'), dest(:page(4)),
              :kids[
                 %( :Title('5.1. Configuring Debian or RedHat for Modules'),
@@ -1479,8 +1483,8 @@ $gfx.text: {
     .text-position = 377, 545;
     my PDF::Annot::Link $link = $pdf.annotation(
                      :page(1),
-                     :text("see page 2"),
-                     |dest(:page(2)),
+                     :text("see Figure-1 on page 2"),
+                     |dest(:page(2), :name<figure-1>),
                      :color(Blue),
                  );
 
@@ -1549,7 +1553,7 @@ $pdf.annotation(
 
 The `destination()` method (above), also accepts an optional `:$name` argument.
 
-This causes the PDF to keep a table that maps names to destinations. So for example:
+This causes the PDF to map names to destinations. So for example:
 
     ```
     $pdf.destination: :page(99), :name<appendix-i-graphics>;
@@ -1568,7 +1572,7 @@ links that are both internally and externally accessible.
 ```
     .text-position = 377, 545;
     my PDF::Annot::Link $link = $pdf.annotation(
-                     :page(1), # linking from page 1 [this could also be a name]
+                     :page(1), :name<appendix-i-graphics>,
                      :text("see Appendix I - graphics"),
                      :destination(:page(99), :name<appendix-i-graphics>),
                      :color(Blue),
