@@ -2058,8 +2058,6 @@ The `:!bidi` option can be  been used to disable BiDi processing, or to silence 
                         |
                         | ..<... PDF::Font::Loader
                         |
-                        ^
-                        |
                         |
     1.                 PDF
                         |
@@ -2087,8 +2085,6 @@ for use by *PDF::Lite* or above.
 3. *PDF::Class* is a comprehensive set of classes that understand most of
 the commonly used objects in a PDF, including fonts, interactive features, tagged
 PDF, AcroForm fields and annotations.
-
-*PDF::Lite* understands content only, including pages and xobjects (forms and images). 
 
 The optional *PDF::Tags* module is applicable to PDF files that are 'Tagged'. It
 presents a DOM like interface for reading document structure elements.
