@@ -2046,9 +2046,9 @@ The `:!bidi` option can be  been used to disable BiDi processing, or to silence 
 
 
                     PDF::API6
-                        |
-                        |
-    3.              PDF::Class
+                        |           FDF
+                        |            :
+    3.              PDF::Class.......+
                         |
                         | ..<... PDF::Tags
                         |
@@ -2058,9 +2058,8 @@ The `:!bidi` option can be  been used to disable BiDi processing, or to silence 
                         |
                         | ..<... PDF::Font::Loader
                         |
-                        ^                FDF
-                        |                 |
-                        +-----------------+
+                        ^
+                        |
                         |
     1.                 PDF
                         |
@@ -2075,8 +2074,8 @@ dictionaries and arrays and the packing and unpacking of stream content.
 PDF files can be created read and updated.
 
 As well as loading PDF files, the *PDF* module can load FDF files, which are
-a closely related, but simpler format with the same syntax, commonly used to maintain
-form data associated with a PDF. There is an unreleased *FDF* module than is analogous to, but much simpler than *PDF::Class*.
+a closely related, but simpler format with the same syntax, commonly used to maintain form data associated with a PDF. There is a special-purpose *FDF*
+module for this format.
 
 2. *PDF::Lite* use to implement basic PDF content and graphics.
 This includes methods for page manipulation, images, xobject forms, graphics,
