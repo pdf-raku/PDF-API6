@@ -2045,17 +2045,16 @@ The `:!bidi` option can be  been used to disable BiDi processing, or to silence 
 ## Appendix IV: Module Overview
 
 
-                               PDF::API6
-                                  ^
-                                  |
-                                  |
-    3.       PDF::Lite         PDF::Class
-                |                 |
-                |                 | ..<... PDF::Tags
-                |                 |
-                +-----------------+
-                        ^
-    2.                  | --<--- PDF::Content
+                    PDF::API6
+                        |
+                        |
+    3.              PDF::Class
+                        |
+                        | ..<... PDF::Tags
+                        |
+    2.              PDF::Lite
+                        |
+                        | --<--- PDF::Content
                         |
                         | ..<... PDF::Font::Loader
                         |
@@ -2079,13 +2078,12 @@ As well as loading PDF files, the *PDF* module can load FDF files, which are
 a closely related, but simpler format with the same syntax, commonly used to maintain
 form data associated with a PDF. There is an unreleased *FDF* module than is analogous to, but much simpler than *PDF::Class*.
 
-2. *PDF::Content* is a set of roles that both *PDF::Class* and
-*PDF::Lite* use to implement basic PDF content and graphics.
+2. *PDF::Lite* use to implement basic PDF content and graphics.
 This includes methods for page manipulation, images, xobject forms, graphics,
 simple colors (RGB, CMYK and Gray-scale) and core-fonts.
 
 The optional *PDF::Font::Loader* can be used to load Type-1 and Free-Type fonts
-for use by either *PDF::Class*, or *PDF::Lite*.
+for use by *PDF::Lite* or above.
 
 3. *PDF::Class* is a comprehensive set of classes that understand most of
 the commonly used objects in a PDF, including fonts, interactive features, tagged
