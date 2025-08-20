@@ -1572,7 +1572,7 @@ links that are both internally and externally accessible.
 ```
     .text-position = 377, 545;
     my PDF::Annot::Link $link = $pdf.annotation(
-                     :page(1), :name<appendix-i-graphics>,
+                     :page(1),
                      :text("see Appendix I - graphics"),
                      :destination(:page(99), :name<appendix-i-graphics>),
                      :color(Blue),
