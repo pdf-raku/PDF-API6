@@ -37,17 +37,6 @@ multi method page(PDF::Page $_) {
 multi method page(UInt:D $num) {
     self.Pages.page($num);
 }
-method destinations is rw {
-    # Depending on the PDF named destinations may be a simple /Names hash in the catalog,
-    # or a /Names /Dests name-tree
-    given self<Root> {
-        do with .<Names> {
-            do with .<Dests> {
-                .name-tree;
-            }
-        } // .<Dests>
-    }
-}
 multi method page(Str:D $name) {
     do with $.destinations {
         do with .{$name} -> PDF::Destination $_ {
@@ -64,6 +53,7 @@ multi method page(DestDict:D $_) {
 multi method page(Any:U) {
     PDF::Page;
 }
+method destinations is rw { self.<Root>.destinations }
 
 has PDF::API6::Preferences $.preferences;
 method preferences {
@@ -80,15 +70,15 @@ method !unique-dest-name($name) {
 }
 
 my subset DestName where PDF::COS::Name|PDF::COS::ByteString;
+multi to-dest-name(PDF::COS::ByteString:D $_) { $_ }
+multi to-dest-name(PDF::COS::Name:D() $_) { $_ }
 #| Make a miscellaneous named destination
 multi method destination(Str:D :$name!, |c --> DestName:D) {
     my PDF::Destination $dest = $.destination: |c;
     $.protect: {
         given self!unique-dest-name($name) {
             $.destinations{$_} = $dest;
-            $_ ~~ DestName
-            ?? $_
-            !! PDF::COS::Name.COERCE($_)
+            .&to-dest-name;
         }
     }
 }
