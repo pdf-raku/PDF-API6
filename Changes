@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.2.10  2025-12-22T07:33:49+13:00
+   - Delegate destination() method to PDF::Class 0.5.27+
+
 0.2.9  2025-07-28T08:35:45+12:00
    - Add locks for concurrency.
 
