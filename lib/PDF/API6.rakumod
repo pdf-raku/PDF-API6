@@ -315,25 +315,24 @@ multi method annotation(:$page!, Str :$content!, *%props) {
 }
 
 subset DeviceColor of Pair where .key ~~ 'DeviceRGB'|'DeviceCMYK'|'DeviceGray';
-method color-separation(Str $name, DeviceColor $color --> PDF::ColorSpace::Separation) {
-    my Numeric @Range;
+method color-separation(Str:D $name, DeviceColor:D $color --> PDF::ColorSpace::Separation) {
     my List $v = $color.value;
-    my Str $encoded;
-    given $color.key {
+    my :(@Range, @sample) := do given $color.key {
         when 'DeviceRGB' {
-            @Range = $v[0],1, $v[1],1, $v[2],1;
-            $encoded = 'FF' x 3   ~  '00' x 3  ~  '>';
+            [$v[0],1, $v[1],1, $v[2],1],
+            [flat('FF' xx 3, '00' xx 3)];
         }
         when 'DeviceCMYK' {
-            @Range = 0,$v[0], 0,$v[1], 0,$v[2], 0,$v[3];
-            $encoded = '00' x 4  ~  'FF' x 4  ~  '>';
+            [0,$v[0], 0,$v[1], 0,$v[2], 0,$v[3]],
+            [flat('00' xx 4, 'FF' xx 4)];
         }
         when 'DeviceGray' {
-            @Range = 0,$v[1];
-            $encoded = 'FF00>';
+            [0, $v[1]],
+            ['FF', '00'];
         }
     }
 
+    my Str:D $encoded = @sample.join ~ '>';
     my %dict = :Domain[0,1], :@Range, :Size[2,], :BitsPerSample(8), :Filter( /<ASCIIHexDecode> );
     my PDF::Function::Sampled() $function = %( :%dict, :$encoded );
     PDF::ColorSpace::Separation.COERCE: [ /<Separation>, /$name, /($color.key), $function ];
