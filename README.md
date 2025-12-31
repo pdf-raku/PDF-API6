@@ -363,7 +363,7 @@ $pdf.add-page($moved-page);
 
 Converts a page to an [XObject Form](#xobject-forms).
 
-This is useful if you want to transpose the imported page somewhat differently onto a page (e.g. two-up, four-up, etc.).
+This is useful if you want to transpose the imported page somewhat differently onto a page (e.g. two-up, four-up, etc.), or include further graphics on the output page.
 
 Example:
 ```raku
@@ -394,19 +394,19 @@ Synopsis: `my PDF::XObject::Image @images = $gfx.images: :inline;`
 
 This method extracts image objects for a given page, or other graphical element:
 
-The `:inline` flag will check for any image objects in the graphical content stream.
+The `:inline` flag will include any image objects in the graphical content stream.
 
 ### media-box, crop-box, trim-box, bleed-box, art-box, bleed
 
 A page has several different bounding boxes:
 
-- crop-box -- the region of the PDF that is displayed or printed
-- media-box -- width and height of the printed page
-- trim-box -- the intended dimensions of the finished page
-- bleed-box -- the region to which the page contents needs to be clipped when output in a production environment.
-- art-box -- for general use
+- `crop-box` -- the region of the PDF that is displayed or printed
+- `media-box` -- width and height of the printed page
+- `trim-box` -- the intended dimensions of the finished page
+- `bleed-box` -- the region to which the page contents needs to be clipped when output in a production environment.
+- `art-box` -- for general use
 
-`bleed` is a convenience method for setting up or showing a bleed gutter area surrounding the trim-box. It should usually be set up after the trim box.
+`bleed` is a convenience method for setting up or deriving a bleed gutter area surrounding the trim-box. It should usually be set up after the trim box.
 
 Example:
 ```Raku
@@ -481,8 +481,9 @@ See also [Patterns](#patterns) and [XObject Forms](#xobject-forms) which also ha
 
 ## Text Methods
 
-Text-blocks are designed to construct one or more paragraphs of
-text. The [print](#print) method can be used to add text to a line. The [say](#say) methods adds text then advances to the start of the next line.
+The [text](#text) method enables the construction of flowing text.
+
+The [print](#print) can then be used to add text to a line. The [say](#say) methods adds text then advances to the start of the next line.
 
 ```raku
 use PDF::API6;
@@ -2026,7 +2027,7 @@ Character | Description
 
 Character | Description | Usage
 --------- | ----------- | -----
-\n | Logical new-line | line-break in `:verbatum` mode, regular space otherwise
+\n | Logical new-line | line-break in `:verbatim` mode, regular space otherwise
 \c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] | Regular and narrow non-breaking spaces |
 \c[HYPHEN] \c[HYPHEN-MINUS] | regular hyphenation |
 \c[HYPHENATION POINT] | Potential hyphenation point within a word |

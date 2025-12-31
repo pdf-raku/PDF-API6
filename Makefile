@@ -14,7 +14,7 @@ previews :
 	@raku -M PDF::To::Cairo -c;
 	@rm -f tmp/.previews/*.png;
 	@prove6 -I . t/01-readme.t;
-	pdf-previews.raku tmp/;
+	pdf-previews tmp/;
 	git add -f tmp/.previews/*.png;
 
 toc :
