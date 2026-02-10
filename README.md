@@ -450,7 +450,7 @@ Debugging options:
     - `:comment` write explanatory comments into the content stream, including
        operator mnemonics and original un-encoded text. These may make it a bit
        easier for developers to interpret the content stream within the PDF. Note
-       that setting both :comment` and `:trace` options will direct the trace output
+       that setting both `:comment` and `:trace` options will direct the trace output
        output to the content stream as comments.
 
 Graphics form the basis of PDF rendering and display. This includes text, images, graphics, colors and painting.
@@ -658,7 +658,7 @@ The optional [Text::FriBidi](https://raku.land/zef:dwarring/Text::FriBidi) modul
 - the `:direction<rtl>` option is being used
 - the input text contains [Unicode bidirectional control](https://www.w3.org/International/questions/qa-bidi-unicode-controls.en) (BiDi) characters, and the `:!bidi` option has not been used to disable BiDi processing.
 
-The `:shape` enables font shaping via [HarfBuzz](https://harfbuzz.github.io/). This option works best when the font has been loaded via [PDF::Font::Loader](https://pdf-raku.github.io/PDF-Font-Loader-raku/) and the [PDF::Font::Loader::HarfBuzz](https://pdf-raku.github.io/PDF-Font-Loader-HarfBuzz-raku/) module has been installed.
+The `:shape` option enables font shaping via [HarfBuzz](https://harfbuzz.github.io/). This option works best when the font has been loaded via [PDF::Font::Loader](https://pdf-raku.github.io/PDF-Font-Loader-raku/) and the [PDF::Font::Loader::HarfBuzz](https://pdf-raku.github.io/PDF-Font-Loader-HarfBuzz-raku/) module has been installed.
 
 Both the [print](#print) and [say](#say) methods may interpret a number of control and spacing characters, please see [Appendix III: Text Block Special Characters](#appendix-iii-text-block-special-characters)
 for details.
@@ -1603,7 +1603,8 @@ marked, otherwise a marked point is made in the content stream.
     say $mark.mcid;
 
 Similar to the `tag` method, but allocates a marked content identifier (MCID)
-for marked content that forms part of a document's logical structure.
+for marked content that forms part of a document's logical structure. Note
+that marks cannot be nested.
 
 See also the [PDF::Tags](https://pdf-raku.github.io/PDF-Tags-raku/) module, which
 can be used in conjunction with [this module](https://pdf-raku.github.io/PDF-API6)
@@ -1795,7 +1796,7 @@ SetTextMatrix(a, b, c, d, e, f) | Tm | Set $.TextMatrix | [3]
 TextNextLine| T* | Move to the start of the next line
 ShowText(string) | Tj | Show a text string | [4][5]
 MoveShowText(string) | ' | Move to the next line and show a text string. | [4][5]
-MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting $.WordSpacing to  aw and $.CharSpacing to ac | [4][5]
+MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting \$.WordSpacing to aw and \$.CharSpacing to ac | [4][5]
 ShowSpacetext(array) |  TJ | Show one or more text strings, allowing individual glyph positioning. Each element of array is either a string or a number. If the element is a string, show it. If it is a number, adjust the text position by that amount | [4][5]
 
 [1] See also the [text](#text) method
@@ -2028,10 +2029,11 @@ Character | Description
 Character | Description | Usage
 --------- | ----------- | -----
 \n | Logical new-line | line-break in `:verbatim` mode, regular space otherwise
-\c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] | Regular and narrow non-breaking spaces |
+\c[NO-BREAK SPACE] \c[NARROW NO-BREAK SPACE] \c[FIGURE SPACE]| Regular, narrow and digit-width non-breaking spaces |
 \c[HYPHEN] \c[HYPHEN-MINUS] | regular hyphenation |
 \c[HYPHENATION POINT] | Potential hyphenation point within a word |
-\c[ZERO WIDTH SPACE] | Potential non-hyphenating word breaks |
+\c[ZERO WIDTH SPACE] | Zero-width breaking space | Word breaking
+\c[WORD JOINER] \c[ZERO WIDTH NO-BREAK SPACE] | Word joiners | Word joining
 
 ### Bidi Control
 
