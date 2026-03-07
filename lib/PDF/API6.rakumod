@@ -160,7 +160,7 @@ multi method action( Str :$uri! --> PDF::Action::URI) {
 }
 multi method action( PDF::Action::URI :$uri!) { $uri; }
 
-method outlines is rw { $.protect: { self.catalog.Outlines //= %() } };
+method outlines is rw { $.protect: { self.catalog.Outlines //= %( :Type(/'Outlines') ) } };
 
 method is-encrypted { ? self.Encrypt }
 method info returns PDF::Info { self.Info //= {} }
