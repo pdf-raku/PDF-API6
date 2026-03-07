@@ -16,7 +16,7 @@ use PDF::Info;
 use PDF::Filespec;
 use PDF::Function::Sampled;
 use PDF::Metadata::XML;
-use PDF::Page;
+use PDF::Class::PageRef;
 
 use PDF::Class::Util :from-roman;
 use PDF::COS;
@@ -40,15 +40,35 @@ multi method page(UInt:D $num) {
 multi method page(Str:D $name) {
     do with $.destinations {
         do with .{$name} -> PDF::Destination $_ {
-            .[0];
+            return self.page: $_;
         }
-    } // PDF::Page;
+    }
+    if $name ~~ m/^ '#'? 'page=' (\d+) $/ {
+        self.page: $0.Int;
+    }
 }
 multi method page(PDF::Destination:D $_) {
-    my PDF::Page:D $ = .[0];
+    given .[0] {
+        when UInt { self.page($_+1); }
+        default   { self.page($_); }
+    }
+}
+multi sub inherited-page(PDF::StructElem:D $se) {
+    $se.Pg // $se.P.&inherited-page
+}
+multi sub inherited-page($) { PDF::Page }
+
+multi method page(PDF::StructElem:D $se) {
+    $se.&inherited-page // do given $se.kids[0] {
+        when PDF::Class::PageRef:D { self.page: $_; }
+        default { PDF::Page }
+    }
+}
+multi method page(PDF::Class::PageRef:D $_) {
+    .Pg;
 }
 multi method page(DestDict:D $_) {
-    self.page(.<D>);
+    self.page(.<SD> // .<D>);
 }
 multi method page(Any:U) {
     PDF::Page;
@@ -131,7 +151,7 @@ sub uri-to-ascii($s) {
 
 #| Make a URI (link) action
 multi method action( Str :$uri! --> PDF::Action::URI) {
-    my Str:D $URI = uri-to-ascii($uri);
+    my Str:D $URI = $uri.&uri-to-ascii;
     PDF::Action::URI.COERCE: {
         :Type(/'Action'),
         :S(/'URI'),
@@ -147,14 +167,12 @@ method info returns PDF::Info { self.Info //= {} }
 
 has PDF::Metadata::XML $.xmp-metadata is rw;
 method xmp-metadata is rw {
-    $.protect: {
+    .decoded given $.protect: {
         $!xmp-metadata //= ($.catalog.Metadata //= {
                                    :Type(/<Metadata>),
                                    :Subtype(/<XML>),
                                });
     }
-
-    $!xmp-metadata.decoded; # rw target
 }
 
 our Str enum PageLabel «

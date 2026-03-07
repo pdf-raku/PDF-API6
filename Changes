@@ -1,4 +1,5 @@
 {{$NEXT}}
+   - Supprt PDF 2.0 structure destinations
 
 0.2.10  2025-12-22T07:33:49+13:00
    - Delegate destination() method to PDF::Class 0.5.27+
