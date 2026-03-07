@@ -1,10 +1,11 @@
 use v6;
 use Test;
 use PDF::Grammar::Test :is-json-equiv;
-plan 17;
+plan 20;
 use PDF::API6;
 use PDF::Catalog;
 use PDF::Destination :Fit;
+use PDF::Outline;
 constant PageLabel = PDF::API6::PageLabel;
 
 my PDF::API6 $pdf .= new;
@@ -90,5 +91,12 @@ lives-ok {
 $pdf.id = $*PROGRAM-NAME.fmt('%-16.16s');
 $pdf.save-as: "t/preferences.pdf", :!info;
 
-done-testing;
+$pdf .= open: "t/preferences.pdf";
+my $preferences = $pdf.preferences;
+ok $preferences.HideToolbar, "re-read preferences";
 
+cmp-ok $pdf.page($preferences.OpenAction), '===', $pdf.page(1), 'open page from open-action destination';
+my PDF::Outline @kids = $pdf.outlines.get-kids;
+cmp-ok $pdf.page(@kids[2].Dest), '===', $pdf.page(2), 'open page from outline destination';
+
+done-testing;
