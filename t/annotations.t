@@ -92,23 +92,23 @@ $gfx.text: {
 
     ok  $page1.Annots[3] === $link, "remote link added";
     my PDF::Action::GoToR $action = $link.action;
-    is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annonation file';
-    is $action.destination.page, 1, 'Goto annonation page index';
-    is $action.destination.fit, FitXYZoom, 'Goto annonation fit';
+    is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annotation file';
+    is $action.destination.page, 1, 'Goto annotation page index';
+    is $action.destination.fit, FitXYZoom, 'Goto annotation fit';
 
     my PDF::Annot::Text $note;
-    my $content = "To be, or not to be: that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them?";
+    my $contents = "To be, or not to be: that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them?";
 
     lives-ok { $note = $pdf.annotation(
                      :page(1),
-                     :$content,
+                     :$contents,
                      :rect[ 377, 465, 455, 477 ],
                      :color[0, 0, 1],
                      :Open,
                  ); }, 'construct text note annot';
 
     ok  $page1.Annots[4] === $note, "text annot added";
-    is $note.content, $content, "Text note annotation";
+    is $note.contents, $contents, "Text note annotation";
 
     my $border-style = {
         :width(1),  # 1 point width
@@ -134,7 +134,7 @@ $gfx.text: {
                      :page(1),
                      :$attachment,
                      :text-label("Light Bulb"),
-                     :content('An example attached image file'),
+                     :contents('An example attached image file'),
                      :icon-name<Paperclip>,
                      :rect[ 377, 395, 425, 412 ],
                  ); }, 'construct file attachment annot';

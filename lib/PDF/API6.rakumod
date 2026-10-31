@@ -304,6 +304,10 @@ method !annot(
     $annot;
 }
 
+multi method annotation(Str :content($contents)!, *%props) is DEPRECATED('annotation(:$contents, ...)') {
+    self.annotation(:$contents, |%props);
+}
+
 #| Make a page annotation with a destination; e.g. link to another page
 multi method annotation(:$page!, DestRef :$destination!, *%props) {
     my $Subtype = /'Link';
@@ -327,9 +331,9 @@ multi method annotation(:$page!, PDF::Filespec :$attachment!, *%props) {
 }
 
 #| Make a page text (sticky note) annotation
-multi method annotation(:$page!, Str :$content!, *%props) {
+multi method annotation(:$page!, Str :$contents!, *%props) {
     my $Subtype = /'Text';
-    self!annot( :$Subtype, :$page, :$content, |%props);
+    self!annot( :$Subtype, :$page, :$contents, |%props);
 }
 
 subset DeviceColor of Pair where .key ~~ 'DeviceRGB'|'DeviceCMYK'|'DeviceGray';
@@ -391,7 +395,7 @@ method color-devicen(@colors --> PDF::ColorSpace::DeviceN) {
         }
     }
 
-    my buf8 $decoded .= new: @samples.flat.map: {(min($_,1.0) * 255).round};
+    my buf8 $decoded .= new: @samples.flat.map: {(.&min(1.0) * 255).round};
 
     my %dict = :@Domain, :@Range, :@Size, :BitsPerSample(8), :Filter( /<ASCIIHexDecode> );
     my @names = @colors.map: *.Name;

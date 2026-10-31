@@ -1445,7 +1445,7 @@ use PDF::Annot::Text;
 my PDF::Annot::Link $page-link = $pdf.annotation: :$page, :$action, |%props;
 my PDF::Annot::Link $dest-link = $pdf.annotation: :$page, :$destination, |%props;
 my PDF::Annot::FileAttachment $attachment = $pdf.annotation: :$page, :$attachment, :icon-name<Paperclip|GraphPushPin>, :$text-label, |%props;
-my PDF::Annot::Text $sticky-note = $pdf.annotation: :$page, :$content, :$Open, |%props;
+my PDF::Annot::Text $sticky-note = $pdf.annotation: :$page, :$contents, :$Open, |%props;
 ```
 Where:
 
@@ -1522,7 +1522,7 @@ $gfx.text: {
 }
 
 #-- Create a Text annotation --
-my Str $content = q:to<END-QUOTE>;
+my Str $contents = q:to<END-QUOTE>;
     To be, or not to be: that is the question: Whether 'tis
     nobler in the mind to suffer the slings and arrows of
     outrageous fortune, or to take arms against a sea of
@@ -1531,19 +1531,19 @@ END-QUOTE
 
 my PDF::Annot::Text $note = $pdf.annotation(
              :page(1),
-             :$content,
+             :$contents,
              :rect[ 377, 455, 455, 467 ],
              :color[0, 0, 1],
          );
 
 #--  Add a File Attachment annotation
 my PDF::Filespec $attachment = $pdf.attachment("t/images/lightbulb.png");
-$content = 'Click on the paperclip to see an image as an example image attachment';
+$contents = 'Click on the paperclip to see an image as an example image attachment';
 $pdf.annotation(
              :page(1),
              :$attachment,
              :text-label("Light Bulb"),
-             :$content,
+             :$contents,
              :icon-name<Paperclip>,
              :rect[ 377, 395, 425, 412 ],
          );
