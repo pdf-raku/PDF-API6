@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.2.11  2026-11-01T08:34:53+13:00
    - Support PDF 2.0 structure destinations
    - The annot(:$content, ...) option is deprecated in favour of
      annot(:$contents, ...) to avoid a conflict with the underlying
