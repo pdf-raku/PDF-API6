@@ -56,7 +56,7 @@ multi method page(PDF::Destination:D $_) {
 multi sub inherited-page(PDF::StructElem:D $se) {
     $se.Pg // $se.P.&inherited-page
 }
-multi sub inherited-page($) { PDF::Page }
+multi sub inherited-page(Any:U) { PDF::Page }
 
 multi method page(PDF::StructElem:D $se) {
     $se.&inherited-page // do given $se.kids[0] {

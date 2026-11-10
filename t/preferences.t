@@ -65,7 +65,7 @@ sub dest(|c) { :Dest($pdf.destination(|c)) }
 my Pair $dest = dest(:page(3));
 is $dest.key, 'Dest', '$dest.key';;
 does-ok $dest.value, PDF::Destination['Fit'];
-is-deeply $dest.value.page, $pdf.page(3), '$dest.value.page';
+is-deeply $pdf.page($dest.value), $pdf.page(3), '$dest.value.page';
 is $dest.value.fit, 'Fit', '$dest.value.fit';
 
 lives-ok {

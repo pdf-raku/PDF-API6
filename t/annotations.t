@@ -47,7 +47,7 @@ is $link-name, 'foo'; # named destination
 
 my PDF::Destination $dest = $pdf.catalog<Dests>{$link-name};
 ok $dest.defined, "named destination added";
-ok $dest.page === $page2, "dest page dereference";
+ok $pdf.page($dest) === $page2, "dest page dereference";
 
 ok $page1.Annots[0] === $link, "annot added to source page";
 ok $page1.Annots[0].P === $pdf.page(1), "/P entry in annots";
@@ -65,7 +65,7 @@ lives-ok { $link = $pdf.annotation(
 $gfx.Restore;
 
 ok  $page1.Annots[1] === $link, "annot added to source page";
-ok $link.destination.page == $page2, "annot reference to destination page";
+ok $pdf.page($link.destination) == $page2, "annot reference to destination page";
 
 $gfx.text: {
     .text-position = 377, 515;
@@ -93,7 +93,7 @@ $gfx.text: {
     ok  $page1.Annots[3] === $link, "remote link added";
     my PDF::Action::GoToR $action = $link.action;
     is $action.file, '../t/pdf/OoPdfFormExample.pdf', 'Goto annotation file';
-    is $action.destination.page, 1, 'Goto annotation page index';
+    is $action.destination[0], 1, 'Goto annotation page index';
     is $action.destination.fit, FitXYZoom, 'Goto annotation fit';
 
     my PDF::Annot::Text $note;
