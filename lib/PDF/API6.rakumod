@@ -1,4 +1,4 @@
-unit class PDF::API6:ver<0.2.11>;
+unit class PDF::API6:ver<0.2.12>;
 
 use PDF::Class;
 also is PDF::Class;
@@ -28,7 +28,7 @@ use PDF::API6::Preferences;
 use PDF::Content::Text::Box;
 has Lock $!lock handles<protect> .= new() ;
 
-subset PageRef where {$_ ~~ UInt|Str|PDF::Page|PDF::Destination|PDF::Action::GoTo};
+subset PageRef where UInt|Str|PDF::Page|PDF::Destination|PDF::Action::GoTo;
 sub prefix:</>($name) { PDF::COS::Name.COERCE($name) };
 
 multi method page(PDF::Page $_) {
@@ -137,7 +137,7 @@ multi method action(
 
 #| Make a goto action to a page within this PDF
 multi method action( :$destination! ) {
-    my $D = coerce-dest($destination, DestRef);
+    my $D = $destination.&coerce-dest(DestRef);
     PDF::Action::GoTo.COERCE: {
         :Type(/'Action'),
         :S(/'GoTo'),

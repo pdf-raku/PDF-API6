@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.2.12  2026-11-12T06:46:19+13:00
+   - Remove use of deprecated PDF::Destination page() method in
+     test suite.
+
 0.2.11  2026-11-01T08:34:53+13:00
    - Support PDF 2.0 structure destinations
    - The annot(:$content, ...) option is deprecated in favour of
