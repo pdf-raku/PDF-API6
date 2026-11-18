@@ -1,4 +1,5 @@
 {{$NEXT}}
+   - Export page() method to PDF::Class v0.6.0
 
 0.2.12  2026-11-12T06:46:19+13:00
    - Remove use of deprecated PDF::Destination page() method in
